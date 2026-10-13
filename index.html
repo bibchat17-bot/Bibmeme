@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bibmeme</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+
+    p {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #e0e0e0;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .status-badge {
+      display: inline-block;
+      background-color: #222222;
+      border: 1px solid #333333;
+      color: #aaaaaa;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    .btn-google {
+      font-family: inherit;
+      font-weight: 800;
+      background-color: #4285f4;
+      color: white;
+      border: none;
+      padding: 14px 24px;
+      font-size: 1.1rem;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-google:hover {
+      background-color: #357ae8;
+    }
+
+    .user-card {
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      padding: 24px;
+      border-radius: 16px;
+      display: none;
+      margin-top: 10px;
+    }
+
+    .user-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-bottom: 12px;
+    }
+
+    .btn-logout {
+      background-color: #e53935;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Привет!</h1>
+    <p>Здесь вы встретите мемы, тренды и красивые фотки</p>
+    <div class="status-badge">
+      ⚠️ Так как проект делается, вы не можете сейчас пользоваться
+    </div>
+
+    <div>
+      <button id="googleLoginBtn" class="btn-google">Войти через Google</button>
+    </div>
+
+    <div id="userInfo" class="user-card">
+      <img id="userAvatar" class="user-avatar" src="" alt="Аватар">
+      <h2 id="userName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;"></h2>
+      <p id="userEmail" style="font-size: 1rem; color: #888; margin-bottom: 0;"></p>
+      <button id="logoutBtn" class="btn-google btn-logout">Выйти</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
+      authDomain: "bibmeme-def4d.firebaseapp.com",
+      projectId: "bibmeme-def4d",
+      storageBucket: "bibmeme-def4d.firebasestorage.app",
+      messagingSenderId: "640073948297",
+      appId: "1:640073948297:web:30b65e2900685b66817a58"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const loginBtn = document.getElementById("googleLoginBtn");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const userInfo = document.getElementById("userInfo");
+    const userName = document.getElementById("userName");
+    const userEmail = document.getElementById("userEmail");
+    const userAvatar = document.getElementById("userAvatar");
+
+    loginBtn.addEventListener("click", () => {
+      signInWithPopup(auth, provider)
+        .catch((error) => {
+          console.error("Ошибка входа:", error);
+          alert("Не удалось войти: " + error.message);
+        });
+    });
+
+    logoutBtn.addEventListener("click", () => {
+      signOut(auth).then(() => {
+        alert("Вы вышли из аккаунта");
+      });
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        loginBtn.style.display = "none";
+        userInfo.style.display = "block";
+        userName.textContent = user.displayName;
+        userEmail.textContent = user.email;
+        userAvatar.src = user.photoURL;
+      } else {
+        loginBtn.style.display = "inline-block";
+        userInfo.style.display = "none";
+      }
+    });
+  </script>
+
+</body>
+</html>
