@@ -33,6 +33,11 @@
       width: 100%;
     }
 
+    /* Приветствие скрывается после входа через JS */
+    #welcomeHeader {
+      margin-bottom: 24px;
+    }
+
     h1 {
       font-size: 3rem;
       font-weight: 800;
@@ -72,6 +77,36 @@
 
     .card h2 { text-align: center; }
     .card p { text-align: center; }
+
+    /* Панель навигации (Лента / Профиль) */
+    .nav-bar {
+      display: none;
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 8px;
+      margin-bottom: 16px;
+      justify-content: space-around;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: none;
+      color: #aaa;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 800;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: 0.2s;
+      flex: 1;
+    }
+
+    .nav-btn.active {
+      background-color: #333;
+      color: #fff;
+    }
 
     .btn-google {
       font-family: inherit;
@@ -180,11 +215,18 @@
 <body>
 
   <div class="container">
-    <h1>Привет!</h1>
-    <p>Здесь вы встретите мемы, тренды и красивые фотки</p>
-    
-    <div id="statusBadge" class="status-badge">
-      🚀 bibmeme
+    <div id="welcomeHeader">
+      <h1>Привет!</h1>
+      <p>Здесь вы встретите мемы, тренды и красивые фотки</p>
+      <div id="statusBadge" class="status-badge">
+        🚀 bibmeme
+      </div>
+    </div>
+
+    <!-- Панель переключения (Лента / Профиль) -->
+    <div id="navBar" class="nav-bar">
+      <button id="navFeedBtn" class="nav-btn active">🔥 Лента</button>
+      <button id="navProfileBtn" class="nav-btn">👤 Профиль</button>
     </div>
 
     <!-- Вход через Google -->
@@ -283,13 +325,8 @@
       </div>
     </div>
 
-    <!-- ЭКРАН 5: Профиль и Лента -->
-    <div id="userInfo" class="card" style="text-align: center;">
-      <img id="userAvatar" class="user-avatar" src="" alt="Аватар">
-      <h2 id="userName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px;"></h2>
-      <p id="userEmail" style="font-size: 0.9rem; color: #888; margin-bottom: 8px;"></p>
-      <div id="userCategoryBadge" style="color: #00e676; font-weight: 800; margin-bottom: 16px;"></div>
-
+    <!-- РАЗДЕЛ 5А: Лента (Вкладка 1) -->
+    <div id="feedViewCard" class="card" style="text-align: center;">
       <!-- Ночной режим сообщения -->
       <div id="nightWarningBox" style="display: none; background: #311b92; padding: 12px; border-radius: 12px; margin-bottom: 16px;">
         <p style="font-size: 0.95rem; margin-bottom: 8px;">🌙 Время спать! Отложить время?</p>
@@ -304,6 +341,14 @@
 
       <h3 style="text-align: left; margin-bottom: 12px;">Лента bibmeme:</h3>
       <div id="feedContainer" style="text-align: left;"></div>
+    </div>
+
+    <!-- РАЗДЕЛ 5Б: Профиль (Вкладка 2) -->
+    <div id="profileViewCard" class="card" style="text-align: center;">
+      <img id="userAvatar" class="user-avatar" src="" alt="Аватар">
+      <h2 id="userName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px;"></h2>
+      <p id="userEmail" style="font-size: 0.9rem; color: #888; margin-bottom: 8px;"></p>
+      <div id="userCategoryBadge" style="color: #00e676; font-weight: 800; margin-bottom: 16px;"></div>
 
       <button id="logoutBtn" class="btn-google btn-logout">Выйти</button>
       <button id="openDeleteModalBtn" class="btn-google btn-danger">Удалить аккаунт</button>
@@ -341,6 +386,7 @@
     const auth = getAuth(app);
     const provider = new GoogleAuthProvider();
 
+    const welcomeHeader = document.getElementById("welcomeHeader");
     const loginSection = document.getElementById("loginSection");
     const googleLoginBtn = document.getElementById("googleLoginBtn");
     const ageCheckCard = document.getElementById("ageCheckCard");
@@ -362,7 +408,13 @@
     const toStep3Btn = document.getElementById("toStep3Btn");
     const finishSetupBtn = document.getElementById("finishSetupBtn");
 
-    const userInfo = document.getElementById("userInfo");
+    // Вкладки и панели
+    const navBar = document.getElementById("navBar");
+    const navFeedBtn = document.getElementById("navFeedBtn");
+    const navProfileBtn = document.getElementById("navProfileBtn");
+    const feedViewCard = document.getElementById("feedViewCard");
+    const profileViewCard = document.getElementById("profileViewCard");
+
     const userName = document.getElementById("userName");
     const userEmail = document.getElementById("userEmail");
     const userAvatar = document.getElementById("userAvatar");
@@ -376,7 +428,6 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const deniedLogoutBtn = document.getElementById("deniedLogoutBtn");
 
-    // Элементы экрана удаления аккаунта
     const openDeleteModalBtn = document.getElementById("openDeleteModalBtn");
     const deleteAccountCard = document.getElementById("deleteAccountCard");
     const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
@@ -397,6 +448,23 @@
 
     const postsDatabase = [];
 
+    // Логика переключения вкладки Лента / Профиль
+    navFeedBtn.addEventListener("click", () => {
+      navFeedBtn.classList.add("active");
+      navProfileBtn.classList.remove("active");
+      feedViewCard.style.display = "block";
+      profileViewCard.style.display = "none";
+      deleteAccountCard.style.display = "none";
+    });
+
+    navProfileBtn.addEventListener("click", () => {
+      navProfileBtn.classList.add("active");
+      navFeedBtn.classList.remove("active");
+      profileViewCard.style.display = "block";
+      feedViewCard.style.display = "none";
+      deleteAccountCard.style.display = "none";
+    });
+
     googleLoginBtn.addEventListener("click", () => {
       signInWithPopup(auth, provider).catch((error) => {
         alert("Ошибка входа: " + error.message);
@@ -416,19 +484,16 @@
     logoutBtn.addEventListener("click", handleLogout);
     deniedLogoutBtn.addEventListener("click", handleLogout);
 
-    // Логика открытия экрана удаления аккаунта
     openDeleteModalBtn.addEventListener("click", () => {
-      userInfo.style.display = "none";
+      profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "block";
     });
 
-    // Отмена удаления (возврат в профиль)
     cancelDeleteBtn.addEventListener("click", () => {
       deleteAccountCard.style.display = "none";
-      userInfo.style.display = "block";
+      profileViewCard.style.display = "block";
     });
 
-    // Скачивание данных пользователя в файл
     downloadDataBtn.addEventListener("click", () => {
       const dataToSave = {
         name: currentUser.displayName,
@@ -448,7 +513,6 @@
       downloadAnchor.remove();
     });
 
-    // Окончательное удаление аккаунта
     confirmDeleteBtn.addEventListener("click", () => {
       if (confirm("Вы уверены, что хотите навсегда удалить аккаунт и все данные?")) {
         const user = auth.currentUser;
@@ -459,7 +523,6 @@
           deleteUser(user).then(() => {
             alert("Аккаунт успешно удален.");
           }).catch((error) => {
-            // Если Firebase требует свежей авторизации для удаления
             alert("Для удаления аккаунта требуется повторный вход. Пожалуйста, войдите и попробуйте снова.");
             signOut(auth);
           });
@@ -557,52 +620,68 @@
       userData.allowProfanity = (profVal === "true" && userData.age >= 13);
 
       localStorage.setItem("bibmeme_status_" + currentUser.uid, "allowed");
-      showProfile(currentUser);
+      showProfile(user); // Перенаправляем в профиль / ленту
     });
 
     function showAgeCheck() {
+      welcomeHeader.style.display = "block";
       ageCheckCard.style.display = "block";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
       setupCard.style.display = "none";
-      userInfo.style.display = "none";
+      navBar.style.display = "none";
+      feedViewCard.style.display = "none";
+      profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "none";
     }
 
     function showQuiz() {
+      welcomeHeader.style.display = "block";
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "block";
       setupCard.style.display = "none";
-      userInfo.style.display = "none";
+      navBar.style.display = "none";
+      feedViewCard.style.display = "none";
+      profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "none";
     }
 
     function showSetup() {
+      welcomeHeader.style.display = "block";
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
       setupCard.style.display = "block";
-      userInfo.style.display = "none";
+      navBar.style.display = "none";
+      feedViewCard.style.display = "none";
+      profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "none";
     }
 
     function showDenied() {
+      welcomeHeader.style.display = "block";
       ageCheckCard.style.display = "none";
       quizCard.style.display = "none";
       setupCard.style.display = "none";
-      userInfo.style.display = "none";
+      navBar.style.display = "none";
+      feedViewCard.style.display = "none";
+      profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "none";
       ageDeniedCard.style.display = "block";
     }
 
     function showProfile(user) {
+      welcomeHeader.style.display = "none"; // Убираем приветствие сверху после входа
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
       setupCard.style.display = "none";
       deleteAccountCard.style.display = "none";
-      userInfo.style.display = "block";
+
+      navBar.style.display = "flex"; // Показываем панель навигации
+      feedViewCard.style.display = "block"; // По умолчанию открыта лента
+      profileViewCard.style.display = "none";
 
       userName.textContent = user.displayName;
       userEmail.textContent = user.email;
@@ -721,12 +800,15 @@
         }
       } else {
         currentUser = null;
+        welcomeHeader.style.display = "block";
         loginSection.style.display = "block";
         ageCheckCard.style.display = "none";
         ageDeniedCard.style.display = "none";
         quizCard.style.display = "none";
         setupCard.style.display = "none";
-        userInfo.style.display = "none";
+        navBar.style.display = "none";
+        feedViewCard.style.display = "none";
+        profileViewCard.style.display = "none";
         deleteAccountCard.style.display = "none";
       }
     });
