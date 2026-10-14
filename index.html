@@ -33,7 +33,6 @@
       width: 100%;
     }
 
-    /* Приветствие скрывается после входа через JS */
     #welcomeHeader {
       margin-bottom: 24px;
     }
@@ -78,7 +77,6 @@
     .card h2 { text-align: center; }
     .card p { text-align: center; }
 
-    /* Панель навигации (Лента / Профиль) */
     .nav-bar {
       display: none;
       background-color: #1e1e1e;
@@ -142,7 +140,7 @@
       margin-right: auto;
     }
 
-    input[type="date"], input[type="text"] {
+    input[type="date"], input[type="text"], input[type="password"] {
       font-family: inherit;
       padding: 12px;
       border-radius: 8px;
@@ -289,7 +287,7 @@
       </div>
     </div>
 
-    <!-- ЭКРАН 4: Настройка профиля из 3 шагов -->
+    <!-- ЭКРАН 4: Настройка профиля из 4 шагов -->
     <div id="setupCard" class="card">
       <h2>Настройка bibmeme ⚙️</h2>
       
@@ -321,7 +319,25 @@
           • Для подростков (13-17): предупреждение в 23:00, блокировка с 1:00 до 7:00.
         </div>
         <label><input type="checkbox" id="rulesAcceptCheck"> Я прочитал и принимаю правила</label><br><br>
-        <button id="finishSetupBtn" class="btn-google">Завершить и войти</button>
+        <button id="toStep4Btn" class="btn-google">Далее к паролю</button>
+      </div>
+
+      <!-- Шаг 4: Установка пароля -->
+      <div id="setupStep4" style="display: none;">
+        <p style="text-align: left; font-size: 1rem; margin-bottom: 8px;">4. Создание пароля аккаунта (необязательно):</p>
+        <div class="rules-list" style="font-size: 0.85rem; color: #aaa; margin-bottom: 12px;">
+          Требования к паролю:<br>
+          • Не менее 6 символов<br>
+          • Начинается с заглавной буквы (A-Z, А-Я)<br>
+          • Содержит хотя бы 1 цифру (0-9)<br>
+          • Содержит спец. символ (!, @, #, $, %, etc.)
+        </div>
+        <input type="password" id="userPasswordInput" placeholder="Введите пароль...">
+        
+        <div id="passwordError" style="color: #ff5252; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; display: none; text-align: left;"></div>
+
+        <button id="finishSetupBtn" class="btn-google">Сохранить и войти</button>
+        <button id="skipPasswordBtn" class="btn-google btn-secondary">Пропустить</button>
       </div>
     </div>
 
@@ -368,6 +384,15 @@
       <button id="confirmDeleteBtn" class="btn-google btn-danger">Удалить</button>
       <button id="cancelDeleteBtn" class="btn-google btn-secondary">Отмена</button>
     </div>
+
+    <!-- ЭКРАН 7: Ошибка сервера (Лимит 300 пользователей) -->
+    <div id="serverLimitCard" class="card notice-card">
+      <h2 style="color: #ff5252; margin-bottom: 12px;">Ой! Кажется вылезла редкая ошибка</h2>
+      <p style="font-size: 1.1rem; color: #ffffff; line-height: 1.5; margin-bottom: 20px;">
+        К сожалению, сервера не выдержат более 300 человек. Ждите ожидания ... месяца.
+      </p>
+      <button id="retryServerBtn" class="btn-google btn-secondary">Обновить страницу</button>
+    </div>
   </div>
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -404,11 +429,15 @@
     const setupStep1 = document.getElementById("setupStep1");
     const setupStep2 = document.getElementById("setupStep2");
     const setupStep3 = document.getElementById("setupStep3");
+    const setupStep4 = document.getElementById("setupStep4");
     const toStep2Btn = document.getElementById("toStep2Btn");
     const toStep3Btn = document.getElementById("toStep3Btn");
+    const toStep4Btn = document.getElementById("toStep4Btn");
+    const userPasswordInput = document.getElementById("userPasswordInput");
+    const passwordError = document.getElementById("passwordError");
     const finishSetupBtn = document.getElementById("finishSetupBtn");
+    const skipPasswordBtn = document.getElementById("skipPasswordBtn");
 
-    // Вкладки и панели
     const navBar = document.getElementById("navBar");
     const navFeedBtn = document.getElementById("navFeedBtn");
     const navProfileBtn = document.getElementById("navProfileBtn");
@@ -434,6 +463,9 @@
     const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
     const downloadDataBtn = document.getElementById("downloadDataBtn");
 
+    const serverLimitCard = document.getElementById("serverLimitCard");
+    const retryServerBtn = document.getElementById("retryServerBtn");
+
     let currentUser = null;
     let isRecoveringMode = false;
 
@@ -448,7 +480,6 @@
 
     const postsDatabase = [];
 
-    // Логика переключения вкладки Лента / Профиль
     navFeedBtn.addEventListener("click", () => {
       navFeedBtn.classList.add("active");
       navProfileBtn.classList.remove("active");
@@ -610,17 +641,63 @@
       setupStep3.style.display = "block";
     });
 
-    finishSetupBtn.addEventListener("click", () => {
+    toStep4Btn.addEventListener("click", () => {
       if (!document.getElementById("rulesAcceptCheck").checked) {
         alert("Пожалуйста, подтвердите согласие с правилами!");
         return;
       }
+      setupStep3.style.display = "none";
+      setupStep4.style.display = "block";
+    });
 
+    function validatePassword(pass) {
+      if (pass.length < 6) {
+        return "Пароль должен содержать не менее 6 символов!";
+      }
+      const firstChar = pass.charAt(0);
+      if (firstChar !== firstChar.toUpperCase() || firstChar === firstChar.toLowerCase()) {
+        return "Пароль должен начинаться с заглавной буквы!";
+      }
+      if (!/\d/.test(pass)) {
+        return "Пароль должен содержать хотя бы одну цифру (0-9)!";
+      }
+      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) {
+        return "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)!";
+      }
+      return null;
+    }
+
+    finishSetupBtn.addEventListener("click", () => {
+      const passVal = userPasswordInput.value.trim();
+
+      if (passVal.length > 0) {
+        const errorMsg = validatePassword(passVal);
+        if (errorMsg) {
+          passwordError.textContent = errorMsg;
+          passwordError.style.display = "block";
+          return;
+        }
+      }
+
+      passwordError.style.display = "none";
+      saveAndEnter();
+    });
+
+    skipPasswordBtn.addEventListener("click", () => {
+      passwordError.style.display = "none";
+      saveAndEnter();
+    });
+
+    function saveAndEnter() {
       const profVal = document.querySelector('input[name="profanityOpt"]:checked').value;
       userData.allowProfanity = (profVal === "true" && userData.age >= 13);
 
       localStorage.setItem("bibmeme_status_" + currentUser.uid, "allowed");
-      showProfile(user); // Перенаправляем в профиль / ленту
+      showProfile(currentUser);
+    }
+
+    retryServerBtn.addEventListener("click", () => {
+      location.reload();
     });
 
     function showAgeCheck() {
@@ -633,6 +710,7 @@
       feedViewCard.style.display = "none";
       profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "none";
+      serverLimitCard.style.display = "none";
     }
 
     function showQuiz() {
@@ -645,6 +723,7 @@
       feedViewCard.style.display = "none";
       profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "none";
+      serverLimitCard.style.display = "none";
     }
 
     function showSetup() {
@@ -657,6 +736,7 @@
       feedViewCard.style.display = "none";
       profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "none";
+      serverLimitCard.style.display = "none";
     }
 
     function showDenied() {
@@ -668,19 +748,21 @@
       feedViewCard.style.display = "none";
       profileViewCard.style.display = "none";
       deleteAccountCard.style.display = "none";
+      serverLimitCard.style.display = "none";
       ageDeniedCard.style.display = "block";
     }
 
     function showProfile(user) {
-      welcomeHeader.style.display = "none"; // Убираем приветствие сверху после входа
+      welcomeHeader.style.display = "none";
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
       setupCard.style.display = "none";
       deleteAccountCard.style.display = "none";
+      serverLimitCard.style.display = "none";
 
-      navBar.style.display = "flex"; // Показываем панель навигации
-      feedViewCard.style.display = "block"; // По умолчанию открыта лента
+      navBar.style.display = "flex";
+      feedViewCard.style.display = "block";
       profileViewCard.style.display = "none";
 
       userName.textContent = user.displayName;
@@ -810,6 +892,7 @@
         feedViewCard.style.display = "none";
         profileViewCard.style.display = "none";
         deleteAccountCard.style.display = "none";
+        serverLimitCard.style.display = "none";
       }
     });
   </script>
