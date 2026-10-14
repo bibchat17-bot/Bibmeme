@@ -70,13 +70,8 @@
       text-align: left;
     }
 
-    .card h2 {
-      text-align: center;
-    }
-
-    .card p {
-      text-align: center;
-    }
+    .card h2 { text-align: center; }
+    .card p { text-align: center; }
 
     .btn-google {
       font-family: inherit;
@@ -93,23 +88,10 @@
       width: 100%;
     }
 
-    .btn-google:hover {
-      background-color: #357ae8;
-    }
-
-    .btn-secondary {
-      background-color: #444;
-      margin-top: 10px;
-    }
-
-    .btn-secondary:hover {
-      background-color: #555;
-    }
-
-    .btn-logout {
-      background-color: #e53935;
-      margin-top: 16px;
-    }
+    .btn-google:hover { background-color: #357ae8; }
+    .btn-secondary { background-color: #444; margin-top: 10px; }
+    .btn-secondary:hover { background-color: #555; }
+    .btn-logout { background-color: #e53935; margin-top: 16px; }
 
     .user-avatar {
       width: 80px;
@@ -133,10 +115,7 @@
       width: 100%;
     }
 
-    .question-block {
-      margin-bottom: 16px;
-    }
-
+    .question-block { margin-bottom: 16px; }
     .question-block label {
       display: block;
       font-size: 0.95rem;
@@ -151,9 +130,7 @@
       text-align: center;
     }
 
-    .center-btn {
-      text-align: center;
-    }
+    .center-btn { text-align: center; }
 
     .rules-list {
       background: #111;
@@ -226,7 +203,7 @@
     <div id="ageDeniedCard" class="card notice-card">
       <h2 style="margin-bottom: 12px; color: #ff5252;">Оповещение</h2>
       <p style="font-size: 1.1rem; color: #ffffff; margin-bottom: 20px;">
-        К сожалению, вы не можете использовать приложение из-за ограничений по возрасту (до 9 лет). Спасибо за проявленный интерес!
+        К сожалению, вы не можете использовать приложение из-за ограничений по возрасту (до 9 лет).
       </p>
       <button id="startRecoveryBtn" class="btn-google btn-secondary">Изменить дату</button>
       <br>
@@ -293,16 +270,16 @@
         <p style="text-align: left; font-size: 1rem; margin-bottom: 12px;">3. Правила сообщества:</p>
         <div class="rules-list">
           • Вход строго с 9 лет.<br>
-          • ЛС работают ТОЛЬКО при взаимной подписке (между друзьями).<br>
-          • Комментарии под видео предподростков (9-12) открыты только для подписчиков.<br>
-          • Действует ночной режим с 23:00 (блокировка с 1:00 до 7:00).
+          • ЛС работают ТОЛЬКО при взаимной подписке.<br>
+          • Для предподростков (9-12): спать в 22:00-23:00, блокировка с 23:00.<br>
+          • Для подростков (13-17): предупреждение в 23:00, блокировка с 1:00 до 7:00.
         </div>
-        <label><input type="checkbox" id="rulesAcceptCheck"> Я ознакомился(лась) и принимаю правила</label><br><br>
+        <label><input type="checkbox" id="rulesAcceptCheck"> Я прочитал и принимаю правила</label><br><br>
         <button id="finishSetupBtn" class="btn-google">Завершить и войти</button>
       </div>
     </div>
 
-    <!-- ЭКРАН 5: Профиль и Лента пользователя -->
+    <!-- ЭКРАН 5: Профиль и Лента -->
     <div id="userInfo" class="card" style="text-align: center;">
       <img id="userAvatar" class="user-avatar" src="" alt="Аватар">
       <h2 id="userName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px;"></h2>
@@ -311,14 +288,14 @@
 
       <!-- Ночной режим сообщения -->
       <div id="nightWarningBox" style="display: none; background: #311b92; padding: 12px; border-radius: 12px; margin-bottom: 16px;">
-        <p style="font-size: 0.95rem; margin-bottom: 8px;">🌙 Время 23:00. Пора спать?</p>
+        <p style="font-size: 0.95rem; margin-bottom: 8px;">🌙 Время спать! Отложить время?</p>
         <button id="snooze0Btn" class="btn-action">До 0:00</button>
         <button id="snooze1Btn" class="btn-action">До 1:00</button>
       </div>
 
       <div id="nightLockBox" class="notice-card" style="display: none; padding: 16px; margin-bottom: 16px;">
         <h3 style="color: #ff5252;">🌙 Ночной режим</h3>
-        <p style="font-size: 0.9rem;">С 1:00 до 7:00 доступ закрыт. Отдыхайте!</p>
+        <p style="font-size: 0.9rem;">Время отдыха! bibmeme закрыт до 7:00 утра.</p>
       </div>
 
       <h3 style="text-align: left; margin-bottom: 12px;">Лента bibmeme:</h3>
@@ -327,8 +304,7 @@
       <button id="logoutBtn" class="btn-google btn-logout">Выйти</button>
     </div>
   </div>
-
-  <script type="module">
+    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -383,17 +359,15 @@
     let currentUser = null;
     let isRecoveringMode = false;
 
-    // Пользовательские данные
     let userData = {
       age: 0,
-      category: '', // '9-12', '13-17', '18+'
+      category: '',
       allowProfanity: false,
-      friends: ['friend_nick'], // Взаимные подписки
+      friends: ['friend_nick'],
       followers: ['friend_nick', 'fan_user'],
       snoozeUntil: null
     };
 
-    // База постов и мемов
     const postsDatabase = [
       { id: 1, title: "Черемша", author: "cat_master", minAge: 9, tags: ["cats", "absurd"], img: "https://via.placeholder.com/500x300/222/00e676?text=%D0%A7%D0%B5%D1%80%D0%B5%D0%BC%D1%88%D0%B0+(9%2B)", hasProfanity: false },
       { id: 2, title: "Окак", author: "dark_cat", minAge: 9, tags: ["cats", "absurd"], img: "https://via.placeholder.com/500x300/222/00e676?text=%D0%9E%D0%BA%D0%B0%D0%BA+(9%2B)", hasProfanity: false },
@@ -464,7 +438,6 @@
       }
     });
 
-    // Проверка ответов с учётом опечаток
     submitQuizBtn.addEventListener("click", () => {
       const ans1 = document.getElementById("q1").value.toLowerCase();
       const ans2 = document.getElementById("q2").value.toLowerCase();
@@ -491,7 +464,6 @@
       }
     });
 
-    // Шаги настройки
     toStep2Btn.addEventListener("click", () => {
       setupStep1.style.display = "none";
       setupStep2.style.display = "block";
@@ -575,93 +547,101 @@
       renderFeed();
     }
 
-    // Проверка взаимных друзей для ЛС
     function canSendDM(targetUser) {
-        return userData.friends.includes(targetUser) && userData.followers.includes(targetUser);
-  }
-
-  // Проверка комментариев под постом предподростка
-  function canCommentOnPost(postAuthor) {
-    if (userData.age >= 9 && userData.age <= 12) {
-      return userData.friends.includes(postAuthor) || userData.followers.includes(postAuthor);
+      return userData.friends.includes(targetUser) && userData.followers.includes(targetUser);
     }
-    return true;
-  }
 
-  // Генерация ленты
-  function renderFeed() {
-    feedContainer.innerHTML = '';
-
-    postsDatabase.forEach(post => {
-      if (userData.age < post.minAge) return;
-      if (post.hasProfanity && !userData.allowProfanity) return;
-
-      const isDMAllowed = canSendDM(post.author);
-      const isCommentAllowed = canCommentOnPost(post.author);
-
-      const item = document.createElement('div');
-      item.className = 'feed-item';
-      item.innerHTML = `
-        <h4>${post.title}</h4>
-        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 4px;">Автор: ${post.author}</p>
-        <img src="${post.img}">
-        <div>
-          <button class="btn-action" ${!isCommentAllowed ? 'disabled' : ''}>💬 Комментировать</button>
-          <button class="btn-action" ${!isDMAllowed ? 'disabled' : ''}>✉️ ЛС ${isDMAllowed ? '' : '(Только друзья)'}</button>
-        </div>
-      `;
-      feedContainer.appendChild(item);
-    });
-  }
-
-  // Ночной режим
-  function checkNightMode() {
-    if (userData.age >= 18) return;
-
-    const hour = new Date().getHours();
-
-    if (hour >= 1 && hour < 7) {
-      feedContainer.style.display = "none";
-      nightLockBox.style.display = "block";
-    } else if (hour >= 23 && !userData.snoozeUntil) {
-      nightWarningBox.style.display = "block";
-    }
-  }
-
-  snooze0Btn.addEventListener("click", () => {
-    userData.snoozeUntil = 0;
-    nightWarningBox.style.display = "none";
-  });
-
-  snooze1Btn.addEventListener("click", () => {
-    userData.snoozeUntil = 1;
-    nightWarningBox.style.display = "none";
-  });
-
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      currentUser = user;
-      loginSection.style.display = "none";
-
-      const status = localStorage.getItem("bibmeme_status_" + user.uid);
-      if (status === "allowed") {
-        showProfile(user);
-      } else if (status === "denied") {
-        showDenied();
-      } else {
-        showAgeCheck();
+    function canCommentOnPost(postAuthor) {
+      if (userData.age >= 9 && userData.age <= 12) {
+        return userData.friends.includes(postAuthor) || userData.followers.includes(postAuthor);
       }
-    } else {
-      currentUser = null;
-      loginSection.style.display = "block";
-      ageCheckCard.style.display = "none";
-      ageDeniedCard.style.display = "none";
-      quizCard.style.display = "none";
-      setupCard.style.display = "none";
-      userInfo.style.display = "none";
+      return true;
     }
-  });
-</script>
+
+    function renderFeed() {
+      feedContainer.innerHTML = '';
+
+      postsDatabase.forEach(post => {
+        if (userData.age < post.minAge) return;
+        if (post.hasProfanity && !userData.allowProfanity) return;
+
+        const isDMAllowed = canSendDM(post.author);
+        const isCommentAllowed = canCommentOnPost(post.author);
+
+        const item = document.createElement('div');
+        item.className = 'feed-item';
+        item.innerHTML = `
+          <h4>${post.title}</h4>
+          <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 4px;">Автор: ${post.author}</p>
+          <img src="${post.img}">
+          <div>
+            <button class="btn-action" ${!isCommentAllowed ? 'disabled' : ''}>💬 Комментировать</button>
+            <button class="btn-action" ${!isDMAllowed ? 'disabled' : ''}>✉️ ЛС ${isDMAllowed ? '' : '(Только друзья)'}</button>
+          </div>
+        `;
+        feedContainer.appendChild(item);
+      });
+    }
+
+    // Правильный Ночной режим по возрастам
+    function checkNightMode() {
+      if (userData.age >= 18) return; // Взрослым полная свобода
+
+      const hour = new Date().getHours();
+
+      if (userData.age >= 9 && userData.age <= 12) {
+        // Предподростки: предупреждение в 22:00, жесткая блокировка с 23:00 до 7:00
+        if (hour >= 23 || hour < 7) {
+          feedContainer.style.display = "none";
+          nightLockBox.style.display = "block";
+        } else if (hour === 22 && !userData.snoozeUntil) {
+          nightWarningBox.style.display = "block";
+        }
+      } else if (userData.age >= 13 && userData.age <= 17) {
+        // Подростки: предупреждение в 23:00, жесткая блокировка с 1:00 до 7:00
+        if (hour >= 1 && hour < 7) {
+          feedContainer.style.display = "none";
+          nightLockBox.style.display = "block";
+        } else if (hour >= 23 && !userData.snoozeUntil) {
+          nightWarningBox.style.display = "block";
+        }
+      }
+    }
+
+    snooze0Btn.addEventListener("click", () => {
+      userData.snoozeUntil = 0;
+      nightWarningBox.style.display = "none";
+    });
+
+    snooze1Btn.addEventListener("click", () => {
+      userData.snoozeUntil = 1;
+      nightWarningBox.style.display = "none";
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        currentUser = user;
+        loginSection.style.display = "none";
+
+        const status = localStorage.getItem("bibmeme_status_" + user.uid);
+        if (status === "allowed") {
+          showProfile(user);
+        } else if (status === "denied") {
+          showDenied();
+        } else {
+          showAgeCheck();
+        }
+      } else {
+        currentUser = null;
+        loginSection.style.display = "block";
+        ageCheckCard.style.display = "none";
+        ageDeniedCard.style.display = "none";
+        quizCard.style.display = "none";
+        setupCard.style.display = "none";
+        userInfo.style.display = "none";
+      }
+    });
+  </script>
 
 </body>
 </html>
