@@ -52,7 +52,7 @@
       display: inline-block;
       background-color: #222222;
       border: 1px solid #333333;
-      color: #aaaaaa;
+      color: #00e676;
       padding: 8px 16px;
       border-radius: 20px;
       font-size: 0.95rem;
@@ -90,6 +90,7 @@
       cursor: pointer;
       transition: background 0.2s;
       display: inline-block;
+      width: 100%;
     }
 
     .btn-google:hover {
@@ -153,6 +154,46 @@
     .center-btn {
       text-align: center;
     }
+
+    .rules-list {
+      background: #111;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+
+    .feed-item {
+      background: #252525;
+      border: 1px solid #333;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+
+    .feed-item img {
+      width: 100%;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+
+    .btn-action {
+      background: #333;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+
+    .btn-action:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -162,7 +203,7 @@
     <p>Здесь вы встретите мемы, тренды и красивые фотки</p>
     
     <div id="statusBadge" class="status-badge">
-      ⚠️ Так как проект делается, вы не можете сейчас пользоваться
+      🚀 bibmeme
     </div>
 
     <!-- Вход через Google -->
@@ -185,7 +226,7 @@
     <div id="ageDeniedCard" class="card notice-card">
       <h2 style="margin-bottom: 12px; color: #ff5252;">Оповещение</h2>
       <p style="font-size: 1.1rem; color: #ffffff; margin-bottom: 20px;">
-        К Сожалению вы не можете использовать приложение из-за ограничении возраста, Спасибо за то что заинтересовались!
+        К сожалению, вы не можете использовать приложение из-за ограничений по возрасту (до 9 лет). Спасибо за проявленный интерес!
       </p>
       <button id="startRecoveryBtn" class="btn-google btn-secondary">Изменить дату</button>
       <br>
@@ -196,7 +237,7 @@
     <div id="quizCard" class="card">
       <h2>Проверка на подшаренность 😎</h2>
       <p id="quizSubtitle" style="font-size: 0.95rem; color: #aaa; margin-bottom: 20px;">
-        Вы ранее говорили что вам меньше 8,Для изменения даты пройдите вопросы
+        Вы ранее говорили, что вам меньше 8. Для изменения даты ответьте на вопросы:
       </p>
 
       <div class="question-block">
@@ -225,14 +266,64 @@
       </div>
     </div>
 
-    <!-- ЭКРАН 4: Профиль пользователя -->
+    <!-- ЭКРАН 4: Настройка профиля из 3 шагов -->
+    <div id="setupCard" class="card">
+      <h2>Настройка bibmeme ⚙️</h2>
+      
+      <!-- Шаг 1 -->
+      <div id="setupStep1">
+        <p style="text-align: left; font-size: 1rem; margin-bottom: 12px;">1. Темы рекомендаций:</p>
+        <label><input type="checkbox" id="catTopic" checked> Котики и животные</label><br><br>
+        <label><input type="checkbox" id="cookTopic" checked> Готовка и рецепты</label><br><br>
+        <label><input type="checkbox" id="impactTopic" checked> Мемы со шрифтом Impact</label><br><br>
+        <label><input type="checkbox" id="absurdTopic" checked> Абсурд ("Окак", "Черемша", "67")</label><br><br>
+        <button id="toStep2Btn" class="btn-google">Далее</button>
+      </div>
+
+      <!-- Шаг 2 -->
+      <div id="setupStep2" style="display: none;">
+        <p style="text-align: left; font-size: 1rem; margin-bottom: 12px;">2. Переключатель ненормативной лексики:</p>
+        <label><input type="radio" name="profanityOpt" value="false" checked> Фильтровать мат</label><br><br>
+        <label><input type="radio" name="profanityOpt" value="true"> Показывать мат (доступно с 13+)</label><br><br>
+        <button id="toStep3Btn" class="btn-google">Далее</button>
+      </div>
+
+      <!-- Шаг 3 -->
+      <div id="setupStep3" style="display: none;">
+        <p style="text-align: left; font-size: 1rem; margin-bottom: 12px;">3. Правила сообщества:</p>
+        <div class="rules-list">
+          • Вход строго с 9 лет.<br>
+          • ЛС работают ТОЛЬКО при взаимной подписке (между друзьями).<br>
+          • Комментарии под видео предподростков (9-12) открыты только для подписчиков.<br>
+          • Действует ночной режим с 23:00 (блокировка с 1:00 до 7:00).
+        </div>
+        <label><input type="checkbox" id="rulesAcceptCheck"> Я ознакомился(лась) и принимаю правила</label><br><br>
+        <button id="finishSetupBtn" class="btn-google">Завершить и войти</button>
+      </div>
+    </div>
+
+    <!-- ЭКРАН 5: Профиль и Лента пользователя -->
     <div id="userInfo" class="card" style="text-align: center;">
       <img id="userAvatar" class="user-avatar" src="" alt="Аватар">
-      <h2 id="userName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 8px;"></h2>
-      <p id="userEmail" style="font-size: 1rem; color: #888; margin-bottom: 16px;"></p>
-      <div style="color: #4caf50; font-weight: 700; margin-bottom: 12px;">
-        ✅ Возраст и подшаренность подтверждены!
+      <h2 id="userName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px;"></h2>
+      <p id="userEmail" style="font-size: 0.9rem; color: #888; margin-bottom: 8px;"></p>
+      <div id="userCategoryBadge" style="color: #00e676; font-weight: 800; margin-bottom: 16px;"></div>
+
+      <!-- Ночной режим сообщения -->
+      <div id="nightWarningBox" style="display: none; background: #311b92; padding: 12px; border-radius: 12px; margin-bottom: 16px;">
+        <p style="font-size: 0.95rem; margin-bottom: 8px;">🌙 Время 23:00. Пора спать?</p>
+        <button id="snooze0Btn" class="btn-action">До 0:00</button>
+        <button id="snooze1Btn" class="btn-action">До 1:00</button>
       </div>
+
+      <div id="nightLockBox" class="notice-card" style="display: none; padding: 16px; margin-bottom: 16px;">
+        <h3 style="color: #ff5252;">🌙 Ночной режим</h3>
+        <p style="font-size: 0.9rem;">С 1:00 до 7:00 доступ закрыт. Отдыхайте!</p>
+      </div>
+
+      <h3 style="text-align: left; margin-bottom: 12px;">Лента bibmeme:</h3>
+      <div id="feedContainer" style="text-align: left;"></div>
+
       <button id="logoutBtn" class="btn-google btn-logout">Выйти</button>
     </div>
   </div>
@@ -266,15 +357,49 @@
     const changeDateBtn = document.getElementById("changeDateBtn");
     const submitQuizBtn = document.getElementById("submitQuizBtn");
     const quizError = document.getElementById("quizError");
+    
+    const setupCard = document.getElementById("setupCard");
+    const setupStep1 = document.getElementById("setupStep1");
+    const setupStep2 = document.getElementById("setupStep2");
+    const setupStep3 = document.getElementById("setupStep3");
+    const toStep2Btn = document.getElementById("toStep2Btn");
+    const toStep3Btn = document.getElementById("toStep3Btn");
+    const finishSetupBtn = document.getElementById("finishSetupBtn");
+
     const userInfo = document.getElementById("userInfo");
     const userName = document.getElementById("userName");
     const userEmail = document.getElementById("userEmail");
     const userAvatar = document.getElementById("userAvatar");
+    const userCategoryBadge = document.getElementById("userCategoryBadge");
+    const feedContainer = document.getElementById("feedContainer");
+    const nightWarningBox = document.getElementById("nightWarningBox");
+    const nightLockBox = document.getElementById("nightLockBox");
+    const snooze0Btn = document.getElementById("snooze0Btn");
+    const snooze1Btn = document.getElementById("snooze1Btn");
+
     const logoutBtn = document.getElementById("logoutBtn");
     const deniedLogoutBtn = document.getElementById("deniedLogoutBtn");
 
     let currentUser = null;
     let isRecoveringMode = false;
+
+    // Пользовательские данные
+    let userData = {
+      age: 0,
+      category: '', // '9-12', '13-17', '18+'
+      allowProfanity: false,
+      friends: ['friend_nick'], // Взаимные подписки
+      followers: ['friend_nick', 'fan_user'],
+      snoozeUntil: null
+    };
+
+    // База постов и мемов
+    const postsDatabase = [
+      { id: 1, title: "Черемша", author: "cat_master", minAge: 9, tags: ["cats", "absurd"], img: "https://via.placeholder.com/500x300/222/00e676?text=%D0%A7%D0%B5%D1%80%D0%B5%D0%BC%D1%88%D0%B0+(9%2B)", hasProfanity: false },
+      { id: 2, title: "Окак", author: "dark_cat", minAge: 9, tags: ["cats", "absurd"], img: "https://via.placeholder.com/500x300/222/00e676?text=%D0%9E%D0%BA%D0%B0%D0%BA+(9%2B)", hasProfanity: false },
+      { id: 3, title: "Мем про Барни", author: "teen_king", minAge: 13, tags: ["barni", "dark_humor"], img: "https://via.placeholder.com/500x300/222/ff9100?text=%D0%91%D0%B0%D1%80%D0%BD%D0%B8+(13%2B)", hasProfanity: false },
+      { id: 4, title: "Меллстрой / Коч братан / Сердцеед", author: "danger_boy", minAge: 18, tags: ["mellstroy", "heartthrob", "kobiljon"], img: "https://via.placeholder.com/500x300/222/d50000?text=%D0%A2%D1%80%D0%B5%D1%88+(18%2B)", hasProfanity: true }
+    ];
 
     googleLoginBtn.addEventListener("click", () => {
       signInWithPopup(auth, provider).catch((error) => {
@@ -286,6 +411,7 @@
       signOut(auth).then(() => {
         if (currentUser) {
           localStorage.removeItem("bibmeme_status_" + currentUser.uid);
+          localStorage.removeItem("bibmeme_age_" + currentUser.uid);
         }
         alert("Вы вышли из аккаунта");
       });
@@ -311,6 +437,9 @@
         age--;
       }
 
+      userData.age = age;
+      localStorage.setItem("bibmeme_age_" + currentUser.uid, age);
+
       if (age >= 9) {
         isRecoveringMode = false;
         quizSubtitle.textContent = "Докажи, что шаришь за тренды!";
@@ -323,7 +452,7 @@
 
     startRecoveryBtn.addEventListener("click", () => {
       isRecoveringMode = true;
-      quizSubtitle.textContent = "Вы ранее говорили что вам меньше 8,Для изменения даты пройдите вопросы";
+      quizSubtitle.textContent = "Вы ранее говорили, что вам меньше 8. Для изменения даты ответьте на вопросы:";
       showQuiz();
     });
 
@@ -335,19 +464,14 @@
       }
     });
 
-    // Проверка ответов с учётом случайных опечаток
+    // Проверка ответов с учётом опечаток
     submitQuizBtn.addEventListener("click", () => {
       const ans1 = document.getElementById("q1").value.toLowerCase();
       const ans2 = document.getElementById("q2").value.toLowerCase();
       const ans3 = document.getElementById("q3").value.toLowerCase();
 
-      // Вопрос 1: Ищем основные корни слов
       const ok1 = ans1.includes("низк") || ans1.includes("высоким") || ans1.includes("высоких") || ans1.includes("мог") || ans1.includes("люблю");
-      
-      // Вопрос 2: Разрешаем опечатки вроде "сикс", "севен", "six", "seven", "67", "сикссевен"
       const ok2 = ans2.includes("сикс") || ans2.includes("севен") || ans2.includes("six") || ans2.includes("seven") || ans2.includes("67");
-      
-      // Вопрос 3: Ищем упоминания хулигана, газана, черемши или просто частых фрагментов
       const ok3 = ans3.includes("хулиган") || ans3.includes("газан") || ans3.includes("черемш") || ans3.includes("малыш") || ans3.includes("хочу быть");
 
       let score = 0;
@@ -355,24 +479,47 @@
       if (ok2) score++;
       if (ok3) score++;
 
-      // Проходим, если набрали 2 или 3 балла
       if (score >= 2) {
         quizError.style.display = "none";
         if (isRecoveringMode) {
           showAgeCheck();
         } else {
-          localStorage.setItem("bibmeme_status_" + currentUser.uid, "allowed");
-          showProfile(currentUser);
+          showSetup();
         }
       } else {
         quizError.style.display = "block";
       }
     });
 
+    // Шаги настройки
+    toStep2Btn.addEventListener("click", () => {
+      setupStep1.style.display = "none";
+      setupStep2.style.display = "block";
+    });
+
+    toStep3Btn.addEventListener("click", () => {
+      setupStep2.style.display = "none";
+      setupStep3.style.display = "block";
+    });
+
+    finishSetupBtn.addEventListener("click", () => {
+      if (!document.getElementById("rulesAcceptCheck").checked) {
+        alert("Пожалуйста, подтвердите согласие с правилами!");
+        return;
+      }
+
+      const profVal = document.querySelector('input[name="profanityOpt"]:checked').value;
+      userData.allowProfanity = (profVal === "true" && userData.age >= 13);
+
+      localStorage.setItem("bibmeme_status_" + currentUser.uid, "allowed");
+      showProfile(currentUser);
+    });
+
     function showAgeCheck() {
       ageCheckCard.style.display = "block";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
+      setupCard.style.display = "none";
       userInfo.style.display = "none";
     }
 
@@ -380,49 +527,141 @@
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "block";
+      setupCard.style.display = "none";
       userInfo.style.display = "none";
+    }
+
+    function showSetup() {
+      ageCheckCard.style.display = "none";
+      ageDeniedCard.style.display = "none";
+      quizCard.style.display = "none";
+      setupCard.style.display = "block";
+      userInfo.style.display = "none";
+    }
+
+    function showDenied() {
+      ageCheckCard.style.display = "none";
+      quizCard.style.display = "none";
+      setupCard.style.display = "none";
+      userInfo.style.display = "none";
+      ageDeniedCard.style.display = "block";
     }
 
     function showProfile(user) {
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
+      setupCard.style.display = "none";
       userInfo.style.display = "block";
+
       userName.textContent = user.displayName;
       userEmail.textContent = user.email;
       userAvatar.src = user.photoURL;
-    }
 
-    function showDenied() {
-      ageCheckCard.style.display = "none";
-      quizCard.style.display = "none";
-      userInfo.style.display = "none";
-      ageDeniedCard.style.display = "block";
-    }
+      const savedAge = parseInt(localStorage.getItem("bibmeme_age_" + user.uid)) || userData.age;
+      userData.age = savedAge;
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        loginSection.style.display = "none";
-
-        const status = localStorage.getItem("bibmeme_status_" + user.uid);
-        if (status === "allowed") {
-          showProfile(user);
-        } else if (status === "denied") {
-          showDenied();
-        } else {
-          showAgeCheck();
-        }
+      if (savedAge >= 9 && savedAge <= 12) {
+        userData.category = 'Предподросток (9-12)';
+      } else if (savedAge >= 13 && savedAge <= 17) {
+        userData.category = 'Подросток (13-17)';
       } else {
-        currentUser = null;
-        loginSection.style.display = "block";
-        ageCheckCard.style.display = "none";
-        ageDeniedCard.style.display = "none";
-        quizCard.style.display = "none";
-        userInfo.style.display = "none";
+        userData.category = 'Взрослый (18+)';
       }
+
+      userCategoryBadge.textContent = "Статус: " + userData.category;
+
+      checkNightMode();
+      renderFeed();
+    }
+
+    // Проверка взаимных друзей для ЛС
+    function canSendDM(targetUser) {
+        return userData.friends.includes(targetUser) && userData.followers.includes(targetUser);
+  }
+
+  // Проверка комментариев под постом предподростка
+  function canCommentOnPost(postAuthor) {
+    if (userData.age >= 9 && userData.age <= 12) {
+      return userData.friends.includes(postAuthor) || userData.followers.includes(postAuthor);
+    }
+    return true;
+  }
+
+  // Генерация ленты
+  function renderFeed() {
+    feedContainer.innerHTML = '';
+
+    postsDatabase.forEach(post => {
+      if (userData.age < post.minAge) return;
+      if (post.hasProfanity && !userData.allowProfanity) return;
+
+      const isDMAllowed = canSendDM(post.author);
+      const isCommentAllowed = canCommentOnPost(post.author);
+
+      const item = document.createElement('div');
+      item.className = 'feed-item';
+      item.innerHTML = `
+        <h4>${post.title}</h4>
+        <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 4px;">Автор: ${post.author}</p>
+        <img src="${post.img}">
+        <div>
+          <button class="btn-action" ${!isCommentAllowed ? 'disabled' : ''}>💬 Комментировать</button>
+          <button class="btn-action" ${!isDMAllowed ? 'disabled' : ''}>✉️ ЛС ${isDMAllowed ? '' : '(Только друзья)'}</button>
+        </div>
+      `;
+      feedContainer.appendChild(item);
     });
-  </script>
+  }
+
+  // Ночной режим
+  function checkNightMode() {
+    if (userData.age >= 18) return;
+
+    const hour = new Date().getHours();
+
+    if (hour >= 1 && hour < 7) {
+      feedContainer.style.display = "none";
+      nightLockBox.style.display = "block";
+    } else if (hour >= 23 && !userData.snoozeUntil) {
+      nightWarningBox.style.display = "block";
+    }
+  }
+
+  snooze0Btn.addEventListener("click", () => {
+    userData.snoozeUntil = 0;
+    nightWarningBox.style.display = "none";
+  });
+
+  snooze1Btn.addEventListener("click", () => {
+    userData.snoozeUntil = 1;
+    nightWarningBox.style.display = "none";
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loginSection.style.display = "none";
+
+      const status = localStorage.getItem("bibmeme_status_" + user.uid);
+      if (status === "allowed") {
+        showProfile(user);
+      } else if (status === "denied") {
+        showDenied();
+      } else {
+        showAgeCheck();
+      }
+    } else {
+      currentUser = null;
+      loginSection.style.display = "block";
+      ageCheckCard.style.display = "none";
+      ageDeniedCard.style.display = "none";
+      quizCard.style.display = "none";
+      setupCard.style.display = "none";
+      userInfo.style.display = "none";
+    }
+  });
+</script>
 
 </body>
 </html>
