@@ -92,6 +92,10 @@
     .btn-secondary { background-color: #444; margin-top: 10px; }
     .btn-secondary:hover { background-color: #555; }
     .btn-logout { background-color: #e53935; margin-top: 16px; }
+    .btn-danger { background-color: #d32f2f; margin-top: 10px; }
+    .btn-danger:hover { background-color: #b71c1c; }
+    .btn-warning { background-color: #f57c00; margin-top: 10px; }
+    .btn-warning:hover { background-color: #e65100; }
 
     .user-avatar {
       width: 80px;
@@ -302,11 +306,27 @@
       <div id="feedContainer" style="text-align: left;"></div>
 
       <button id="logoutBtn" class="btn-google btn-logout">Выйти</button>
+      <button id="openDeleteModalBtn" class="btn-google btn-danger">Удалить аккаунт</button>
+    </div>
+
+    <!-- ЭКРАН 6: Предупреждение об удалении аккаунта -->
+    <div id="deleteAccountCard" class="card notice-card">
+      <h2 style="color: #ff5252; margin-bottom: 12px;">Пока вы не ушли, прочтите это, это очень важно</h2>
+      <p style="font-size: 1rem; color: #ffffff; text-align: left; line-height: 1.5; margin-bottom: 20px;">
+        Вы собираетесь удалить аккаунт в bibmeme со всеми данными: переписки, комментарии, аккаунт и так далее.<br><br>
+        После удаления вы не сможете восстановить аккаунт и эти данные.<br><br>
+        Данные можно сохранить и скачать их.<br>
+        Нажмите «Загрузить данные», чтобы сохранить их.<br><br>
+        Нажав кнопку «Удалить», Вы соглашаетесь на удаление аккаунта и потерю данных.
+      </p>
+      <button id="downloadDataBtn" class="btn-google btn-warning">Загрузить данные</button>
+      <button id="confirmDeleteBtn" class="btn-google btn-danger">Удалить</button>
+      <button id="cancelDeleteBtn" class="btn-google btn-secondary">Отмена</button>
     </div>
   </div>
-   <script type="module">
+    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -356,6 +376,13 @@
     const logoutBtn = document.getElementById("logoutBtn");
     const deniedLogoutBtn = document.getElementById("deniedLogoutBtn");
 
+    // Элементы экрана удаления аккаунта
+    const openDeleteModalBtn = document.getElementById("openDeleteModalBtn");
+    const deleteAccountCard = document.getElementById("deleteAccountCard");
+    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+    const downloadDataBtn = document.getElementById("downloadDataBtn");
+
     let currentUser = null;
     let isRecoveringMode = false;
 
@@ -368,7 +395,7 @@
       snoozeUntil: null
     };
 
-    const postsDatabase = []; // Лента изначально пустая, пока никто ничего не запостил
+    const postsDatabase = [];
 
     googleLoginBtn.addEventListener("click", () => {
       signInWithPopup(auth, provider).catch((error) => {
@@ -388,6 +415,57 @@
 
     logoutBtn.addEventListener("click", handleLogout);
     deniedLogoutBtn.addEventListener("click", handleLogout);
+
+    // Логика открытия экрана удаления аккаунта
+    openDeleteModalBtn.addEventListener("click", () => {
+      userInfo.style.display = "none";
+      deleteAccountCard.style.display = "block";
+    });
+
+    // Отмена удаления (возврат в профиль)
+    cancelDeleteBtn.addEventListener("click", () => {
+      deleteAccountCard.style.display = "none";
+      userInfo.style.display = "block";
+    });
+
+    // Скачивание данных пользователя в файл
+    downloadDataBtn.addEventListener("click", () => {
+      const dataToSave = {
+        name: currentUser.displayName,
+        email: currentUser.email,
+        age: userData.age,
+        category: userData.category,
+        friends: userData.friends,
+        exportDate: new Date().toISOString()
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToSave, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "bibmeme_my_data.json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
+
+    // Окончательное удаление аккаунта
+    confirmDeleteBtn.addEventListener("click", () => {
+      if (confirm("Вы уверены, что хотите навсегда удалить аккаунт и все данные?")) {
+        const user = auth.currentUser;
+        if (user) {
+          localStorage.removeItem("bibmeme_status_" + user.uid);
+          localStorage.removeItem("bibmeme_age_" + user.uid);
+          
+          deleteUser(user).then(() => {
+            alert("Аккаунт успешно удален.");
+          }).catch((error) => {
+            // Если Firebase требует свежей авторизации для удаления
+            alert("Для удаления аккаунта требуется повторный вход. Пожалуйста, войдите и попробуйте снова.");
+            signOut(auth);
+          });
+        }
+      }
+    });
 
     confirmAgeBtn.addEventListener("click", () => {
       const birthDateVal = birthdateInput.value;
@@ -488,6 +566,7 @@
       quizCard.style.display = "none";
       setupCard.style.display = "none";
       userInfo.style.display = "none";
+      deleteAccountCard.style.display = "none";
     }
 
     function showQuiz() {
@@ -496,6 +575,7 @@
       quizCard.style.display = "block";
       setupCard.style.display = "none";
       userInfo.style.display = "none";
+      deleteAccountCard.style.display = "none";
     }
 
     function showSetup() {
@@ -504,6 +584,7 @@
       quizCard.style.display = "none";
       setupCard.style.display = "block";
       userInfo.style.display = "none";
+      deleteAccountCard.style.display = "none";
     }
 
     function showDenied() {
@@ -511,6 +592,7 @@
       quizCard.style.display = "none";
       setupCard.style.display = "none";
       userInfo.style.display = "none";
+      deleteAccountCard.style.display = "none";
       ageDeniedCard.style.display = "block";
     }
 
@@ -519,6 +601,7 @@
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
       setupCard.style.display = "none";
+      deleteAccountCard.style.display = "none";
       userInfo.style.display = "block";
 
       userName.textContent = user.displayName;
@@ -553,7 +636,6 @@
       return true;
     }
 
-    // Лента с проверкой наличия постов
     function renderFeed() {
       feedContainer.innerHTML = '';
 
@@ -592,7 +674,6 @@
       });
     }
 
-    // Ночной режим по возрастам
     function checkNightMode() {
       if (userData.age >= 18) return;
 
@@ -646,6 +727,7 @@
         quizCard.style.display = "none";
         setupCard.style.display = "none";
         userInfo.style.display = "none";
+        deleteAccountCard.style.display = "none";
       }
     });
   </script>
