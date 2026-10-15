@@ -140,7 +140,7 @@
       margin-right: auto;
     }
 
-    input[type="date"], input[type="text"], input[type="password"] {
+    input[type="date"], input[type="text"], input[type="password"], input[type="email"] {
       font-family: inherit;
       padding: 12px;
       border-radius: 8px;
@@ -227,9 +227,16 @@
       <button id="navProfileBtn" class="nav-btn">👤 Профиль</button>
     </div>
 
-    <!-- Вход через Google -->
-    <div id="loginSection" style="text-align: center;">
-      <button id="googleLoginBtn" class="btn-google">Войти через Google</button>
+    <!-- Вход / Авторизация -->
+    <div id="loginSection" class="card" style="display: block; text-align: center;">
+      <h2 style="margin-bottom: 16px;">Вход в bibmeme</h2>
+      <button id="googleLoginBtn" class="btn-google" style="margin-bottom: 16px;">Войти через Google</button>
+      
+      <p style="font-size: 0.9rem; color: #888; margin: 12px 0;">Или войти по почте и паролю:</p>
+      <input type="email" id="loginEmailInput" placeholder="Email...">
+      <input type="password" id="loginPasswordInput" placeholder="Пароль...">
+      <div id="loginError" style="color: #ff5252; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; display: none;"></div>
+      <button id="emailLoginBtn" class="btn-google btn-secondary">Войти по паролю</button>
     </div>
 
     <!-- ЭКРАН 1: Дата рождения -->
@@ -324,7 +331,7 @@
 
       <!-- Шаг 4: Установка пароля -->
       <div id="setupStep4" style="display: none;">
-        <p style="text-align: left; font-size: 1rem; margin-bottom: 8px;">4. Создание пароля аккаунта (необязательно):</p>
+        <p style="text-align: left; font-size: 1rem; margin-bottom: 8px;">4. Создание пароля аккаунта:</p>
         <div class="rules-list" style="font-size: 0.85rem; color: #aaa; margin-bottom: 12px;">
           Требования к паролю:<br>
           • Не менее 6 символов<br>
@@ -337,7 +344,6 @@
         <div id="passwordError" style="color: #ff5252; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; display: none; text-align: left;"></div>
 
         <button id="finishSetupBtn" class="btn-google">Сохранить и войти</button>
-        <button id="skipPasswordBtn" class="btn-google btn-secondary">Пропустить</button>
       </div>
     </div>
 
@@ -361,7 +367,7 @@
 
     <!-- РАЗДЕЛ 5Б: Профиль (Вкладка 2) -->
     <div id="profileViewCard" class="card" style="text-align: center;">
-      <img id="userAvatar" class="user-avatar" src="" alt="Аватар">
+      <img id="userAvatar" class="user-avatar" src="https://via.placeholder.com/80" alt="Аватар">
       <h2 id="userName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px;"></h2>
       <p id="userEmail" style="font-size: 0.9rem; color: #888; margin-bottom: 8px;"></p>
       <div id="userCategoryBadge" style="color: #00e676; font-weight: 800; margin-bottom: 16px;"></div>
@@ -396,7 +402,7 @@
   </div>
     <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -414,6 +420,11 @@
     const welcomeHeader = document.getElementById("welcomeHeader");
     const loginSection = document.getElementById("loginSection");
     const googleLoginBtn = document.getElementById("googleLoginBtn");
+    const loginEmailInput = document.getElementById("loginEmailInput");
+    const loginPasswordInput = document.getElementById("loginPasswordInput");
+    const emailLoginBtn = document.getElementById("emailLoginBtn");
+    const loginError = document.getElementById("loginError");
+
     const ageCheckCard = document.getElementById("ageCheckCard");
     const ageDeniedCard = document.getElementById("ageDeniedCard");
     const quizCard = document.getElementById("quizCard");
@@ -436,7 +447,6 @@
     const userPasswordInput = document.getElementById("userPasswordInput");
     const passwordError = document.getElementById("passwordError");
     const finishSetupBtn = document.getElementById("finishSetupBtn");
-    const skipPasswordBtn = document.getElementById("skipPasswordBtn");
 
     const navBar = document.getElementById("navBar");
     const navFeedBtn = document.getElementById("navFeedBtn");
@@ -502,6 +512,24 @@
       });
     });
 
+    // Вход по почте и паролю
+    emailLoginBtn.addEventListener("click", () => {
+      const email = loginEmailInput.value.trim();
+      const password = loginPasswordInput.value.trim();
+
+      if (!email || !password) {
+        loginError.textContent = "Введите email и пароль!";
+        loginError.style.display = "block";
+        return;
+      }
+
+      signInWithEmailAndPassword(auth, email, password)
+        .catch((error) => {
+          loginError.textContent = "Ошибка входа: неверный пароль или email.";
+          loginError.style.display = "block";
+        });
+    });
+
     const handleLogout = () => {
       signOut(auth).then(() => {
         if (currentUser) {
@@ -527,7 +555,7 @@
 
     downloadDataBtn.addEventListener("click", () => {
       const dataToSave = {
-        name: currentUser.displayName,
+        name: currentUser.displayName || currentUser.email,
         email: currentUser.email,
         age: userData.age,
         category: userData.category,
@@ -554,7 +582,7 @@
           deleteUser(user).then(() => {
             alert("Аккаунт успешно удален.");
           }).catch((error) => {
-            alert("Для удаления аккаунта требуется повторный вход. Пожалуйста, войдите и попробуйте снова.");
+            alert("Для удаления аккаунта требуется повторный вход. Войдите заново и попробуйте снова.");
             signOut(auth);
           });
         }
@@ -669,32 +697,21 @@
 
     finishSetupBtn.addEventListener("click", () => {
       const passVal = userPasswordInput.value.trim();
-
-      if (passVal.length > 0) {
-        const errorMsg = validatePassword(passVal);
-        if (errorMsg) {
-          passwordError.textContent = errorMsg;
-          passwordError.style.display = "block";
-          return;
-        }
+      const errorMsg = validatePassword(passVal);
+      if (errorMsg) {
+        passwordError.textContent = errorMsg;
+        passwordError.style.display = "block";
+        return;
       }
 
       passwordError.style.display = "none";
-      saveAndEnter();
-    });
-
-    skipPasswordBtn.addEventListener("click", () => {
-      passwordError.style.display = "none";
-      saveAndEnter();
-    });
-
-    function saveAndEnter() {
+      
       const profVal = document.querySelector('input[name="profanityOpt"]:checked').value;
       userData.allowProfanity = (profVal === "true" && userData.age >= 13);
 
       localStorage.setItem("bibmeme_status_" + currentUser.uid, "allowed");
       showProfile(currentUser);
-    }
+    });
 
     retryServerBtn.addEventListener("click", () => {
       location.reload();
@@ -702,6 +719,7 @@
 
     function showAgeCheck() {
       welcomeHeader.style.display = "block";
+      loginSection.style.display = "none";
       ageCheckCard.style.display = "block";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
@@ -715,6 +733,7 @@
 
     function showQuiz() {
       welcomeHeader.style.display = "block";
+      loginSection.style.display = "none";
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "block";
@@ -728,6 +747,7 @@
 
     function showSetup() {
       welcomeHeader.style.display = "block";
+      loginSection.style.display = "none";
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
@@ -741,6 +761,7 @@
 
     function showDenied() {
       welcomeHeader.style.display = "block";
+      loginSection.style.display = "none";
       ageCheckCard.style.display = "none";
       quizCard.style.display = "none";
       setupCard.style.display = "none";
@@ -754,6 +775,7 @@
 
     function showProfile(user) {
       welcomeHeader.style.display = "none";
+      loginSection.style.display = "none";
       ageCheckCard.style.display = "none";
       ageDeniedCard.style.display = "none";
       quizCard.style.display = "none";
@@ -765,9 +787,9 @@
       feedViewCard.style.display = "block";
       profileViewCard.style.display = "none";
 
-      userName.textContent = user.displayName;
+      userName.textContent = user.displayName || "Пользователь bibmeme";
       userEmail.textContent = user.email;
-      userAvatar.src = user.photoURL;
+      userAvatar.src = user.photoURL || "https://via.placeholder.com/80";
 
       const savedAge = parseInt(localStorage.getItem("bibmeme_age_" + user.uid)) || userData.age;
       userData.age = savedAge;
