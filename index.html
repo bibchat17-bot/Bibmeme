@@ -77,7 +77,6 @@
 
         let currentUser = null;
 
-        // Отслеживаем состояние входа при загрузке
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -115,7 +114,7 @@
             const mainContent = document.getElementById('main-content');
 
             mainContent.innerHTML = `
-                <h1 class="text-3xl font-extrabold tracking-tight">Привет, ${userName}!</h1>
+                <h1 class="text-3xl font-extrabold tracking-tight">Привет, ${userName} !</h1>
                 <p class="text-gray-400 text-base mt-2 font-medium">Укажите дату рождения (день, месяц, год)</p>
             `;
 
@@ -175,7 +174,6 @@
             const formattedMonth = month < 10 ? '0' + month : month;
             const fullBirthday = `${formattedDay}.${formattedMonth}.${year}`;
 
-            // Сохраняем дату в localStorage
             localStorage.setItem(`user_birthday_${currentUser.uid}`, JSON.stringify({
                 fullBirthday,
                 age,
@@ -189,9 +187,10 @@
             const container = document.getElementById('auth-container');
             const mainContent = document.getElementById('main-content');
 
+            // Добавили знак Apple () к имени пользователя
             mainContent.innerHTML = `
                 <h1 class="text-4xl font-extrabold tracking-tight">Добро пожаловать!</h1>
-                <p class="text-gray-400 text-base mt-2 font-medium">${userName}</p>
+                <p class="text-gray-400 text-base mt-2 font-medium">${userName} <span class="text-white font-bold"></span></p>
             `;
 
             container.innerHTML = `
