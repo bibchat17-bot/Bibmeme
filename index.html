@@ -21,13 +21,13 @@
 <body class="bg-[#121212] text-white h-screen flex flex-col justify-between p-6 select-none">
 
     <!-- Заголовок -->
-    <div id="main-content" class="flex flex-col items-center mt-20">
+    <div id="main-content" class="flex flex-col items-center mt-10">
         <h1 class="text-5xl font-extrabold tracking-tight">bibmeme</h1>
         <p class="text-gray-400 text-lg mt-2 font-medium">Добро пожаловать в соцсеть</p>
     </div>
 
-    <!-- Блок авторизации -->
-    <div id="auth-container" class="w-full max-w-sm mx-auto mb-12 flex flex-col gap-3">
+    <!-- Блок авторизации / контента -->
+    <div id="auth-container" class="w-full max-w-sm mx-auto mb-6 flex flex-col gap-3">
         
         <!-- Табличка "Проект делается!" -->
         <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 text-center shadow-lg w-full flex items-center justify-center gap-3">
@@ -61,7 +61,7 @@
     <!-- Firebase и логика авторизации -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -77,12 +77,9 @@
 
         let currentUser = null;
 
-        // Строгая проверка: если это Android или Windows/обычный браузер — возвращает false (нет значка)
         function isAppleDevice() {
             const ua = navigator.userAgent;
-            // Если в юзерагенте есть Android, скрываем значок гарантированно
             if (/Android/i.test(ua)) return false;
-            // Показываем значок только для реальных устройств Apple
             return /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(ua);
         }
 
@@ -92,7 +89,7 @@
                 const savedBirthday = localStorage.getItem(`user_birthday_${user.uid}`);
                 if (savedBirthday) {
                     const data = JSON.parse(savedBirthday);
-                    renderProfile(user.displayName, data.fullBirthday, data.age, data.ageCategory);
+                    renderProfile(user.displayName, user.email, data.fullBirthday, data.age, data.ageCategory);
                 } else {
                     showBirthdayPrompt(user.displayName);
                 }
@@ -108,7 +105,7 @@
                 const savedBirthday = localStorage.getItem(`user_birthday_${currentUser.uid}`);
                 if (savedBirthday) {
                     const data = JSON.parse(savedBirthday);
-                    renderProfile(currentUser.displayName, data.fullBirthday, data.age, data.ageCategory);
+                    renderProfile(currentUser.displayName, currentUser.email, data.fullBirthday, data.age, data.ageCategory);
                 } else {
                     showBirthdayPrompt(currentUser.displayName);
                 }
@@ -191,10 +188,10 @@
                 ageCategory
             }));
 
-            renderProfile(currentUser.displayName, fullBirthday, age, ageCategory);
+            renderProfile(currentUser.displayName, currentUser.email, fullBirthday, age, ageCategory);
         };
 
-        function renderProfile(userName, fullBirthday, age, ageCategory) {
+        function renderProfile(userName, email, fullBirthday, age, ageCategory) {
             const container = document.getElementById('auth-container');
             const mainContent = document.getElementById('main-content');
 
@@ -217,15 +214,137 @@
                     </div>
                     
                     <!-- Кнопка Выйти из аккаунта -->
-                    <button onclick="logout()" class="w-full mt-2 border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    <button onclick="logout()" class="w-full mt-2 border border-white/20 bg-white/5 text-white hover:bg-white/10 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
                         Выйти из аккаунта
                     </button>
+
+                    <!-- Кнопка Удалить аккаунт -->
+                    <button onclick="showDeleteWarning()" class="w-full border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Удалить аккаунт
+                    </button>
                 </div>
             `;
         }
+
+        window.showDeleteWarning = function() {
+            const container = document.getElementById('auth-container');
+            const mainContent = document.getElementById('main-content');
+
+            mainContent.innerHTML = `
+                <h1 class="text-2xl font-extrabold tracking-tight text-red-400">Удаление аккаунта</h1>
+                <p class="text-gray-400 text-sm mt-1 text-center font-medium">Это действие необратимо</p>
+            `;
+
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
+                    <p class="text-sm text-gray-200 leading-relaxed">
+                        <strong class="text-white">Пока вы еще не ушли, прочитайте, это очень важно:</strong><br><br>
+                        Вы собираетесь удалить аккаунт в Bibmeme. После удаления вы не можете восстановить аккаунт, фотки, посты, сообщения, комментарии и друзей.<br><br>
+                        Вы можете скачать данные перед удалением аккаунта.<br><br>
+                        Если вы действительно хотите удалить аккаунт, согласитесь на удаление и то, что вы скачали данные.<br><br>
+                        После нажатия кнопки «Удалить аккаунт» все данные и аккаунт сотрутся безвозвратно.
+                    </p>
+
+                    <!-- Кнопка скачивания данных -->
+                    <button onclick="downloadUserData()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Скачать данные
+                    </button>
+
+                    <!-- Чекбоксы согласия -->
+                    <div class="flex flex-col gap-2 mt-2">
+                        <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                            <input type="checkbox" id="checkDownloaded" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500 focus:ring-0">
+                            <span>Я скачал(а) свои данные перед удалением</span>
+                        </label>
+                        <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                            <input type="checkbox" id="checkAgree" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500 focus:ring-0">
+                            <span>Я согласен(на) на удаление аккаунта и понимаю, что всё сотрется безвозвратно</span>
+                        </label>
+                    </div>
+
+                    <!-- Кнопка финального удаления (изначально неактивна/полупрозрачна) -->
+                    <button id="finalDeleteBtn" onclick="executeAccountDeletion()" disabled class="w-full bg-red-500/40 text-white/50 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-not-allowed">
+                        Удалить аккаунт навсегда
+                    </button>
+
+                    <!-- Кнопка отмены -->
+                    <button onclick="cancelDeletion()" class="w-full bg-transparent hover:bg-white/5 text-gray-400 font-bold py-2 rounded-xl text-xs transition">
+                        Отмена, вернуться назад
+                    </button>
+                </div>
+            `;
+        }
+
+        window.toggleDeleteBtn = function() {
+            const check1 = document.getElementById('checkDownloaded').checked;
+            const check2 = document.getElementById('checkAgree').checked;
+            const btn = document.getElementById('finalDeleteBtn');
+
+            if (check1 && check2) {
+                btn.disabled = false;
+                btn.classList.remove('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
+                btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
+                btn.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white');
+            }
+        };
+
+        window.downloadUserData = function() {
+            const savedBirthday = localStorage.getItem(`user_birthday_${currentUser.uid}`) || "{}";
+            const dataToExport = {
+                uid: currentUser.uid,
+                name: currentUser.displayName,
+                email: currentUser.email,
+                profileData: JSON.parse(savedBirthday),
+                exportDate: new Date().toISOString()
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `bibmeme_data_${currentUser.uid}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        };
+
+        window.executeAccountDeletion = async function() {
+            if (!confirm("Вы уверены, что хотите окончательно удалить аккаунт в Bibmeme?")) return;
+            
+            try {
+                // Удаляем локальные данные
+                localStorage.removeItem(`user_birthday_${currentUser.uid}`);
+                
+                // Удаляем аккаунт из Firebase Auth
+                await deleteUser(currentUser);
+                alert("Аккаунт успешно удален.");
+                location.reload();
+            } catch (error) {
+                console.error("Ошибка при удалении аккаунта:", error);
+                alert("Не удалось удалить аккаунт. Возможно, требуется повторный вход (перезайдите в аккаунт и попробуйте снова).");
+            }
+        };
+
+        window.cancelDeletion = function() {
+            const savedBirthday = localStorage.getItem(`user_birthday_${currentUser.uid}`);
+            if (savedBirthday && currentUser) {
+                const data = JSON.parse(savedBirthday);
+                renderProfile(currentUser.displayName, currentUser.email, data.fullBirthday, data.age, data.ageCategory);
+            } else {
+                location.reload();
+            }
+        };
 
         window.logout = async function() {
             try {
