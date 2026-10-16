@@ -58,10 +58,10 @@
 
     </div>
 
-    <!-- Firebase и логика -->
+    <!-- Firebase и логика сохранения профиля -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -77,12 +77,34 @@
 
         let currentUser = null;
 
+        // Отслеживаем состояние авторизации при загрузке
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                // Проверяем, есть ли уже сохраненная дата рождения
+                const savedBirthday = localStorage.getItem(`user_birthday_${user.uid}`);
+                if (savedBirthday) {
+                    const data = JSON.parse(savedBirthday);
+                    renderProfile(user.displayName, data.fullBirthday, data.age, data.ageCategory);
+                } else {
+                    showBirthdayPrompt(user.displayName);
+                }
+            }
+        });
+
         window.loginWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
                 currentUser = result.user;
-                showBirthdayPrompt(currentUser.displayName);
+                
+                const savedBirthday = localStorage.getItem(`user_birthday_${currentUser.uid}`);
+                if (savedBirthday) {
+                    const data = JSON.parse(savedBirthday);
+                    renderProfile(currentUser.displayName, data.fullBirthday, data.age, data.ageCategory);
+                } else {
+                    showBirthdayPrompt(currentUser.displayName);
+                }
             } catch (error) {
                 console.error("Ошибка входа:", error);
                 alert("Не удалось войти через Google: " + error.message);
@@ -128,7 +150,6 @@
                 return;
             }
 
-            // Вычисляем возраст пользователя
             const today = new Date();
             let age = today.getFullYear() - year;
             const m = today.getMonth() + 1 - month;
@@ -136,14 +157,12 @@
                 age--;
             }
 
-            // ПРОВЕРКА ВОЗРАСТА: Строго от 9 лет
             if (age < 9) {
                 errorMsg.textContent = `Вам ${age} лет. Регистрация запрещена (только с 9 лет)!`;
                 errorMsg.classList.remove('hidden');
                 return;
             }
 
-            // Категории пользователей по возрасту
             let ageCategory = "";
             if (age >= 9 && age <= 12) {
                 ageCategory = "Предподросток";
@@ -153,7 +172,21 @@
                 ageCategory = "Взрослый";
             }
 
-            // ПРОВЕРКА ВЕРСИИ ANDROID УСТРОЙСТВА
+            const formattedDay = day < 10 ? '0' + day : day;
+            const formattedMonth = month < 10 ? '0' + month : month;
+            const fullBirthday = `${formattedDay}.${formattedMonth}.${year}`;
+
+            // Сохраняем данные пользователя в localStorage
+            localStorage.setItem(`user_birthday_${currentUser.uid}`, JSON.stringify({
+                fullBirthday,
+                age,
+                ageCategory
+            }));
+
+            renderProfile(currentUser.displayName, fullBirthday, age, ageCategory);
+        };
+
+        function renderProfile(userName, fullBirthday, age, ageCategory) {
             const ua = navigator.userAgent;
             let androidVersion = null;
             const match = ua.match(/Android\s([0-9\.]+)/);
@@ -169,17 +202,12 @@
                 modeDesc = `Android ${androidVersion}: Запущена оптимизированная веб-версия для версий ниже 8.0.`;
             }
 
-            // Отображение результата
-            const formattedDay = day < 10 ? '0' + day : day;
-            const formattedMonth = month < 10 ? '0' + month : month;
-            const fullBirthday = `${formattedDay}.${formattedMonth}.${year}`;
-
             const container = document.getElementById('auth-container');
             const mainContent = document.getElementById('main-content');
 
             mainContent.innerHTML = `
                 <h1 class="text-4xl font-extrabold tracking-tight">Добро пожаловать!</h1>
-                <p class="text-gray-400 text-base mt-2 font-medium">${currentUser.displayName}</p>
+                <p class="text-gray-400 text-base mt-2 font-medium">${userName}</p>
             `;
 
             container.innerHTML = `
@@ -197,8 +225,25 @@
                         <span class="text-green-400 font-bold">${mode}</span>
                     </div>
                     <p class="text-gray-400 text-xs mt-1 text-center">${modeDesc}</p>
+                    
+                    <!-- Кнопка Выйти из аккаунта -->
+                    <button onclick="logout()" class="w-full mt-2 border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        Выйти из аккаунта
+                    </button>
                 </div>
             `;
+        }
+
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                location.reload(); // Перезагружаем страницу после выхода
+            } catch (error) {
+                console.error("Ошибка при выходе:", error);
+            }
         };
     </script>
 
