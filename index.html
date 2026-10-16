@@ -1,911 +1,161 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>bibmeme</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800&display=swap" rel="stylesheet">
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: #121212;
-      color: #ffffff;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 600px;
-      width: 100%;
-    }
-
-    #welcomeHeader {
-      margin-bottom: 24px;
-    }
-
-    h1 {
-      font-size: 3rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      margin-bottom: 16px;
-    }
-
-    p {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #e0e0e0;
-      line-height: 1.5;
-      margin-bottom: 24px;
-    }
-
-    .status-badge {
-      display: inline-block;
-      background-color: #222222;
-      border: 1px solid #333333;
-      color: #00e676;
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.95rem;
-      font-weight: 700;
-      margin-bottom: 24px;
-    }
-
-    .card {
-      background-color: #1e1e1e;
-      border: 1px solid #333;
-      padding: 24px;
-      border-radius: 16px;
-      display: none;
-      margin-top: 10px;
-      text-align: left;
-    }
-
-    .card h2 { text-align: center; }
-    .card p { text-align: center; }
-
-    .nav-bar {
-      display: none;
-      background-color: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 12px;
-      padding: 8px;
-      margin-bottom: 16px;
-      justify-content: space-around;
-    }
-
-    .nav-btn {
-      background: transparent;
-      border: none;
-      color: #aaa;
-      font-family: inherit;
-      font-size: 1rem;
-      font-weight: 800;
-      padding: 10px 20px;
-      cursor: pointer;
-      border-radius: 8px;
-      transition: 0.2s;
-      flex: 1;
-    }
-
-    .nav-btn.active {
-      background-color: #333;
-      color: #fff;
-    }
-
-    .btn-google {
-      font-family: inherit;
-      font-weight: 800;
-      background-color: #4285f4;
-      color: white;
-      border: none;
-      padding: 14px 24px;
-      font-size: 1.1rem;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background 0.2s;
-      display: inline-block;
-      width: 100%;
-    }
-
-    .btn-google:hover { background-color: #357ae8; }
-    .btn-secondary { background-color: #444; margin-top: 10px; }
-    .btn-secondary:hover { background-color: #555; }
-    .btn-logout { background-color: #e53935; margin-top: 16px; }
-    .btn-danger { background-color: #d32f2f; margin-top: 10px; }
-    .btn-danger:hover { background-color: #b71c1c; }
-    .btn-warning { background-color: #f57c00; margin-top: 10px; }
-    .btn-warning:hover { background-color: #e65100; }
-
-    .user-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      margin-bottom: 12px;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    input[type="date"], input[type="text"], input[type="password"] {
-      font-family: inherit;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background-color: #2a2a2a;
-      color: #fff;
-      font-size: 1rem;
-      margin-bottom: 16px;
-      width: 100%;
-    }
-
-    .question-block { margin-bottom: 16px; }
-    .question-block label {
-      display: block;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #ddd;
-      margin-bottom: 6px;
-    }
-
-    .notice-card {
-      background-color: #2a1a1a;
-      border: 1px solid #e53935;
-      text-align: center;
-    }
-
-    .center-btn { text-align: center; }
-
-    .rules-list {
-      background: #111;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #333;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      margin-bottom: 16px;
-    }
-
-    .feed-item {
-      background: #252525;
-      border: 1px solid #333;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 16px;
-    }
-
-    .feed-item img {
-      width: 100%;
-      border-radius: 8px;
-      margin: 10px 0;
-    }
-
-    .btn-action {
-      background: #333;
-      color: #fff;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 700;
-      margin-right: 8px;
-    }
-
-    .btn-action:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-  </style>
-</head>
-<body>
-
-  <div class="container">
-    <div id="welcomeHeader">
-      <h1>Привет!</h1>
-      <p>Здесь вы встретите мемы, тренды и красивые фотки</p>
-      <div id="statusBadge" class="status-badge">
-        🚀 bibmeme
-      </div>
-    </div>
-
-    <!-- Панель переключения (Лента / Профиль) -->
-    <div id="navBar" class="nav-bar">
-      <button id="navFeedBtn" class="nav-btn active">🔥 Лента</button>
-      <button id="navProfileBtn" class="nav-btn">👤 Профиль</button>
-    </div>
-
-    <!-- Вход через Google -->
-    <div id="loginSection" style="text-align: center;">
-      <button id="googleLoginBtn" class="btn-google">Войти через Google</button>
-    </div>
-
-    <!-- ЭКРАН 1: Дата рождения -->
-    <div id="ageCheckCard" class="card" style="text-align: center;">
-      <h2 style="margin-bottom: 12px;">Подтверждение возраста</h2>
-      <p style="font-size: 1rem; color: #aaa; margin-bottom: 16px;">
-        Для доступа к сайту вам должно быть строго от 9 лет
-      </p>
-      <input type="date" id="birthdateInput" style="max-width: 250px;">
-      <br>
-      <button id="confirmAgeBtn" class="btn-google">Далее</button>
-    </div>
-
-    <!-- ЭКРАН 2: Оповещение об ограничении (<= 8 лет) -->
-    <div id="ageDeniedCard" class="card notice-card">
-      <h2 style="margin-bottom: 12px; color: #ff5252;">Оповещение</h2>
-      <p style="font-size: 1.1rem; color: #ffffff; margin-bottom: 20px;">
-        К сожалению, вы не можете использовать приложение из-за ограничений по возрасту (до 9 лет).
-      </p>
-      <button id="startRecoveryBtn" class="btn-google btn-secondary">Изменить дату</button>
-      <br>
-      <button id="deniedLogoutBtn" class="btn-google btn-logout">Выйти</button>
-    </div>
-
-    <!-- ЭКРАН 3: Проверка знаний (Вопросы) -->
-    <div id="quizCard" class="card">
-      <h2>Проверка на подшаренность 😎</h2>
-      <p id="quizSubtitle" style="font-size: 0.95rem; color: #aaa; margin-bottom: 20px;">
-        Вы ранее говорили, что вам меньше 8. Для изменения даты ответьте на вопросы:
-      </p>
-
-      <div class="question-block">
-        <label>1. Продолжи текст песни «Я тебя могну»:</label>
-        <input type="text" id="q1" placeholder="Напиши продолжение...">
-      </div>
-
-      <div class="question-block">
-        <label>2. Как говорится 67?</label>
-        <input type="text" id="q2" placeholder="Ответ...">
-      </div>
-
-      <div class="question-block">
-        <label>3. Напиши строчку из любой песни Газана:</label>
-        <input type="text" id="q3" placeholder="Ответ...">
-      </div>
-
-      <div id="quizError" style="color: #ff5252; font-weight: 700; margin-bottom: 12px; display: none; text-align: center;">
-        Нужно ответить правильно хотя бы на 2-3 вопроса, чтобы изменить дату!
-      </div>
-
-      <div class="center-btn">
-        <button id="submitQuizBtn" class="btn-google">Подтвердить ответы</button>
-        <br>
-        <button id="changeDateBtn" class="btn-google btn-secondary">Отмена</button>
-      </div>
-    </div>
-
-    <!-- ЭКРАН 4: Настройка профиля из 4 шагов -->
-    <div id="setupCard" class="card">
-      <h2>Настройка bibmeme ⚙️</h2>
-      
-      <!-- Шаг 1 -->
-      <div id="setupStep1">
-        <p style="text-align: left; font-size: 1rem; margin-bottom: 12px;">1. Темы рекомендаций:</p>
-        <label><input type="checkbox" id="catTopic" checked> Котики и животные</label><br><br>
-        <label><input type="checkbox" id="cookTopic" checked> Готовка и рецепты</label><br><br>
-        <label><input type="checkbox" id="impactTopic" checked> Мемы со шрифтом Impact</label><br><br>
-        <label><input type="checkbox" id="absurdTopic" checked> Абсурд ("Окак", "Черемша", "67")</label><br><br>
-        <button id="toStep2Btn" class="btn-google">Далее</button>
-      </div>
-
-      <!-- Шаг 2 -->
-      <div id="setupStep2" style="display: none;">
-        <p style="text-align: left; font-size: 1rem; margin-bottom: 12px;">2. Переключатель ненормативной лексики:</p>
-        <label><input type="radio" name="profanityOpt" value="false" checked> Фильтровать мат</label><br><br>
-        <label><input type="radio" name="profanityOpt" value="true"> Показывать мат (доступно с 13+)</label><br><br>
-        <button id="toStep3Btn" class="btn-google">Далее</button>
-      </div>
-
-      <!-- Шаг 3 -->
-      <div id="setupStep3" style="display: none;">
-        <p style="text-align: left; font-size: 1rem; margin-bottom: 12px;">3. Правила сообщества:</p>
-        <div class="rules-list">
-          • Вход строго с 9 лет.<br>
-          • ЛС работают ТОЛЬКО при взаимной подписке.<br>
-          • Для предподростков (9-12): предупреждение в 22:00, блокировка с 23:00.<br>
-          • Для подростков (13-17): предупреждение в 23:00, блокировка с 1:00 до 7:00.
-        </div>
-        <label><input type="checkbox" id="rulesAcceptCheck"> Я прочитал и принимаю правила</label><br><br>
-        <button id="toStep4Btn" class="btn-google">Далее к паролю</button>
-      </div>
-
-      <!-- Шаг 4: Установка пароля -->
-      <div id="setupStep4" style="display: none;">
-        <p style="text-align: left; font-size: 1rem; margin-bottom: 8px;">4. Создание пароля аккаунта (необязательно):</p>
-        <div class="rules-list" style="font-size: 0.85rem; color: #aaa; margin-bottom: 12px;">
-          Требования к паролю:<br>
-          • Не менее 6 символов<br>
-          • Начинается с заглавной буквы (A-Z, А-Я)<br>
-          • Содержит хотя бы 1 цифру (0-9)<br>
-          • Содержит спец. символ (!, @, #, $, %, etc.)
-        </div>
-        <input type="password" id="userPasswordInput" placeholder="Введите пароль...">
-        
-        <div id="passwordError" style="color: #ff5252; font-size: 0.85rem; font-weight: 700; margin-bottom: 12px; display: none; text-align: left;"></div>
-
-        <button id="finishSetupBtn" class="btn-google">Сохранить и войти</button>
-        <button id="skipPasswordBtn" class="btn-google btn-secondary">Пропустить</button>
-      </div>
-    </div>
-
-    <!-- РАЗДЕЛ 5А: Лента (Вкладка 1) -->
-    <div id="feedViewCard" class="card" style="text-align: center;">
-      <!-- Ночной режим сообщения -->
-      <div id="nightWarningBox" style="display: none; background: #311b92; padding: 12px; border-radius: 12px; margin-bottom: 16px;">
-        <p style="font-size: 0.95rem; margin-bottom: 8px;">🌙 Время спать! Отложить время?</p>
-        <button id="snooze0Btn" class="btn-action">До 0:00</button>
-        <button id="snooze1Btn" class="btn-action">До 1:00</button>
-      </div>
-
-      <div id="nightLockBox" class="notice-card" style="display: none; padding: 16px; margin-bottom: 16px;">
-        <h3 style="color: #ff5252;">🌙 Ночной режим</h3>
-        <p style="font-size: 0.9rem;">Время отдыха! bibmeme закрыт до 7:00 утра.</p>
-      </div>
-
-      <h3 style="text-align: left; margin-bottom: 12px;">Лента bibmeme:</h3>
-      <div id="feedContainer" style="text-align: left;"></div>
-    </div>
-
-    <!-- РАЗДЕЛ 5Б: Профиль (Вкладка 2) -->
-    <div id="profileViewCard" class="card" style="text-align: center;">
-      <img id="userAvatar" class="user-avatar" src="" alt="Аватар">
-      <h2 id="userName" style="font-size: 1.5rem; font-weight: 800; margin-bottom: 4px;"></h2>
-      <p id="userEmail" style="font-size: 0.9rem; color: #888; margin-bottom: 8px;"></p>
-      <div id="userCategoryBadge" style="color: #00e676; font-weight: 800; margin-bottom: 16px;"></div>
-
-      <button id="logoutBtn" class="btn-google btn-logout">Выйти</button>
-      <button id="openDeleteModalBtn" class="btn-google btn-danger">Удалить аккаунт</button>
-    </div>
-
-    <!-- ЭКРАН 6: Предупреждение об удалении аккаунта -->
-    <div id="deleteAccountCard" class="card notice-card">
-      <h2 style="color: #ff5252; margin-bottom: 12px;">Пока вы не ушли, прочтите это, это очень важно</h2>
-      <p style="font-size: 1rem; color: #ffffff; text-align: left; line-height: 1.5; margin-bottom: 20px;">
-        Вы собираетесь удалить аккаунт в bibmeme со всеми данными: переписки, комментарии, аккаунт и так далее.<br><br>
-        После удаления вы не сможете восстановить аккаунт и эти данные.<br><br>
-        Данные можно сохранить и скачать их.<br>
-        Нажмите «Загрузить данные», чтобы сохранить их.<br><br>
-        Нажав кнопку «Удалить», Вы соглашаетесь на удаление аккаунта и потерю данных.
-      </p>
-      <button id="downloadDataBtn" class="btn-google btn-warning">Загрузить данные</button>
-      <button id="confirmDeleteBtn" class="btn-google btn-danger">Удалить</button>
-      <button id="cancelDeleteBtn" class="btn-google btn-secondary">Отмена</button>
-    </div>
-
-    <!-- ЭКРАН 7: Ошибка сервера (Лимит 300 пользователей) -->
-    <div id="serverLimitCard" class="card notice-card">
-      <h2 style="color: #ff5252; margin-bottom: 12px;">Ой! Кажется вылезла редкая ошибка</h2>
-      <p style="font-size: 1.1rem; color: #ffffff; line-height: 1.5; margin-bottom: 20px;">
-        К сожалению, сервера не выдержат более 300 человек. Ждите ожидания ... месяца.
-      </p>
-      <button id="retryServerBtn" class="btn-google btn-secondary">Обновить страницу</button>
-    </div>
-  </div>
-    <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
-      authDomain: "bibmeme-def4d.firebaseapp.com",
-      projectId: "bibmeme-def4d",
-      storageBucket: "bibmeme-def4d.firebasestorage.app",
-      messagingSenderId: "640073948297",
-      appId: "1:640073948297:web:30b65e2900685b66817a58"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    const welcomeHeader = document.getElementById("welcomeHeader");
-    const loginSection = document.getElementById("loginSection");
-    const googleLoginBtn = document.getElementById("googleLoginBtn");
-
-    const ageCheckCard = document.getElementById("ageCheckCard");
-    const ageDeniedCard = document.getElementById("ageDeniedCard");
-    const quizCard = document.getElementById("quizCard");
-    const quizSubtitle = document.getElementById("quizSubtitle");
-    const birthdateInput = document.getElementById("birthdateInput");
-    const confirmAgeBtn = document.getElementById("confirmAgeBtn");
-    const startRecoveryBtn = document.getElementById("startRecoveryBtn");
-    const changeDateBtn = document.getElementById("changeDateBtn");
-    const submitQuizBtn = document.getElementById("submitQuizBtn");
-    const quizError = document.getElementById("quizError");
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Привет</title>
+    <!-- Google Client ID для авторизации -->
+    <meta name="google-signin-client_id" content="754087180561-rvtiaemjn16g4s800emdfkmaskp49j64.apps.googleusercontent.com">
     
-    const setupCard = document.getElementById("setupCard");
-    const setupStep1 = document.getElementById("setupStep1");
-    const setupStep2 = document.getElementById("setupStep2");
-    const setupStep3 = document.getElementById("setupStep3");
-    const setupStep4 = document.getElementById("setupStep4");
-    const toStep2Btn = document.getElementById("toStep2Btn");
-    const toStep3Btn = document.getElementById("toStep3Btn");
-    const toStep4Btn = document.getElementById("toStep4Btn");
-    const userPasswordInput = document.getElementById("userPasswordInput");
-    const passwordError = document.getElementById("passwordError");
-    const finishSetupBtn = document.getElementById("finishSetupBtn");
-    const skipPasswordBtn = document.getElementById("skipPasswordBtn");
-
-    const navBar = document.getElementById("navBar");
-    const navFeedBtn = document.getElementById("navFeedBtn");
-    const navProfileBtn = document.getElementById("navProfileBtn");
-    const feedViewCard = document.getElementById("feedViewCard");
-    const profileViewCard = document.getElementById("profileViewCard");
-
-    const userName = document.getElementById("userName");
-    const userEmail = document.getElementById("userEmail");
-    const userAvatar = document.getElementById("userAvatar");
-    const userCategoryBadge = document.getElementById("userCategoryBadge");
-    const feedContainer = document.getElementById("feedContainer");
-    const nightWarningBox = document.getElementById("nightWarningBox");
-    const nightLockBox = document.getElementById("nightLockBox");
-    const snooze0Btn = document.getElementById("snooze0Btn");
-    const snooze1Btn = document.getElementById("snooze1Btn");
-
-    const logoutBtn = document.getElementById("logoutBtn");
-    const deniedLogoutBtn = document.getElementById("deniedLogoutBtn");
-
-    const openDeleteModalBtn = document.getElementById("openDeleteModalBtn");
-    const deleteAccountCard = document.getElementById("deleteAccountCard");
-    const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
-    const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
-    const downloadDataBtn = document.getElementById("downloadDataBtn");
-
-    const serverLimitCard = document.getElementById("serverLimitCard");
-    const retryServerBtn = document.getElementById("retryServerBtn");
-
-    let currentUser = null;
-    let isRecoveringMode = false;
-
-    let userData = {
-      age: 0,
-      category: '',
-      allowProfanity: false,
-      friends: ['friend_nick'],
-      followers: ['friend_nick', 'fan_user'],
-      snoozeUntil: null
-    };
-
-    const postsDatabase = [
-      { id: 1, title: "Классический мем со шрифтом Impact", author: "friend_nick", minAge: 9, hasProfanity: false, img: "https://via.placeholder.com/400x200/333/fff?text=Meme+1" },
-      { id: 2, title: "Тренды абсурда: 67 и Черемша", author: "fan_user", minAge: 9, hasProfanity: false, img: "https://via.placeholder.com/400x200/444/fff?text=Meme+2" },
-      { id: 3, title: "Пост для старших с жестким юмором", author: "bad_guy", minAge: 13, hasProfanity: true, img: "https://via.placeholder.com/400x200/555/fff?text=13%2B+Meme" }
-    ];
-
-    navFeedBtn.addEventListener("click", () => {
-      navFeedBtn.classList.add("active");
-      navProfileBtn.classList.remove("active");
-      feedViewCard.style.display = "block";
-      profileViewCard.style.display = "none";
-      deleteAccountCard.style.display = "none";
-    });
-
-    navProfileBtn.addEventListener("click", () => {
-      navProfileBtn.classList.add("active");
-      navFeedBtn.classList.remove("active");
-      profileViewCard.style.display = "block";
-      feedViewCard.style.display = "none";
-      deleteAccountCard.style.display = "none";
-    });
-
-    googleLoginBtn.addEventListener("click", () => {
-      signInWithPopup(auth, provider).catch((error) => {
-        alert("Ошибка входа: " + error.message);
-      });
-    });
-
-    const handleLogout = () => {
-      signOut(auth).then(() => {
-        if (currentUser) {
-          localStorage.removeItem("bibmeme_status_" + currentUser.uid);
-          localStorage.removeItem("bibmeme_age_" + currentUser.uid);
+    <!-- Подключаем шрифт Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
-        alert("Вы вышли из аккаунта");
-      });
-    };
+    </style>
+</head>
+<body class="bg-[#121212] text-white h-screen flex flex-col justify-between p-6 select-none">
 
-    logoutBtn.addEventListener("click", handleLogout);
-    deniedLogoutBtn.addEventListener("click", handleLogout);
+    <!-- Заголовок -->
+    <div id="main-content" class="flex flex-col items-center mt-20">
+        <h1 class="text-5xl font-extrabold tracking-tight">Привет</h1>
+        <p class="text-gray-400 text-lg mt-2 font-medium">Добро пожаловать в соцсеть</p>
+    </div>
 
-    openDeleteModalBtn.addEventListener("click", () => {
-      profileViewCard.style.display = "none";
-      deleteAccountCard.style.display = "block";
-    });
+    <!-- Блок с табличкой и кнопкой Google -->
+    <div id="auth-container" class="w-full max-w-sm mx-auto mb-12 flex flex-col gap-3">
+        
+        <!-- Табличка -->
+        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 text-center shadow-lg w-full flex items-center justify-center gap-3">
+            <!-- Индикатор -->
+            <span class="relative flex h-3 w-3">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+            </span>
 
-    cancelDeleteBtn.addEventListener("click", () => {
-      deleteAccountCard.style.display = "none";
-      profileViewCard.style.display = "block";
-    });
+            <!-- Иконка -->
+            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2,2 0 114 0v1a1,1 0 001 1h3a1,1 0 011 1v3a1,1 0 01-1 1h-1a2,2 0 100 4h1a1,1 0 011 1v3a1,1 0 01-1 1h-3a1,1 0 01-1-1v-1a2,2 0 10-4 0v1a1,1 0 01-1 1H7a1,1 0 01-1-1v-3a1,1 0 00-1-1H4a2,2 0 110-4h1a1,1 0 001-1V7a1,1 0 011-1h3a1,1 0 001-1V4z"></path>
+            </svg>
 
-    downloadDataBtn.addEventListener("click", () => {
-      const dataToSave = {
-        name: currentUser.displayName,
-        email: currentUser.email,
-        age: userData.age,
-        category: userData.category,
-        friends: userData.friends,
-        exportDate: new Date().toISOString()
-      };
+            <span class="text-lg font-bold text-white tracking-wide">
+                Проект делается!
+            </span>
+        </div>
 
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToSave, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", "bibmeme_my_data.json");
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    });
+        <!-- Кнопка Войти через Google -->
+        <button onclick="loginWithGoogle()" class="w-full bg-white text-black hover:bg-gray-200 font-bold py-3.5 rounded-2xl text-base transition flex items-center justify-center gap-3 shadow-md">
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.87z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.18 21.31 7.24 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.19C.43 8.14 0 9.99 0 12s.43 3.86 1.19 5.39l4.08-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.24 0 3.18 2.69 1.19 6.61l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+            </svg>
+            Войти через Google
+        </button>
 
-    confirmDeleteBtn.addEventListener("click", () => {
-      if (confirm("Вы уверены, что хотите навсегда удалить аккаунт и все данные?")) {
-        const user = auth.currentUser;
-        if (user) {
-          localStorage.removeItem("bibmeme_status_" + user.uid);
-          localStorage.removeItem("bibmeme_age_" + user.uid);
-          
-          deleteUser(user).then(() => {
-            alert("Аккаунт успешно удален.");
-          }).catch((error) => {
-            alert("Для удаления аккаунта требуется повторный вход. Войдите заново и попробуйте снова.");
-            signOut(auth);
-          });
+    </div>
+
+    <!-- Инициализация Firebase и логика проверки возраста -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
+            authDomain: "bibmeme-def4d.firebaseapp.com",
+            projectId: "bibmeme-def4d",
+            storageBucket: "bibmeme-def4d.firebasestorage.app",
+            messagingSenderId: "640073948297",
+            appId: "1:640073948297:web:30b65e2900685b66817a58"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        window.loginWithGoogle = async function() {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                // Запрашиваем год рождения после успешного входа
+                showAgePrompt(user.displayName);
+            } catch (error) {
+                console.error("Ошибка входа:", error);
+                alert("Не удалось войти через Google: " + error.message);
+            }
+        };
+
+        function showAgePrompt(userName) {
+            const container = document.getElementById('auth-container');
+            const mainContent = document.getElementById('main-content');
+
+            mainContent.innerHTML = `
+                <h1 class="text-3xl font-extrabold tracking-tight">Привет, ${userName}!</h1>
+                <p class="text-gray-400 text-base mt-2 font-medium">Введите ваш год рождения для проверки возраста</p>
+            `;
+
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-4">
+                    <input type="number" id="birthYearInput" placeholder="Например: 2015" min="1900" max="2026" 
+                        class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-center text-lg focus:outline-none focus:border-white">
+                    <button onclick="checkAge()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
+                        Подтвердить
+                    </button>
+                    <p id="errorMsg" class="text-red-400 text-sm font-medium hidden"></p>
+                </div>
+            `;
         }
-      }
-    });
 
-    confirmAgeBtn.addEventListener("click", () => {
-      const birthDateVal = birthdateInput.value;
-      if (!birthDateVal) {
-        alert("Пожалуйста, выберите дату рождения!");
-        return;
-      }
+        window.checkAge = function() {
+            const yearInput = document.getElementById('birthYearInput').value;
+            const errorMsg = document.getElementById('errorMsg');
+            const currentYear = new Date().getFullYear();
+            const birthYear = parseInt(yearInput);
 
-      const birthDate = new Date(birthDateVal);
-      const today = new Date();
-      
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
+            if (!birthYear || birthYear < 1900 || birthYear > currentYear) {
+                errorMsg.textContent = "Пожалуйста, введите корректный год!";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
 
-      userData.age = age;
-      localStorage.setItem("bibmeme_age_" + currentUser.uid, age);
+            const age = currentYear - birthYear;
 
-      if (age >= 9) {
-        isRecoveringMode = false;
-        quizSubtitle.textContent = "Докажи, что шаришь за тренды!";
-        showQuiz();
-      } else {
-        localStorage.setItem("bibmeme_status_" + currentUser.uid, "denied");
-        showDenied();
-      }
-    });
+            if (age < 9) {
+                errorMsg.textContent = `Ошибка: Вам ${age} лет. Регистрация разрешена только с 9 лет!`;
+                errorMsg.classList.remove('hidden');
+                return;
+            }
 
-    startRecoveryBtn.addEventListener("click", () => {
-      isRecoveringMode = true;
-      quizSubtitle.textContent = "Вы ранее говорили, что вам меньше 8. Для изменения даты ответьте на вопросы:";
-      showQuiz();
-    });
+            let category = "";
+            if (age >= 9 && age <= 12) {
+                category = "Предподросток";
+            } else if (age >= 13 && age <= 17) {
+                category = "Подросток";
+            } else {
+                category = "Взрослый";
+            }
 
-    changeDateBtn.addEventListener("click", () => {
-      if (localStorage.getItem("bibmeme_status_" + currentUser?.uid) === "denied") {
-        showDenied();
-      } else {
-        showAgeCheck();
-      }
-    });
+            const container = document.getElementById('auth-container');
+            const mainContent = document.getElementById('main-content');
 
-    submitQuizBtn.addEventListener("click", () => {
-      const ans1 = document.getElementById("q1").value.toLowerCase();
-      const ans2 = document.getElementById("q2").value.toLowerCase();
-      const ans3 = document.getElementById("q3").value.toLowerCase();
+            mainContent.innerHTML = `
+                <h1 class="text-4xl font-extrabold tracking-tight">Добро пожаловать!</h1>
+                <p class="text-gray-400 text-lg mt-2 font-medium">Ваша категория: <span class="text-white font-bold">${category}</span> (${age} лет)</p>
+            `;
 
-      const ok1 = ans1.includes("низк") || ans1.includes("высоким") || ans1.includes("высоких") || ans1.includes("мог") || ans1.includes("люблю");
-      const ok2 = ans2.includes("сикс") || ans2.includes("севен") || ans2.includes("six") || ans2.includes("seven") || ans2.includes("67");
-      const ok3 = ans3.includes("хулиган") || ans3.includes("газан") || ans3.includes("черемш") || ans3.includes("малыш") || ans3.includes("хочу быть");
-
-      let score = 0;
-      if (ok1) score++;
-      if (ok2) score++;
-      if (ok3) score++;
-
-      if (score >= 2) {
-        quizError.style.display = "none";
-        if (isRecoveringMode) {
-          showAgeCheck();
-        } else {
-          showSetup();
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full">
+                    <span class="text-green-400 font-bold text-lg">Доступ разрешён 🎉</span>
+                </div>
+            `;
         }
-      } else {
-        quizError.style.display = "block";
-      }
-    });
-
-    toStep2Btn.addEventListener("click", () => {
-      setupStep1.style.display = "none";
-      setupStep2.style.display = "block";
-    });
-
-    toStep3Btn.addEventListener("click", () => {
-      setupStep2.style.display = "none";
-      setupStep3.style.display = "block";
-    });
-
-    toStep4Btn.addEventListener("click", () => {
-      if (!document.getElementById("rulesAcceptCheck").checked) {
-        alert("Пожалуйста, подтвердите согласие с правилами!");
-        return;
-      }
-      setupStep3.style.display = "none";
-      setupStep4.style.display = "block";
-    });
-
-    function validatePassword(pass) {
-      if (pass.length < 6) {
-        return "Пароль должен содержать не менее 6 символов!";
-      }
-      const firstChar = pass.charAt(0);
-      if (firstChar !== firstChar.toUpperCase() || firstChar === firstChar.toLowerCase()) {
-        return "Пароль должен начинаться с заглавной буквы!";
-      }
-      if (!/\d/.test(pass)) {
-        return "Пароль должен содержать хотя бы одну цифру (0-9)!";
-      }
-      if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pass)) {
-        return "Пароль должен содержать хотя бы один специальный символ (!@#$%^&*)!";
-      }
-      return null;
-    }
-
-    finishSetupBtn.addEventListener("click", () => {
-      const passVal = userPasswordInput.value.trim();
-
-      if (passVal.length > 0) {
-        const errorMsg = validatePassword(passVal);
-        if (errorMsg) {
-          passwordError.textContent = errorMsg;
-          passwordError.style.display = "block";
-          return;
-        }
-      }
-
-      passwordError.style.display = "none";
-      saveAndEnter();
-    });
-
-    skipPasswordBtn.addEventListener("click", () => {
-      passwordError.style.display = "none";
-      saveAndEnter();
-    });
-
-    function saveAndEnter() {
-      const profVal = document.querySelector('input[name="profanityOpt"]:checked').value;
-      userData.allowProfanity = (profVal === "true" && userData.age >= 13);
-
-      localStorage.setItem("bibmeme_status_" + currentUser.uid, "allowed");
-      showProfile(currentUser);
-    }
-
-    retryServerBtn.addEventListener("click", () => {
-      location.reload();
-    });
-
-    function showAgeCheck() {
-      welcomeHeader.style.display = "block";
-      loginSection.style.display = "none";
-      ageCheckCard.style.display = "block";
-      ageDeniedCard.style.display = "none";
-      quizCard.style.display = "none";
-      setupCard.style.display = "none";
-      navBar.style.display = "none";
-      feedViewCard.style.display = "none";
-      profileViewCard.style.display = "none";
-      deleteAccountCard.style.display = "none";
-      serverLimitCard.style.display = "none";
-    }
-
-    function showQuiz() {
-      welcomeHeader.style.display = "block";
-      loginSection.style.display = "none";
-      ageCheckCard.style.display = "none";
-      ageDeniedCard.style.display = "none";
-      quizCard.style.display = "block";
-      setupCard.style.display = "none";
-      navBar.style.display = "none";
-      feedViewCard.style.display = "none";
-      profileViewCard.style.display = "none";
-      deleteAccountCard.style.display = "none";
-      serverLimitCard.style.display = "none";
-    }
-
-    function showSetup() {
-      welcomeHeader.style.display = "block";
-      loginSection.style.display = "none";
-      ageCheckCard.style.display = "none";
-      ageDeniedCard.style.display = "none";
-      quizCard.style.display = "none";
-      setupCard.style.display = "block";
-      navBar.style.display = "none";
-      feedViewCard.style.display = "none";
-      profileViewCard.style.display = "none";
-      deleteAccountCard.style.display = "none";
-      serverLimitCard.style.display = "none";
-    }
-
-    function showDenied() {
-      welcomeHeader.style.display = "block";
-      loginSection.style.display = "none";
-      ageCheckCard.style.display = "none";
-      quizCard.style.display = "none";
-      setupCard.style.display = "none";
-      navBar.style.display = "none";
-      feedViewCard.style.display = "none";
-      profileViewCard.style.display = "none";
-      deleteAccountCard.style.display = "none";
-      serverLimitCard.style.display = "none";
-      ageDeniedCard.style.display = "block";
-    }
-
-    function showProfile(user) {
-      welcomeHeader.style.display = "none";
-      loginSection.style.display = "none";
-      ageCheckCard.style.display = "none";
-      ageDeniedCard.style.display = "none";
-      quizCard.style.display = "none";
-      setupCard.style.display = "none";
-      deleteAccountCard.style.display = "none";
-      serverLimitCard.style.display = "none";
-
-      navBar.style.display = "flex";
-      feedViewCard.style.display = "block";
-      profileViewCard.style.display = "none";
-
-      userName.textContent = user.displayName;
-      userEmail.textContent = user.email;
-      userAvatar.src = user.photoURL;
-
-      const savedAge = parseInt(localStorage.getItem("bibmeme_age_" + user.uid)) || userData.age;
-      userData.age = savedAge;
-
-      if (savedAge >= 9 && savedAge <= 12) {
-        userData.category = 'Предподросток (9-12)';
-      } else if (savedAge >= 13 && savedAge <= 17) {
-        userData.category = 'Подросток (13-17)';
-      } else {
-        userData.category = 'Взрослый (18+)';
-      }
-
-      userCategoryBadge.textContent = "Статус: " + userData.category;
-
-      checkNightMode();
-      renderFeed();
-    }
-
-    function canSendDM(targetUser) {
-      return userData.friends.includes(targetUser) && userData.followers.includes(targetUser);
-    }
-
-    function canCommentOnPost(postAuthor) {
-      if (userData.age >= 9 && userData.age <= 12) {
-        return userData.friends.includes(postAuthor) || userData.followers.includes(postAuthor);
-      }
-      return true;
-    }
-
-    function renderFeed() {
-      feedContainer.innerHTML = '';
-
-      const availablePosts = postsDatabase.filter(post => {
-        if (userData.age < post.minAge) return false;
-        if (post.hasProfanity && !userData.allowProfanity) return false;
-        return true;
-      });
-
-      if (availablePosts.length === 0) {
-        feedContainer.innerHTML = `
-          <div style="text-align: center; padding: 30px 10px;">
-            <p style="color: #888; font-size: 1.1rem; margin-bottom: 16px;">Пока что в ленте нету постов</p>
-            <button class="btn-google" style="max-width: 250px;" onclick="alert('Форма создания поста в разработке...')">Создайте свой первый пост!</button>
-          </div>
-        `;
-        return;
-      }
-
-      availablePosts.forEach(post => {
-        const isDMAllowed = canSendDM(post.author);
-        const isCommentAllowed = canCommentOnPost(post.author);
-
-        const item = document.createElement('div');
-        item.className = 'feed-item';
-        item.innerHTML = `
-          <h4>${post.title}</h4>
-          <p style="font-size: 0.8rem; color: #aaa; margin-bottom: 4px;">Автор: ${post.author}</p>
-          <img src="${post.img}">
-          <div>
-            <button class="btn-action" ${!isCommentAllowed ? 'disabled' : ''}>💬 Комментировать</button>
-            <button class="btn-action" ${!isDMAllowed ? 'disabled' : ''}>✉️ ЛС ${isDMAllowed ? '' : '(Только друзья)'}</button>
-          </div>
-        `;
-        feedContainer.appendChild(item);
-      });
-    }
-
-    function checkNightMode() {
-      if (userData.age >= 18) return;
-
-      const hour = new Date().getHours();
-
-      if (userData.age >= 9 && userData.age <= 12) {
-        if (hour >= 23 || hour < 7) {
-          feedContainer.style.display = "none";
-          nightLockBox.style.display = "block";
-        } else if (hour === 22 && !userData.snoozeUntil) {
-          nightWarningBox.style.display = "block";
-        }
-      } else if (userData.age >= 13 && userData.age <= 17) {
-        if (hour >= 1 && hour < 7) {
-          feedContainer.style.display = "none";
-          nightLockBox.style.display = "block";
-        } else if (hour >= 23 && !userData.snoozeUntil) {
-          nightWarningBox.style.display = "block";
-        }
-      }
-    }
-
-    snooze0Btn.addEventListener("click", () => {
-      userData.snoozeUntil = 0;
-      nightWarningBox.style.display = "none";
-    });
-
-    snooze1Btn.addEventListener("click", () => {
-      userData.snoozeUntil = 1;
-      nightWarningBox.style.display = "none";
-    });
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        loginSection.style.display = "none";
-
-        const status = localStorage.getItem("bibmeme_status_" + user.uid);
-        if (status === "allowed") {
-          showProfile(user);
-        } else if (status === "denied") {
-          showDenied();
-        } else {
-          showAgeCheck();
-        }
-      } else {
-        currentUser = null;
-        welcomeHeader.style.display = "block";
-        loginSection.style.display = "block";
-        ageCheckCard.style.display = "none";
-        ageDeniedCard.style.display = "none";
-        quizCard.style.display = "none";
-        setupCard.style.display = "none";
-        navBar.style.display = "none";
-        feedViewCard.style.display = "none";
-        profileViewCard.style.display = "none";
-        deleteAccountCard.style.display = "none";
-        serverLimitCard.style.display = "none";
-      }
-    });
-  </script>
+    </script>
 
 </body>
 </html>
