@@ -58,7 +58,7 @@
 
     </div>
 
-    <!-- Firebase и логика сохранения профиля -->
+    <!-- Firebase и логика авторизации -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -77,11 +77,10 @@
 
         let currentUser = null;
 
-        // Отслеживаем состояние авторизации при загрузке
+        // Отслеживаем состояние входа при загрузке
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                // Проверяем, есть ли уже сохраненная дата рождения
                 const savedBirthday = localStorage.getItem(`user_birthday_${user.uid}`);
                 if (savedBirthday) {
                     const data = JSON.parse(savedBirthday);
@@ -176,7 +175,7 @@
             const formattedMonth = month < 10 ? '0' + month : month;
             const fullBirthday = `${formattedDay}.${formattedMonth}.${year}`;
 
-            // Сохраняем данные пользователя в localStorage
+            // Сохраняем дату в localStorage
             localStorage.setItem(`user_birthday_${currentUser.uid}`, JSON.stringify({
                 fullBirthday,
                 age,
@@ -187,21 +186,6 @@
         };
 
         function renderProfile(userName, fullBirthday, age, ageCategory) {
-            const ua = navigator.userAgent;
-            let androidVersion = null;
-            const match = ua.match(/Android\s([0-9\.]+)/);
-            if (match) {
-                androidVersion = parseFloat(match[1]);
-            }
-
-            let mode = "App (Приложение)";
-            let modeDesc = "Android 8.0+: Доступно полноценное приложение.";
-
-            if (androidVersion !== null && androidVersion < 8.0) {
-                mode = "Web (Веб-версия)";
-                modeDesc = `Android ${androidVersion}: Запущена оптимизированная веб-версия для версий ниже 8.0.`;
-            }
-
             const container = document.getElementById('auth-container');
             const mainContent = document.getElementById('main-content');
 
@@ -220,11 +204,6 @@
                         <span class="text-gray-400 text-sm">Статус:</span>
                         <span class="text-white font-bold">${ageCategory}</span>
                     </div>
-                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span class="text-gray-400 text-sm">Режим платформы:</span>
-                        <span class="text-green-400 font-bold">${mode}</span>
-                    </div>
-                    <p class="text-gray-400 text-xs mt-1 text-center">${modeDesc}</p>
                     
                     <!-- Кнопка Выйти из аккаунта -->
                     <button onclick="logout()" class="w-full mt-2 border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
@@ -240,7 +219,7 @@
         window.logout = async function() {
             try {
                 await signOut(auth);
-                location.reload(); // Перезагружаем страницу после выхода
+                location.reload();
             } catch (error) {
                 console.error("Ошибка при выходе:", error);
             }
