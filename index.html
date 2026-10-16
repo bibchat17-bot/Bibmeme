@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -60,7 +60,7 @@
 
     </div>
 
-    <!-- Инициализация Firebase и логика ввода даты рождения -->
+    <!-- Инициализация Firebase и логика сохранения даты -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -84,8 +84,6 @@
             try {
                 const result = await signInWithPopup(auth, provider);
                 currentUser = result.user;
-                
-                // Запрашиваем день и месяц рождения
                 showBirthdayPrompt(currentUser.displayName);
             } catch (error) {
                 console.error("Ошибка входа:", error);
@@ -99,16 +97,18 @@
 
             mainContent.innerHTML = `
                 <h1 class="text-3xl font-extrabold tracking-tight">Привет, ${userName}!</h1>
-                <p class="text-gray-400 text-base mt-2 font-medium">Введите ваш день и месяц рождения</p>
+                <p class="text-gray-400 text-base mt-2 font-medium">Введите вашу дату рождения (день, месяц, год)</p>
             `;
 
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
                     <div class="flex gap-2">
                         <input type="number" id="birthDay" placeholder="День (1-31)" min="1" max="31" 
-                            class="w-1/2 bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-center text-base focus:outline-none focus:border-white">
+                            class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
                         <input type="number" id="birthMonth" placeholder="Месяц (1-12)" min="1" max="12" 
-                            class="w-1/2 bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-center text-base focus:outline-none focus:border-white">
+                            class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
+                        <input type="number" id="birthYear" placeholder="Год (например, 2016)" min="1900" max="2026" 
+                            class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
                     </div>
                     <button onclick="submitBirthday()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
                         Продолжить
@@ -121,19 +121,20 @@
         window.submitBirthday = function() {
             const day = parseInt(document.getElementById('birthDay').value);
             const month = parseInt(document.getElementById('birthMonth').value);
+            const year = parseInt(document.getElementById('birthYear').value);
             const errorMsg = document.getElementById('errorMsg');
 
-            if (!day || !month || day < 1 || day > 31 || month < 1 || month > 12) {
-                errorMsg.textContent = "Введите корректный день и месяц!";
+            if (!day || !month || !year || day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2026) {
+                errorMsg.textContent = "Введите корректную дату рождения!";
                 errorMsg.classList.remove('hidden');
                 return;
             }
 
-            // Переходим к автоопределению Android
-            detectAndroidAndShowResult(currentUser.displayName, day, month);
+            // Передаем полную дату дальше
+            detectAndroidAndShowResult(currentUser.displayName, day, month, year);
         };
 
-        function detectAndroidAndShowResult(userName, day, month) {
+        function detectAndroidAndShowResult(userName, day, month, year) {
             const ua = navigator.userAgent;
             let androidVersion = null;
             
@@ -143,25 +144,37 @@
             }
 
             let mode = "App (Приложение)";
-            let description = "Установлена версия Android 8.0 или выше. Доступно полноценное приложение!";
+            let description = "Android 8.0+: Доступно полноценное приложение.";
 
             if (androidVersion !== null && androidVersion < 8.0) {
                 mode = "Web (Веб-версия)";
-                description = `Обнаружен Android ${androidVersion}. Для версий ниже 8.0 запускается веб-версия.`;
+                description = `Android ${androidVersion}: Запущена веб-версия для старых устройств.`;
             }
+
+            // Красиво форматируем дату (например, 06.06.2016)
+            const formattedDay = day < 10 ? '0' + day : day;
+            const formattedMonth = month < 10 ? '0' + month : month;
+            const fullBirthday = `${formattedDay}.${formattedMonth}.${year}`;
 
             const container = document.getElementById('auth-container');
             const mainContent = document.getElementById('main-content');
 
             mainContent.innerHTML = `
-                <h1 class="text-4xl font-extrabold tracking-tight">Вход выполнен!</h1>
-                <p class="text-gray-400 text-base mt-2 font-medium">${userName}, дата рождения: <span class="text-white font-bold">${day}.${month < 10 ? '0' + month : month}</span></p>
+                <h1 class="text-4xl font-extrabold tracking-tight">Профиль создан!</h1>
+                <p class="text-gray-400 text-base mt-2 font-medium">${userName}</p>
             `;
 
             container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-2">
-                    <span class="text-green-400 font-bold text-lg">Режим: ${mode}</span>
-                    <p class="text-gray-300 text-sm">${description}</p>
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-left shadow-lg w-full flex flex-col gap-3">
+                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                        <span class="text-gray-400 text-sm">Дата рождения:</span>
+                        <span class="text-white font-bold">${fullBirthday}</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                        <span class="text-gray-400 text-sm">Режим работы:</span>
+                        <span class="text-green-400 font-bold">${mode}</span>
+                    </div>
+                    <p class="text-gray-400 text-xs mt-1 text-center">${description}</p>
                 </div>
             `;
         }
