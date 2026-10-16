@@ -60,7 +60,7 @@
 
     </div>
 
-    <!-- Инициализация Firebase и логика проверки возраста -->
+    <!-- Инициализация Firebase и логика ввода даты рождения -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -77,81 +77,91 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
+        let currentUser = null;
+
         window.loginWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
-                const user = result.user;
+                currentUser = result.user;
                 
-                // Запрашиваем год рождения после успешного входа
-                showAgePrompt(user.displayName);
+                // Запрашиваем день и месяц рождения
+                showBirthdayPrompt(currentUser.displayName);
             } catch (error) {
                 console.error("Ошибка входа:", error);
                 alert("Не удалось войти через Google: " + error.message);
             }
         };
 
-        function showAgePrompt(userName) {
+        function showBirthdayPrompt(userName) {
             const container = document.getElementById('auth-container');
             const mainContent = document.getElementById('main-content');
 
             mainContent.innerHTML = `
                 <h1 class="text-3xl font-extrabold tracking-tight">Привет, ${userName}!</h1>
-                <p class="text-gray-400 text-base mt-2 font-medium">Введите ваш год рождения для проверки возраста</p>
+                <p class="text-gray-400 text-base mt-2 font-medium">Введите ваш день и месяц рождения</p>
             `;
 
             container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-4">
-                    <input type="number" id="birthYearInput" placeholder="Например: 2015" min="1900" max="2026" 
-                        class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-center text-lg focus:outline-none focus:border-white">
-                    <button onclick="checkAge()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
-                        Подтвердить
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
+                    <div class="flex gap-2">
+                        <input type="number" id="birthDay" placeholder="День (1-31)" min="1" max="31" 
+                            class="w-1/2 bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-center text-base focus:outline-none focus:border-white">
+                        <input type="number" id="birthMonth" placeholder="Месяц (1-12)" min="1" max="12" 
+                            class="w-1/2 bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-center text-base focus:outline-none focus:border-white">
+                    </div>
+                    <button onclick="submitBirthday()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
+                        Продолжить
                     </button>
                     <p id="errorMsg" class="text-red-400 text-sm font-medium hidden"></p>
                 </div>
             `;
         }
 
-        window.checkAge = function() {
-            const yearInput = document.getElementById('birthYearInput').value;
+        window.submitBirthday = function() {
+            const day = parseInt(document.getElementById('birthDay').value);
+            const month = parseInt(document.getElementById('birthMonth').value);
             const errorMsg = document.getElementById('errorMsg');
-            const currentYear = new Date().getFullYear();
-            const birthYear = parseInt(yearInput);
 
-            if (!birthYear || birthYear < 1900 || birthYear > currentYear) {
-                errorMsg.textContent = "Пожалуйста, введите корректный год!";
+            if (!day || !month || day < 1 || day > 31 || month < 1 || month > 12) {
+                errorMsg.textContent = "Введите корректный день и месяц!";
                 errorMsg.classList.remove('hidden');
                 return;
             }
 
-            const age = currentYear - birthYear;
+            // Переходим к автоопределению Android
+            detectAndroidAndShowResult(currentUser.displayName, day, month);
+        };
 
-            if (age < 9) {
-                errorMsg.textContent = `Ошибка: Вам ${age} лет. Регистрация разрешена только с 9 лет!`;
-                errorMsg.classList.remove('hidden');
-                return;
+        function detectAndroidAndShowResult(userName, day, month) {
+            const ua = navigator.userAgent;
+            let androidVersion = null;
+            
+            const match = ua.match(/Android\s([0-9\.]+)/);
+            if (match) {
+                androidVersion = parseFloat(match[1]);
             }
 
-            let category = "";
-            if (age >= 9 && age <= 12) {
-                category = "Предподросток";
-            } else if (age >= 13 && age <= 17) {
-                category = "Подросток";
-            } else {
-                category = "Взрослый";
+            let mode = "App (Приложение)";
+            let description = "Установлена версия Android 8.0 или выше. Доступно полноценное приложение!";
+
+            if (androidVersion !== null && androidVersion < 8.0) {
+                mode = "Web (Веб-версия)";
+                description = `Обнаружен Android ${androidVersion}. Для версий ниже 8.0 запускается веб-версия.`;
             }
 
             const container = document.getElementById('auth-container');
             const mainContent = document.getElementById('main-content');
 
             mainContent.innerHTML = `
-                <h1 class="text-4xl font-extrabold tracking-tight">Добро пожаловать!</h1>
-                <p class="text-gray-400 text-lg mt-2 font-medium">Ваша категория: <span class="text-white font-bold">${category}</span> (${age} лет)</p>
+                <h1 class="text-4xl font-extrabold tracking-tight">Вход выполнен!</h1>
+                <p class="text-gray-400 text-base mt-2 font-medium">${userName}, дата рождения: <span class="text-white font-bold">${day}.${month < 10 ? '0' + month : month}</span></p>
             `;
 
             container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full">
-                    <span class="text-green-400 font-bold text-lg">Доступ разрешён 🎉</span>
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-2">
+                    <span class="text-green-400 font-bold text-lg">Режим: ${mode}</span>
+                    <p class="text-gray-300 text-sm">${description}</p>
                 </div>
             `;
         }
