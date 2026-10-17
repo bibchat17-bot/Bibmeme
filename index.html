@@ -18,10 +18,10 @@
         }
     </style>
 </head>
-<body class="bg-[#121212] text-white h-screen flex flex-col justify-between p-6 select-none overflow-hidden">
+<body class="bg-[#121212] text-white min-h-screen flex flex-col justify-between p-6 select-none pt-12">
 
-    <!-- Верхний заголовок -->
-    <div id="top-header" class="flex flex-col items-center mt-6">
+    <!-- Верхний заголовок (поднят и адаптирован для всех экранов) -->
+    <div id="top-header" class="flex flex-col items-center w-full mb-6 text-center">
         <h1 class="text-4xl font-extrabold tracking-tight">bibmeme</h1>
     </div>
 
@@ -57,7 +57,7 @@
     </div>
 
     <!-- Нижняя панель навигации (скрыта до входа) -->
-    <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-2 flex justify-around items-center shadow-lg">
+    <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-2 flex justify-around items-center shadow-lg mt-auto">
         <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-sm text-gray-400 hover:text-white transition rounded-xl">
             Лента
         </button>
@@ -115,7 +115,6 @@
             const savedData = localStorage.getItem(`user_account_${currentUser.uid}`);
             if (savedData) {
                 const data = JSON.parse(savedData);
-                // Проверяем, есть ли сохраненный пароль у аккаунта
                 if (data.hasPassword && !sessionStorage.getItem(`auth_verified_${currentUser.uid}`)) {
                     showPasswordLoginPrompt(currentUser.displayName);
                 } else {
@@ -127,7 +126,6 @@
             }
         }
 
-        // Экран ввода пароля при входе (если пароль задан)
         function showPasswordLoginPrompt(userName) {
             document.getElementById('bottom-nav').classList.add('hidden');
             const container = document.getElementById('app-container');
@@ -237,7 +235,6 @@
             showPasswordCreationPrompt();
         };
 
-        // Шаг создания пароля
         function showPasswordCreationPrompt() {
             const topHeader = document.getElementById('top-header');
             const container = document.getElementById('app-container');
@@ -276,12 +273,6 @@
 
             if (!skipped) {
                 const pass = document.getElementById('newPassword').value;
-                
-                // Проверка правил пароля:
-                // 1. Длина >= 6
-                // 2. Хотя бы 2 цифры
-                // 3. Содержит нижнее подчеркивание (_) и хотя бы один спецсимвол
-                // 4. С заглавной буквой
                 const hasLength = pass.length >= 6;
                 const hasUppercase = /[A-ZА-ЯЁ]/.test(pass);
                 const digitsMatch = pass.match(/\d/g);
@@ -313,9 +304,7 @@
             document.getElementById('bottom-nav').classList.remove('hidden');
             switchTab('profile');
         };
-
-        // Управление вкладками (Лента / Профиль)
-        window.switchTab = function(tab) {
+                window.switchTab = function(tab) {
             activeTab = tab;
             const topHeader = document.getElementById('top-header');
             const container = document.getElementById('app-container');
@@ -331,7 +320,7 @@
                 container.innerHTML = `
                     <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-8 text-center shadow-lg w-full flex flex-col items-center justify-center gap-2 my-auto">
                         <svg class="w-12 h-12 text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2  0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
                         </svg>
                         <p class="text-gray-400 text-base font-medium">Здесь пока пусто</p>
                         <p class="text-gray-600 text-xs">Скоро здесь появятся посты и мемы</p>
@@ -364,126 +353,124 @@
                             <span class="text-white font-bold text-sm">${savedData.hasPassword ? 'Установлен' : 'Не установлен'}</span>
                         </div>
                         
-                                            <div class="flex flex-col gap-2 mt-1">
-                        <button onclick="logout()" class="w-full border border-white/20 bg-white/5 text-white hover:bg-white/10 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
-                            Выйти из аккаунта
-                        </button>
-                        <button onclick="showDeleteWarning()" class="w-full border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
-                            Удалить аккаунт
-                        </button>
+                        <div class="flex flex-col gap-2 mt-1">
+                            <button onclick="logout()" class="w-full border border-white/20 bg-white/5 text-white hover:bg-white/10 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                                Выйти из аккаунта
+                            </button>
+                            <button onclick="showDeleteWarning()" class="w-full border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                                Удалить аккаунт
+                            </button>
+                        </div>
                     </div>
+                `;
+            }
+        };
+
+        window.showDeleteWarning = function() {
+            document.getElementById('bottom-nav').classList.add('hidden');
+            const container = document.getElementById('app-container');
+            const topHeader = document.getElementById('top-header');
+
+            topHeader.innerHTML = `
+                <h1 class="text-2xl font-extrabold tracking-tight text-red-400">Удаление аккаунта</h1>
+            `;
+
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-left shadow-lg w-full flex flex-col gap-2 overflow-y-auto max-h-[75vh]">
+                    <p class="text-xs text-gray-200 leading-relaxed">
+                        <strong class="text-white">Пока вы еще не ушли, прочитайте, это очень важно:</strong><br><br>
+                        Вы собираетесь удалить аккаунт в Bibmeme. После удаления вы не можете восстановить аккаунт, фотки, посты, сообщения, комментарии и друзей.<br><br>
+                        Вы можете скачать данные перед удалением аккаунта.<br><br>
+                        Если вы действительно хотите удалить аккаунт, согласитесь на удаление и то, что вы скачали данные.<br><br>
+                        После нажатия кнопки «Удалить аккаунт» все данные и аккаунт сотрутся безвозвратно.
+                    </p>
+
+                    <button onclick="downloadUserData()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                        Скачать данные
+                    </button>
+
+                    <div class="flex flex-col gap-1.5 mt-1">
+                        <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                            <input type="checkbox" id="checkDownloaded" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500">
+                            <span>Я скачал(а) свои данные перед удалением</span>
+                        </label>
+                        <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                            <input type="checkbox" id="checkAgree" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500">
+                            <span>Я согласен(на) на удаление аккаунта</span>
+                        </label>
+                    </div>
+
+                    <button id="finalDeleteBtn" onclick="executeAccountDeletion()" disabled class="w-full bg-red-500/40 text-white/50 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-not-allowed">
+                        Удалить аккаунт навсегда
+                    </button>
+                    <button onclick="cancelDeletion()" class="w-full bg-transparent hover:bg-white/5 text-gray-400 font-bold py-2 rounded-xl text-xs transition">
+                        Отмена
+                    </button>
                 </div>
             `;
         }
-    };
 
-    window.showDeleteWarning = function() {
-        document.getElementById('bottom-nav').classList.add('hidden');
-        const container = document.getElementById('app-container');
-        const topHeader = document.getElementById('top-header');
+        window.toggleDeleteBtn = function() {
+            const check1 = document.getElementById('checkDownloaded').checked;
+            const check2 = document.getElementById('checkAgree').checked;
+            const btn = document.getElementById('finalDeleteBtn');
 
-        topHeader.innerHTML = `
-            <h1 class="text-2xl font-extrabold tracking-tight text-red-400">Удаление аккаунта</h1>
-        `;
-
-        container.innerHTML = `
-            <div class="bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-left shadow-lg w-full flex flex-col gap-2 overflow-y-auto max-h-[75vh]">
-                <p class="text-xs text-gray-200 leading-relaxed">
-                    <strong class="text-white">Пока вы еще не ушли, прочитайте, это очень важно:</strong><br><br>
-                    Вы собираетесь удалить аккаунт в Bibmeme. После удаления вы не можете восстановить аккаунт, фотки, посты, сообщения, комментарии и друзей.<br><br>
-                    Вы можете скачать данные перед удалением аккаунта.<br><br>
-                    Если вы действительно хотите удалить аккаунт, согласитесь на удаление и то, что вы скачали данные.<br><br>
-                    После нажатия кнопки «Удалить аккаунт» все данные и аккаунт сотрутся безвозвратно.
-                </p>
-
-                <button onclick="downloadUserData()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-2">
-                    Скачать данные
-                </button>
-
-                <div class="flex flex-col gap-1.5 mt-1">
-                    <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
-                        <input type="checkbox" id="checkDownloaded" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500">
-                        <span>Я скачал(а) свои данные перед удалением</span>
-                    </label>
-                    <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
-                        <input type="checkbox" id="checkAgree" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500">
-                        <span>Я согласен(на) на удаление аккаунта</span>
-                    </label>
-                </div>
-
-                <button id="finalDeleteBtn" onclick="executeAccountDeletion()" disabled class="w-full bg-red-500/40 text-white/50 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-not-allowed">
-                    Удалить аккаунт навсегда
-                </button>
-                <button onclick="cancelDeletion()" class="w-full bg-transparent hover:bg-white/5 text-gray-400 font-bold py-2 rounded-xl text-xs transition">
-                    Отмена
-                </button>
-            </div>
-        `;
-    }
-
-    window.toggleDeleteBtn = function() {
-        const check1 = document.getElementById('checkDownloaded').checked;
-        const check2 = document.getElementById('checkAgree').checked;
-        const btn = document.getElementById('finalDeleteBtn');
-
-        if (check1 && check2) {
-            btn.disabled = false;
-            btn.classList.remove('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
-            btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
-        } else {
-            btn.disabled = true;
-            btn.classList.add('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
-            btn.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white');
-        }
-    };
-
-    window.downloadUserData = function() {
-        const savedData = localStorage.getItem(`user_account_${currentUser.uid}`) || "{}";
-        const dataToExport = {
-            exportDate: new Date().toISOString(),
-            accountInfo: JSON.parse(savedData)
+            if (check1 && check2) {
+                btn.disabled = false;
+                btn.classList.remove('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
+                btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
+            } else {
+                btn.disabled = true;
+                btn.classList.add('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
+                btn.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white');
+            }
         };
 
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `bibmeme_account_${currentUser.uid}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-    };
+        window.downloadUserData = function() {
+            const savedData = localStorage.getItem(`user_account_${currentUser.uid}`) || "{}";
+            const dataToExport = {
+                exportDate: new Date().toISOString(),
+                accountInfo: JSON.parse(savedData)
+            };
 
-    window.executeAccountDeletion = async function() {
-        if (!confirm("Вы уверены, что хотите окончательно удалить аккаунт в Bibmeme?")) return;
-        try {
-            localStorage.removeItem(`user_account_${currentUser.uid}`);
-            sessionStorage.removeItem(`auth_verified_${currentUser.uid}`);
-            await deleteUser(currentUser);
-            alert("Аккаунт успешно удален.");
-            location.reload();
-        } catch (error) {
-            console.error("Ошибка при удалении:", error);
-            alert("Не удалось удалить аккаунт. Перезайдите в систему и попробуйте снова.");
-        }
-    };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `bibmeme_account_${currentUser.uid}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        };
 
-    window.cancelDeletion = function() {
-        document.getElementById('bottom-nav').classList.remove('hidden');
-        switchTab('profile');
-    };
+        window.executeAccountDeletion = async function() {
+            if (!confirm("Вы уверены, что хотите окончательно удалить аккаунт в Bibmeme?")) return;
+            try {
+                localStorage.removeItem(`user_account_${currentUser.uid}`);
+                sessionStorage.removeItem(`auth_verified_${currentUser.uid}`);
+                await deleteUser(currentUser);
+                alert("Аккаунт успешно удален.");
+                location.reload();
+            } catch (error) {
+                console.error("Ошибка при удалении:", error);
+                alert("Не удалось удалить аккаунт. Перезайдите в систему и попробуйте снова.");
+            }
+        };
 
-    window.logout = async function() {
-        try {
-            sessionStorage.clear();
-            await signOut(auth);
-            location.reload();
-        } catch (error) {
-            console.error("Ошибка при выходе:", error);
-        }
-    };
-</script>
+        window.cancelDeletion = function() {
+            document.getElementById('bottom-nav').classList.remove('hidden');
+            switchTab('profile');
+        };
+
+        window.logout = async function() {
+            try {
+                sessionStorage.clear();
+                await signOut(auth);
+                location.reload();
+            } catch (error) {
+                console.error("Ошибка при выходе:", error);
+            }
+        };
+    </script>
 
 </body>
 </html>
-
-                        
