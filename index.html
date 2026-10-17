@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>bibmeme</title>
-    <!-- Google Client ID для авторизации -->
     <meta name="google-signin-client_id" content="754087180561-rvtiaemjn16g4s800emdfkmaskp49j64.apps.googleusercontent.com">
-    
-    <!-- Подключаем шрифт Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -15,10 +12,14 @@
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #121212;
+            color: white;
         }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-[#121212] text-white min-h-screen flex flex-col justify-between p-4 select-none pt-10">
+<body class="bg-[#121212] text-white min-h-screen flex flex-col justify-between p-4 select-none pt-10 overflow-x-hidden">
 
     <!-- Верхний заголовок -->
     <div id="top-header" class="flex flex-col items-center w-full mb-4 text-center">
@@ -28,51 +29,41 @@
     <!-- Основной контейнер экрана -->
     <div id="app-container" class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3">
         
-        <!-- Табличка "Проект делается!" -->
-        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 text-center shadow-lg w-full flex items-center justify-center gap-3">
-            <span class="relative flex h-3 w-3">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
-            </span>
+        <!-- Стартовый экран (Приветствие + Вход через Google) -->
+        <div id="welcome-screen" class="w-full flex flex-col gap-3">
+            <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 text-center shadow-lg w-full flex items-center justify-center gap-3">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                </span>
+                <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2,2 0 114 0v1a1,1 0 001 1h3a1,1 0 011 1v3a1,1 0 011 1h-1a2,2 0 100 4h1a1,1 0 011 1v3a1,1 0 01-1 1h-3a1,1 0 01-1-1v-1a2,2 0 10-4 0v1a1,1 0 01-1 1H7a1,1 0 01-1-1v-3a1,1 0 00-1-1H4a2,2 0 110-4h1a1,1 0 001-1V7a1,1 0 011-1h3a1,1 0 001-1V4z"></path></svg>
+                <span class="text-lg font-bold text-white tracking-wide">Проект делается!</span>
+            </div>
 
-            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2,2 0 114 0v1a1,1 0 001 1h3a1,1 0 011 1v3a1,1 0 011 1h-1a2,2 0 100 4h1a1,1 0 011 1v3a1,1 0 01-1 1h-3a1,1 0 01-1-1v-1a2,2 0 10-4 0v1a1,1 0 01-1 1H7a1,1 0 01-1-1v-3a1,1 0 00-1-1H4a2,2 0 110-4h1a1,1 0 001-1V7a1,1 0 011-1h3a1,1 0 001-1V4z"></path>
-            </svg>
-
-            <span class="text-lg font-bold text-white tracking-wide">
-                Проект делается!
-            </span>
+            <button onclick="loginWithGoogle()" class="w-full bg-white text-black hover:bg-gray-200 font-bold py-3.5 rounded-2xl text-base transition flex items-center justify-center gap-3 shadow-md">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.87z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.18 21.31 7.24 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.19C.43 8.14 0 9.99 0 12s.43 3.86 1.19 5.39l4.08-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.24 0 3.18 2.69 1.19 6.61l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
+                </svg>
+                Войти через Google
+            </button>
+            <p id="accountLimitError" class="text-red-400 text-xs text-center font-medium hidden"></p>
         </div>
-
-        <!-- Кнопка Войти через Google -->
-        <button onclick="loginWithGoogle()" class="w-full bg-white text-black hover:bg-gray-200 font-bold py-3.5 rounded-2xl text-base transition flex items-center justify-center gap-3 shadow-md">
-            <svg class="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.87z"/>
-                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.18 21.31 7.24 24 12 24z"/>
-                <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.19C.43 8.14 0 9.99 0 12s.43 3.86 1.19 5.39l4.08-3.15z"/>
-                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.24 0 3.18 2.69 1.19 6.61l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
-            </svg>
-            Войти через Google
-        </button>
-        <p id="accountLimitError" class="text-red-400 text-xs text-center font-medium hidden"></p>
     </div>
 
-    <!-- Нижняя панель навигации -->
+    <!-- Нижняя панель навигации (Лента, Сервера, Сервер Админа, Профиль) -->
     <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-1.5 flex justify-around items-center shadow-lg mt-auto">
-        <button onclick="switchTab('servers')" id="nav-servers" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">
-            Сервера
-        </button>
-        <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">
-            Лента
-        </button>
-        <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl">
-            Профиль
-        </button>
+        <button onclick="switchTab('servers')" id="nav-servers" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Сервера</button>
+        <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Лента</button>
+        <button onclick="switchTab('adminServer')" id="nav-adminServer" class="hidden flex-1 py-2 text-center font-bold text-xs text-purple-400 hover:text-purple-300 transition rounded-xl">👑 Сервер</button>
+        <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl">Профиль</button>
     </div>
         <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, arrayUnion, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -90,19 +81,27 @@
         let currentUser = null;
         let activeTab = 'profile';
 
+        // --- НАСТРОЙКА РОЛЕЙ ---
+        const OWNER_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"]; // Владелец
+        const ADMIN_UIDS = ["q4GyUEltlrS9KaSMoGYdbE4dkK13"]; // Админ
+
+        function getUserRole() {
+            if (!currentUser || !currentUser.uid) return "user";
+            if (OWNER_UIDS.includes(currentUser.uid)) return "owner";
+            if (ADMIN_UIDS.includes(currentUser.uid)) return "admin";
+            return "user";
+        }
+
         function isAppleDevice() {
             const ua = navigator.userAgent;
             if (/Android/i.test(ua)) return false;
             return /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(ua);
         }
 
-        // --- Проверка лимита аккаунтов (Максимум 3 на устройстве) ---
         function registerDeviceAccount(uid) {
             let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
             if (!accounts.includes(uid)) {
-                if (accounts.length >= 3) {
-                    return false; // Достигнут лимит
-                }
+                if (accounts.length >= 3) return false;
                 accounts.push(uid);
                 localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
             }
@@ -112,6 +111,7 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
+                document.getElementById('welcome-screen').classList.add('hidden');
                 checkUserSessionState();
             }
         });
@@ -131,6 +131,7 @@
                 }
 
                 currentUser = user;
+                document.getElementById('welcome-screen').classList.add('hidden');
                 checkUserSessionState();
             } catch (error) {
                 console.error("Ошибка входа:", error);
@@ -142,14 +143,16 @@
             const savedData = localStorage.getItem(`user_account_${currentUser.uid}`);
             if (savedData) {
                 const data = JSON.parse(savedData);
-
-                // --- ПРОВЕРКА РЕЖИМА СНА ---
                 if (checkSleepLock(data.age)) return;
 
                 if (data.hasPassword && !sessionStorage.getItem(`auth_verified_${currentUser.uid}`)) {
                     showPasswordLoginPrompt(currentUser.displayName);
                 } else {
                     document.getElementById('bottom-nav').classList.remove('hidden');
+                    const role = getUserRole();
+                    if (role === 'owner' || role === 'admin') {
+                        document.getElementById('nav-adminServer').classList.remove('hidden');
+                    }
                     switchTab('profile');
                 }
             } else {
@@ -157,64 +160,50 @@
             }
         }
 
-                // --- ТОЧНЫЙ И УМНЫЙ КОНТРОЛЬ СНА ПО СИСТЕМНОМУ ВРЕМЕНИ УСТРОЙСТВА ---
+        // --- ТОЧНЫЙ КОНТРОЛЬ СНА ---
         function checkSleepLock(age) {
-            if (age >= 18) return false; // 18+ сидят хоть всю ночь
+            if (age >= 18) return false;
 
             const now = new Date();
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
-            
-            // Превращаем текущее время в минуты от начала суток для точного сравнения
             const totalCurrentMinutes = currentHour * 60 + currentMinute;
-
-            // Ключ для сегодняшней отсрочки в localStorage
             const dateKey = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
             const isExtendedToday = localStorage.getItem(`sleep_ext_${currentUser.uid}_${dateKey}`) === "true";
 
-            let sleepStartMinutes = 0;   // Во сколько штатный сон
-            let extensionLimitMinutes = 0; // До скольки можно отложить
+            let sleepStartMinutes = 0;   
+            let extensionLimitMinutes = 0; 
             let ageLabel = "";
 
             if (age >= 9 && age <= 12) {
-                sleepStartMinutes = 22 * 60;       // 22:00
-                extensionLimitMinutes = 23 * 60;   // 23:00 (отсрочка 1 час)
+                sleepStartMinutes = 22 * 60;       
+                extensionLimitMinutes = 23 * 60;   
                 ageLabel = "9-12 лет (сон в 22:00)";
             } else if (age >= 13 && age <= 15) {
-                sleepStartMinutes = 23 * 60;       // 23:00
-                extensionLimitMinutes = 24 * 60;   // 00:00 (отсрочка 1 час)
+                sleepStartMinutes = 23 * 60;       
+                extensionLimitMinutes = 24 * 60;   
                 ageLabel = "13-15 лет (сон в 23:00)";
             } else if (age >= 16 && age <= 17) {
-                sleepStartMinutes = 0;             // 00:00 ночи
-                extensionLimitMinutes = 1 * 60;    // 01:00 ночи (отсрочка 1 час)
+                sleepStartMinutes = 0;             
+                extensionLimitMinutes = 1 * 60;    
                 ageLabel = "16-17 лет (сон в 00:00)";
             }
 
             let isLocked = false;
             let canExtend = false;
 
-            // Логика для 16-17 лет (ночной переход через полночь с 00:00 до 06:00)
             if (age >= 16 && age <= 17) {
                 if (currentHour >= 0 && currentHour < 6) {
                     isLocked = true;
-                    if (totalCurrentMinutes < extensionLimitMinutes && !isExtendedToday) {
-                        canExtend = true;
-                    } else {
-                        canExtend = false;
-                    }
+                    if (totalCurrentMinutes < extensionLimitMinutes && !isExtendedToday) canExtend = true;
                 }
-            } 
-            // Логика для 9-12 и 13-15 лет (вечерний переход)
-            else {
+            } else {
                 if (totalCurrentMinutes >= sleepStartMinutes || currentHour < 6) {
                     isLocked = true;
-                    
                     if (totalCurrentMinutes < extensionLimitMinutes && !isExtendedToday) {
                         canExtend = true;
                     } else if (currentHour < 6 && !isExtendedToday && totalCurrentMinutes < (sleepStartMinutes + 60)) {
                         canExtend = true;
-                    } else {
-                        canExtend = false;
                     }
                 }
             }
@@ -223,7 +212,6 @@
                 showSleepLockScreen(ageLabel, canExtend);
                 return true;
             }
-
             return false;
         }
 
@@ -233,21 +221,13 @@
             const topHeader = document.getElementById('top-header');
 
             topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-indigo-400">Пора спать! 🌙</h1>`;
-
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col items-center gap-4">
                     <div class="text-4xl">😴</div>
-                    <p class="text-sm text-gray-200 font-medium">
-                        Время отдыха для категории <strong class="text-white">${ageLabel}</strong>. Приложение заблокировано.
-                    </p>
+                    <p class="text-sm text-gray-200 font-medium">Время отдыха для категории <strong class="text-white">${ageLabel}</strong>. Приложение заблокировано.</p>
                     ${canExtend ? `
-                        <p class="text-xs text-gray-400">Вы можете отложить сон на 1 час (до 23:00):</p>
-                        <button onclick="extendSleepTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition">
-                            Отложить на 1 час
-                        </button>
-                    ` : `
-                        <p class="text-xs text-red-400 font-semibold">Лимит отсрочки исчерпан. Спокойной ночи!</p>
-                    `}
+                        <button onclick="extendSleepTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition">Отложить на 1 час</button>
+                    ` : `<p class="text-xs text-red-400 font-semibold">Лимит отсрочки исчерпан. Спокойной ночи!</p>`}
                 </div>
             `;
         }
@@ -258,22 +238,16 @@
             localStorage.setItem(`sleep_ext_${currentUser.uid}_${dateKey}`, "true");
             location.reload();
         };
-
-        function showPasswordLoginPrompt(userName) {
+                    function showPasswordLoginPrompt(userName) {
             document.getElementById('bottom-nav').classList.add('hidden');
             const container = document.getElementById('app-container');
             const topHeader = document.getElementById('top-header');
-
             topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Вход, ${userName}</h1>`;
-
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
                     <p class="text-sm text-gray-300">Для этого аккаунта установлен пароль. Введите его:</p>
-                    <input type="password" id="loginPassword" placeholder="Ваш пароль" 
-                        class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
-                    <button onclick="verifyLoginPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
-                        Войти
-                    </button>
+                    <input type="password" id="loginPassword" placeholder="Ваш пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
+                    <button onclick="verifyLoginPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">Войти</button>
                     <p id="loginErrorMsg" class="text-red-400 text-sm font-medium hidden"></p>
                 </div>
             `;
@@ -287,6 +261,8 @@
             if (enteredPass === savedData.password) {
                 sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
                 document.getElementById('bottom-nav').classList.remove('hidden');
+                const role = getUserRole();
+                if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
                 switchTab('profile');
             } else {
                 errorMsg.textContent = "Неверный пароль!";
@@ -298,27 +274,17 @@
             document.getElementById('bottom-nav').classList.add('hidden');
             const topHeader = document.getElementById('top-header');
             const container = document.getElementById('app-container');
-
             const badge = isAppleDevice() ? ' ' : '';
 
-            topHeader.innerHTML = `
-                <h1 class="text-2xl font-extrabold tracking-tight">Привет, ${userName}${badge}!</h1>
-                <p class="text-gray-400 text-xs mt-1 font-medium">Укажите дату рождения</p>
-            `;
-
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Привет, ${userName}${badge}!</h1><p class="text-gray-400 text-xs mt-1 font-medium">Укажите дату рождения</p>`;
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
                     <div class="flex gap-2">
-                        <input type="number" id="birthDay" placeholder="День" min="1" max="31" 
-                            class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
-                        <input type="number" id="birthMonth" placeholder="Месяц" min="1" max="12" 
-                            class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
-                        <input type="number" id="birthYear" placeholder="Год" min="1900" max="2026" 
-                            class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
+                        <input type="number" id="birthDay" placeholder="День" min="1" max="31" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
+                        <input type="number" id="birthMonth" placeholder="Месяц" min="1" max="12" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
+                        <input type="number" id="birthYear" placeholder="Год" min="1900" max="2026" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
                     </div>
-                    <button onclick="proceedToPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
-                        Продолжить
-                    </button>
+                    <button onclick="proceedToPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">Продолжить</button>
                     <p id="errorMsg" class="text-red-400 text-sm font-medium hidden"></p>
                 </div>
             `;
@@ -355,11 +321,8 @@
             else if (age >= 16 && age <= 17) ageCategory = "Старший подросток (16-17)";
             else ageCategory = "Взрослый (18+)";
 
-            const formattedDay = day < 10 ? '0' + day : day;
-            const formattedMonth = month < 10 ? '0' + month : month;
-            
             tempBirthdayData = {
-                fullBirthday: `${formattedDay}.${formattedMonth}.${year}`,
+                fullBirthday: `${day < 10 ? '0'+day : day}.${month < 10 ? '0'+month : month}.${year}`,
                 age,
                 ageCategory
             };
@@ -370,488 +333,165 @@
         function showPasswordCreationPrompt() {
             const topHeader = document.getElementById('top-header');
             const container = document.getElementById('app-container');
-
-            topHeader.innerHTML = `
-                <h1 class="text-2xl font-extrabold tracking-tight">Защита аккаунта</h1>
-                <p class="text-gray-400 text-xs mt-1 font-medium">Создайте пароль или пропустите</p>
-            `;
-
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Защита аккаунта</h1><p class="text-gray-400 text-xs mt-1 font-medium">Создайте пароль или пропустите</p>`;
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
-                    <p class="text-xs text-gray-300 leading-relaxed">
-                        Требования к паролю:<br>
-                        • От 6 символов и букв<br>
-                        • Минимум 2 цифры<br>
-                        • Содержит нижнее подчеркивание (_) и спецсимвол (!@#$%^&*)<br>
-                        • Минимум 1 заглавная буква
-                    </p>
-                    <input type="password" id="newPassword" placeholder="Придумайте пароль" 
-                        class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
-                    
-                    <button onclick="saveAccountWithPassword(false)" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">
-                        Сохранить пароль
-                    </button>
-                    <button onclick="saveAccountWithPassword(true)" class="w-full bg-transparent hover:bg-white/5 text-gray-400 font-bold py-2 rounded-xl text-xs transition">
-                        Пропустить этот шаг
-                    </button>
+                    <p class="text-xs text-gray-300 leading-relaxed">Требования к паролю:<br>• От 6 символов<br>• Мин. 2 цифры<br>• Нижнее подчеркивание (_) и спецсимвол (!@#$%^&*)<br>• Мин. 1 заглавная буква</p>
+                    <input type="password" id="newPassword" placeholder="Придумайте пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
+                    <button onclick="saveAccountWithPassword(true)" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">Сохранить с паролем</button>
+                    <button onclick="saveAccountWithPassword(false)" class="w-full bg-transparent border border-white/20 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-white/5 transition">Пропустить</button>
                     <p id="passErrorMsg" class="text-red-400 text-xs font-medium hidden"></p>
                 </div>
             `;
         }
 
-        window.saveAccountWithPassword = function(skipped) {
-            let passwordToSave = null;
-            const passErrorMsg = document.getElementById('passErrorMsg');
+        window.saveAccountWithPassword = function(withPassword) {
+            let password = "";
+            if (withPassword) {
+                password = document.getElementById('newPassword').value;
+                const passErrorMsg = document.getElementById('passErrorMsg');
+                const hasLength = password.length >= 6;
+                const hasDigits = (password.match(/\d/g) || []).length >= 2;
+                const hasSpecial = password.includes('_') && /[!@#$%^&*]/.test(password);
+                const hasUpper = /[A-ZА-Я]/.test(password);
 
-            if (!skipped) {
-                const pass = document.getElementById('newPassword').value;
-                if (!validatePassword(pass)) {
-                    passErrorMsg.textContent = "Пароль не соответствует всем правилам безопасности!";
+                if (!hasLength || !hasDigits || !hasSpecial || !hasUpper) {
+                    passErrorMsg.textContent = "Пароль не соответствует требованиям безопасности!";
                     passErrorMsg.classList.remove('hidden');
                     return;
                 }
-                passwordToSave = pass;
             }
 
-            const accountData = {
-                uid: currentUser.uid,
-                name: currentUser.displayName,
-                email: currentUser.email,
-                photoURL: currentUser.photoURL || null,
-                ...tempBirthdayData,
-                hasPassword: !skipped,
-                password: passwordToSave,
-                createdAt: new Date().toISOString()
-            };
-
+            const accountData = { ...tempBirthdayData, hasPassword: withPassword, password: password, createdAt: new Date().toISOString() };
             localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(accountData));
-            sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
-
             document.getElementById('bottom-nav').classList.remove('hidden');
+            const role = getUserRole();
+            if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
             switchTab('profile');
         };
 
-        function validatePassword(pass) {
-            const hasLength = pass.length >= 6;
-            const hasUppercase = /[A-ZА-ЯЁ]/.test(pass);
-            const digitsMatch = pass.match(/\d/g);
-            const hasTwoDigits = digitsMatch && digitsMatch.length >= 2;
-            const hasUnderscore = pass.includes('_');
-            const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>\-_]/.test(pass);
-
-            return hasLength && hasUppercase && hasTwoDigits && hasUnderscore && hasSpecialChar;
-        }
-                    // Управление 3-мя вкладками
-        window.switchTab = function(tab) {
-            activeTab = tab;
-            const topHeader = document.getElementById('top-header');
+        // --- УПРАВЛЕНИЕ ВКЛАДКАМИ И ПРОФИЛЕМ ---
+        window.switchTab = function(tabName) {
+            activeTab = tabName;
             const container = document.getElementById('app-container');
-            
-            const btnServers = document.getElementById('nav-servers');
-            const btnFeed = document.getElementById('nav-feed');
-            const btnProfile = document.getElementById('nav-profile');
+            const topHeader = document.getElementById('top-header');
 
-            btnServers.className = "flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl";
-            btnFeed.className = "flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl";
-            btnProfile.className = "flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl";
+            document.querySelectorAll('#bottom-nav button').forEach(btn => {
+                btn.classList.remove('bg-white/10', 'text-white');
+                btn.classList.add('text-gray-400');
+            });
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white/10', 'text-white');
+                activeBtn.classList.remove('text-gray-400');
+            }
 
-            if (tab === 'servers') {
-                btnServers.className = "flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl";
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Сервера (до 100 чел)</h1>`;
-                renderServersTab();
-            } else if (tab === 'feed') {
-                btnFeed.className = "flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl";
-                topHeader.innerHTML = `<h1 class="text-3xl font-extrabold tracking-tight">Лента</h1>`;
-                container.innerHTML = `
-                    <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-8 text-center shadow-lg w-full flex flex-col items-center justify-center gap-2 my-auto">
-                        <svg class="w-12 h-12 text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
-                        </svg>
-                        <p class="text-gray-400 text-base font-medium">Здесь пока пусто</p>
-                        <p class="text-gray-600 text-xs">Скоро здесь появятся посты и мемы</p>
-                    </div>
-                `;
-            } else {
-                btnProfile.className = "flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl";
-                const savedData = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
-                const badge = isAppleDevice() ? ' ' : '';
-
-                topHeader.innerHTML = `<h1 class="text-3xl font-extrabold tracking-tight">Профиль</h1>`;
-
-                const avatarUrl = currentUser.photoURL || savedData.photoURL;
-                const avatarHtml = avatarUrl 
-                    ? `<img src="${avatarUrl}" class="w-16 h-16 rounded-full border-2 border-white/30 object-cover shadow-md">`
-                    : `<div class="w-16 h-16 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center text-2xl font-bold">${currentUser.displayName.charAt(0)}</div>`;
+            if (tabName === 'profile') {
+                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>`;
+                const data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`) || '{}');
+                const role = getUserRole();
+                let roleBadge = `<span class="bg-gray-800 text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium">Участник</span>`;
+                if (role === 'owner') roleBadge = `<span class="bg-red-600/30 text-red-400 border border-red-500/30 text-xs px-2.5 py-1 rounded-full font-bold">👑 Владелец</span>`;
+                if (role === 'admin') roleBadge = `<span class="bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-full font-bold">🛡️ Админ</span>`;
 
                 container.innerHTML = `
-                    <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3 my-auto">
-                        <!-- Аватарка и имя -->
-                        <div class="flex items-center gap-4 border-b border-white/10 pb-3">
-                            ${avatarHtml}
+                    <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
+                        <div class="flex items-center gap-4">
+                            <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-full border border-white/20 object-cover">
                             <div>
-                                <h3 class="font-extrabold text-lg text-white">${currentUser.displayName}${badge}</h3>
+                                <h2 class="text-lg font-bold">${currentUser.displayName}</h2>
                                 <p class="text-xs text-gray-400">${currentUser.email}</p>
+                                <div class="mt-1.5">${roleBadge}</div>
                             </div>
                         </div>
-
-                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                            <span class="text-gray-400 text-xs">Дата рождения:</span>
-                            <span class="text-white font-bold text-xs">${savedData.fullBirthday} (${savedData.age} лет)</span>
+                        <div class="bg-[#121212] rounded-xl p-3 border border-white/10 text-xs space-y-1.5 text-gray-300">
+                            <p>🎂 Дата рождения: <span class="text-white font-bold">${data.fullBirthday || 'Не указана'}</span></p>
+                            <p>📌 Возраст: <span class="text-white font-bold">${data.age || '--'} лет</span></p>
+                            <p>🏷️ Категория: <span class="text-white font-bold">${data.ageCategory || '--'}</span></p>
+                            <p>🔒 Пароль: <span class="text-white font-bold">${data.hasPassword ? 'Установлен' : 'Нет'}</span></p>
                         </div>
-                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                            <span class="text-gray-400 text-xs">Категория:</span>
-                            <span class="text-white font-bold text-xs">${savedData.ageCategory}</span>
+                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                            <button onclick="togglePasswordManagement()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">⚙️ Управление паролем</button>
+                            <div id="passwordManagerBox" class="hidden flex flex-col gap-2 bg-[#121212] p-3 rounded-xl border border-white/10">
+                                <input type="password" id="newPassInput" placeholder="Новый пароль" class="w-full bg-[#1e1e1e] border border-white/20 rounded-lg px-3 py-2 text-xs text-white">
+                                <button onclick="updatePassword()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg text-xs transition">Изменить пароль</button>
+                                ${data.hasPassword ? `<button onclick="removePassword()" class="w-full bg-red-600/20 text-red-400 hover:bg-red-600/30 font-bold py-2 rounded-lg text-xs transition">Удалить пароль</button>` : ''}
+                            </div>
+                            <button onclick="logoutAccount()" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
+                            <button onclick="deleteAccount()" class="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-bold py-2.5 rounded-xl text-xs transition">Удалить аккаунт с устройства</button>
                         </div>
-                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                            <span class="text-gray-400 text-xs">Защита паролем:</span>
-                            <span class="text-white font-bold text-xs">${savedData.hasPassword ? 'Установлен' : 'Не установлен'}</span>
-                        </div>
-                        
-                        <div class="flex flex-col gap-2 mt-1">
-                            <button onclick="showChangePasswordModal()" class="w-full border border-white/20 bg-white/5 text-white hover:bg-white/10 font-bold py-2 rounded-xl text-xs transition">
-                                ${savedData.hasPassword ? 'Изменить пароль' : 'Установить пароль'}
-                            </button>
-                            ${savedData.hasPassword ? `
-                                <button onclick="removePassword()" class="w-full border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 font-bold py-2 rounded-xl text-xs transition">
-                                    Удалить пароль
-                                </button>
-                            ` : ''}
-                            <button onclick="logout()" class="w-full border border-white/20 bg-white/5 text-white hover:bg-white/10 font-bold py-2 rounded-xl text-xs transition">
-                                Выйти из аккаунта
-                            </button>
-                            <button onclick="showDeleteWarning()" class="w-full border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-2 rounded-xl text-xs transition">
-                                Удалить аккаунт
-                            </button>
-                        </div>
+                    </div>
+                `;
+            } else if (tabName === 'feed') {
+                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Лента мемов</h1>`;
+                container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Лента пуста. Скоро здесь появятся лучшие мемы!</p></div>`;
+            } else if (tabName === 'servers') {
+                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Сервера</h1>`;
+                container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Список игровых и чат-серверов пуст.</p></div>`;
+            } else if (tabName === 'adminServer') {
+                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
+                const role = getUserRole();
+                container.innerHTML = `
+                    <div class="bg-[#1e1e1e] border border-purple-500/30 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
+                        <div class="flex items-center justify-between"><span class="text-xs text-gray-400">Статус системы:</span><span class="text-xs text-green-400 font-bold">● Онлайн</span></div>
+                        <div class="bg-purple-950/30 border border-purple-500/20 rounded-xl p-3 text-xs text-purple-300">🛡️ Права доступа: <strong class="text-white">${role === 'owner' ? '👑 Владелец' : 'Администратор'}</strong></div>
+                        ${role === 'owner' ? `<button onclick="alert('Системный кеш успешно сброшен!')" class="w-full bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 font-bold py-2.5 rounded-xl text-xs transition">⚡ Сбросить системные кеши (Owner)</button>` : ''}
                     </div>
                 `;
             }
         };
 
-        // --- Модальное окно изменения/установки пароля ---
-        window.showChangePasswordModal = function() {
-            const container = document.getElementById('app-container');
-            container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
-                    <h3 class="font-bold text-white text-base">Изменение пароля</h3>
-                    <input type="password" id="editPassword" placeholder="Новый пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none">
-                    <button onclick="updatePassword()" class="w-full bg-white text-black font-bold py-2.5 rounded-xl text-xs hover:bg-gray-200 transition">
-                        Сохранить
-                    </button>
-                    <button onclick="switchTab('profile')" class="w-full bg-transparent text-gray-400 font-bold py-1 text-xs">Отмена</button>
-                    <p id="editPassError" class="text-red-400 text-xs font-medium hidden"></p>
-                </div>
-            `;
-        }
+        window.togglePasswordManagement = function() {
+            const box = document.getElementById('passwordManagerBox');
+            if (box) box.classList.toggle('hidden');
+        };
 
         window.updatePassword = function() {
-            const pass = document.getElementById('editPassword').value;
-            const errorMsg = document.getElementById('editPassError');
+            const newPass = document.getElementById('newPassInput').value;
+            const hasLength = newPass.length >= 6;
+            const hasDigits = (newPass.match(/\d/g) || []).length >= 2;
+            const hasSpecial = newPass.includes('_') && /[!@#$%^&*]/.test(newPass);
+            const hasUpper = /[A-ZА-Я]/.test(newPass);
 
-            if (!validatePassword(pass)) {
-                errorMsg.textContent = "Пароль не соответствует правилам (6+ символов, 2 цифры, _, спецсимвол, Заглавная)!";
-                errorMsg.classList.remove('hidden');
+            if (!hasLength || !hasDigits || !hasSpecial || !hasUpper) {
+                alert("Пароль не соответствует требованиям безопасности!");
                 return;
             }
 
-            let savedData = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
-            savedData.hasPassword = true;
-            savedData.password = pass;
-            localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(savedData));
-            alert("Пароль успешно обновлен!");
+            let data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
+            data.hasPassword = true;
+            data.password = newPass;
+            localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(data));
+            alert("Пароль успешно изменен!");
             switchTab('profile');
         };
 
         window.removePassword = function() {
-            if (!confirm("Вы уверены, что хотите удалить пароль у аккаунта?")) return;
-            let savedData = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
-            savedData.hasPassword = false;
-            savedData.password = null;
-            localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(savedData));
-            alert("Пароль удален. Теперь вход будет без пароля.");
-            switchTab('profile');
-        };
-
-        async function renderServersTab() {
-            const container = document.getElementById('app-container');
-            container.innerHTML = `
-                <div class="w-full flex flex-col gap-3 max-h-[65vh] overflow-y-auto pr-1">
-                    <button onclick="showCreateServerModal()" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">
-                        + Создать новый сервер
-                    </button>
-                    <div id="servers-list" class="flex flex-col gap-2">
-                        <p class="text-gray-500 text-xs text-center py-4">Загрузка серверов...</p>
-                    </div>
-                </div>
-            `;
-
-            try {
-                const querySnapshot = await getDocs(collection(db, "servers"));
-                const serversList = document.getElementById('servers-list');
-                serversList.innerHTML = "";
-
-                if (querySnapshot.empty) {
-                    serversList.innerHTML = `<p class="text-gray-500 text-xs text-center py-4">Пока нет созданных серверов. Будьте первыми!</p>`;
-                    return;
-                }
-
-                querySnapshot.forEach((docSnap) => {
-                    const server = docSnap.data();
-                    const membersCount = server.members ? server.members.length : 0;
-                    const isFull = membersCount >= 100;
-
-                    serversList.innerHTML += `
-                        <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 flex justify-between items-center shadow-md">
-                            <div>
-                                <h3 class="font-bold text-white text-sm">${server.name}</h3>
-                                <p class="text-xs text-gray-400 mt-0.5">${server.description || 'Без описания'}</p>
-                                <span class="text-[10px] ${isFull ? 'text-red-400' : 'text-green-400'} font-semibold mt-1 inline-block">
-                                    Участников: ${membersCount} / 100
-                                </span>
-                            </div>
-                            <button onclick="joinServer('${docSnap.id}', '${server.name}', ${isFull})" 
-                                class="px-4 py-2 rounded-xl text-xs font-bold ${isFull ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'} transition">
-                                ${isFull ? 'Полный' : 'Войти'}
-                            </button>
-                        </div>
-                    `;
-                });
-            } catch (error) {
-                console.error("Ошибка загрузки серверов:", error);
-            }
-        }
-
-        window.showCreateServerModal = function() {
-            const container = document.getElementById('app-container');
-            container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
-                    <h2 class="font-bold text-white text-base">Создание сервера</h2>
-                    <input type="text" id="serverName" placeholder="Название сервера" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none">
-                    <input type="text" id="serverDesc" placeholder="Описание сервера" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none">
-                    <p class="text-[11px] text-gray-400">* Лимит каждого сервера строго 100 человек</p>
-                    <button onclick="createNewServer()" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">
-                        Создать
-                    </button>
-                    <button onclick="renderServersTab()" class="w-full bg-transparent text-gray-400 font-bold py-1 text-xs">Отмена</button>
-                </div>
-            `;
-        }
-
-        window.createNewServer = async function() {
-            const name = document.getElementById('serverName').value.trim();
-            const desc = document.getElementById('serverDesc').value.trim();
-
-            if (!name) return alert("Введите название сервера!");
-
-            try {
-                await addDoc(collection(db, "servers"), {
-                    name: name,
-                    description: desc,
-                    createdBy: currentUser.uid,
-                    members: [currentUser.uid],
-                    createdAt: new Date().toISOString()
-                });
-                renderServersTab();
-            } catch (error) {
-                console.error("Ошибка создания сервера:", error);
-                alert("Не удалось создать сервер");
+            if (confirm("Вы уверены, что хотите удалить пароль?")) {
+                let data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
+                data.hasPassword = false;
+                data.password = "";
+                localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(data));
+                alert("Пароль удален!");
+                switchTab('profile');
             }
         };
 
-        window.joinServer = async function(serverId, serverName, isFull) {
-            if (isFull) return alert("Этот сервер переполнен (максимум 100 человек)!");
-
-            try {
-                const serverRef = doc(db, "servers", serverId);
-                await updateDoc(serverRef, {
-                    members: arrayUnion(currentUser.uid)
-                });
-                openServerChat(serverId, serverName);
-            } catch (error) {
-                console.error("Ошибка входа:", error);
-                openServerChat(serverId, serverName);
-            }
+        window.logoutAccount = async function() {
+            await signOut(auth);
+            location.reload();
         };
 
-        function openServerChat(serverId, serverName) {
-            const container = document.getElementById('app-container');
-            const topHeader = document.getElementById('top-header');
-            const badge = isAppleDevice() ? ' ' : '';
-
-            topHeader.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <button onclick="renderServersTab()" class="text-xs bg-white/10 px-3 py-1 rounded-lg">← Назад</button>
-                    <h1 class="text-xl font-extrabold tracking-tight">${serverName}</h1>
-                </div>
-            `;
-
-            container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 shadow-lg w-full flex flex-col h-[60vh] justify-between">
-                    <div id="chat-messages" class="flex flex-col gap-2 overflow-y-auto pr-1 h-full mb-3 text-left">
-                        <p class="text-gray-500 text-xs text-center py-2">Подключение к чату...</p>
-                    </div>
-                    <div class="flex gap-2">
-                        <input type="text" id="chatInput" placeholder="Написать..." class="w-full bg-[#121212] border border-white/20 rounded-xl px-3 py-2 text-white text-xs focus:outline-none">
-                        <button onclick="sendMessage('${serverId}')" class="bg-white text-black font-bold px-4 py-2 rounded-xl text-xs hover:bg-gray-200">Отправить</button>
-                    </div>
-                </div>
-            `;
-
-            const q = query(collection(db, "servers", serverId, "messages"), orderBy("createdAt", "asc"));
-            onSnapshot(q, (snapshot) => {
-                const chatBox = document.getElementById('chat-messages');
-                if (!chatBox) return;
-                chatBox.innerHTML = "";
-
-                if (snapshot.empty) {
-                    chatBox.innerHTML = `<p class="text-gray-500 text-xs text-center py-4">Напишите первое сообщение!</p>`;
-                    return;
-                }
-
-                snapshot.forEach((docSnap) => {
-                    const msg = docSnap.data();
-                    const isMe = msg.uid === currentUser.uid;
-                    chatBox.innerHTML += `
-                        <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                            <span class="text-[10px] text-gray-400">${msg.senderName}${badge}</span>
-                            <div class="px-3 py-2 rounded-xl text-xs ${isMe ? 'bg-white text-black' : 'bg-[#2a2a2a] text-white'} max-w-[80%]">
-                                ${msg.text}
-                            </div>
-                        </div>
-                    `;
-                });
-                chatBox.scrollTop = chatBox.scrollHeight;
-            });
-        }
-
-        window.sendMessage = async function(serverId) {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
-
-            input.value = "";
-            try {
-                await addDoc(collection(db, "servers", serverId, "messages"), {
-                    text: text,
-                    uid: currentUser.uid,
-                    senderName: currentUser.displayName,
-                    createdAt: new Date().toISOString()
-                });
-            } catch (error) {
-                console.error("Ошибка отправки:", error);
-            }
-        };
-
-        window.showDeleteWarning = function() {
-            document.getElementById('bottom-nav').classList.add('hidden');
-            const container = document.getElementById('app-container');
-            const topHeader = document.getElementById('top-header');
-
-            topHeader.innerHTML = `
-                <h1 class="text-2xl font-extrabold tracking-tight text-red-400">Удаление аккаунта</h1>
-            `;
-
-            container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-left shadow-lg w-full flex flex-col gap-2 overflow-y-auto max-h-[75vh]">
-                    <p class="text-xs text-gray-200 leading-relaxed">
-                        <strong class="text-white">Пока вы еще не ушли, прочитайте, это очень важно:</strong><br><br>
-                        Вы собираетесь удалить аккаунт в Bibmeme. После удаления вы не можете восстановить аккаунт, фотки, посты, сообщения, комментарии и друзей.<br><br>
-                        Вы можете скачать данные перед удалением аккаунта.<br><br>
-                        Если вы действительно хотите удалить аккаунт, согласитесь на удаление и то, что вы скачали данные.<br><br>
-                        После нажатия кнопки «Удалить аккаунт» все данные и аккаунт сотрутся безвозвратно.
-                    </p>
-
-                    <button onclick="downloadUserData()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-2">
-                        Скачать данные
-                    </button>
-
-                    <div class="flex flex-col gap-1.5 mt-1"> 
-                    <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
-                            <input type="checkbox" id="checkDownloaded" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500">
-                            <span>Я скачал(а) свои данные перед удалением</span>
-                        </label>
-                        <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
-                            <input type="checkbox" id="checkAgree" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500">
-                            <span>Я согласен(на) на удаление аккаунта</span>
-                        </label>
-                    </div>
-
-                    <button id="finalDeleteBtn" onclick="executeAccountDeletion()" disabled class="w-full bg-red-500/40 text-white/50 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-not-allowed">
-                        Удалить аккаунт навсегда
-                    </button>
-                    <button onclick="cancelDeletion()" class="w-full bg-transparent hover:bg-white/5 text-gray-400 font-bold py-2 rounded-xl text-xs transition">
-                        Отмена
-                    </button>
-                </div>
-            `;
-        }
-
-        window.toggleDeleteBtn = function() {
-            const check1 = document.getElementById('checkDownloaded').checked;
-            const check2 = document.getElementById('checkAgree').checked;
-            const btn = document.getElementById('finalDeleteBtn');
-
-            if (check1 && check2) {
-                btn.disabled = false;
-                btn.classList.remove('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
-                btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
-            } else {
-                btn.disabled = true;
-                btn.classList.add('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
-                btn.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white');
-            }
-        };
-
-        window.downloadUserData = function() {
-            const savedData = localStorage.getItem(`user_account_${currentUser.uid}`) || "{}";
-            const dataToExport = {
-                exportDate: new Date().toISOString(),
-                accountInfo: JSON.parse(savedData)
-            };
-
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `bibmeme_account_${currentUser.uid}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        };
-
-        window.executeAccountDeletion = async function() {
-            if (!confirm("Вы уверены, что хотите окончательно удалить аккаунт в Bibmeme?")) return;
-            try {
+        window.deleteAccount = async function() {
+            if (confirm("Удалить этот аккаунт с устройства? Данные будут очищены.")) {
                 localStorage.removeItem(`user_account_${currentUser.uid}`);
-                sessionStorage.removeItem(`auth_verified_${currentUser.uid}`);
-
                 let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
                 accounts = accounts.filter(id => id !== currentUser.uid);
                 localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
-
-                await deleteUser(currentUser);
-                alert("Аккаунт успешно удален.");
-                location.reload();
-            } catch (error) {
-                console.error("Ошибка при удалении:", error);
-                alert("Не удалось удалить аккаунт. Перезайдите в систему и попробуйте снова.");
-            }
-        };
-
-        window.cancelDeletion = function() {
-            document.getElementById('bottom-nav').classList.remove('hidden');
-            switchTab('profile');
-        };
-
-        window.logout = async function() {
-            try {
-                sessionStorage.clear();
                 await signOut(auth);
                 location.reload();
-            } catch (error) {
-                console.error("Ошибка при выходе:", error);
             }
         };
     </script>
-
 </body>
 </html>
