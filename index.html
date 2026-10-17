@@ -158,9 +158,9 @@
             }
         }
 
-        // --- Функция проверки режима сна по системному времени ---
+                // --- Функция проверки режима сна по системному времени ---
         function checkSleepLock(age) {
-            if (age >= 18) return false; // 18+ без лимитов!
+            if (age >= 18) return false;
 
             const now = new Date();
             const hours = now.getHours();
@@ -170,6 +170,7 @@
             let sleepStartMinutes = 0;
             let extensionMinutes = 0;
             let ageLabel = "";
+            
 
             if (age >= 9 && age <= 12) {
                 sleepStartMinutes = 22 * 60; // 22:00
@@ -201,13 +202,15 @@
                     }
                 }
             } else {
-                // Дневной/вечерний переход (22:00+ или 23:00+)
+                // Дневной/вечерний переход (например, 22:00+)
                 if (currentTimeMinutes >= sleepStartMinutes || hours < 6) {
-                    if (!isExtended && (currentTimeMinutes < extensionMinutes || hours < 6)) {
-                        isLocked = true;
+                    isLocked = true;
+                    if (!isExtended && currentTimeMinutes < extensionMinutes) {
+                        canExtend = true;
+                    } else if (!isExtended && hours < 6) {
                         canExtend = true;
                     } else {
-                        isLocked = true;
+                        canExtend = false;
                     }
                 }
             }
@@ -218,6 +221,7 @@
             }
             return false;
         }
+        
 
         function showSleepLockScreen(ageLabel, canExtend) {
             document.getElementById('bottom-nav').classList.add('hidden');
