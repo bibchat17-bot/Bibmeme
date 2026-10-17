@@ -157,60 +157,61 @@
             }
         }
 
-        // --- ТОЧНЫЙ И ПОФИКСЕННЫЙ КОНТРОЛЬ СНА ПО ЧАСАМ И МИНУТАМ ---
+                // --- ТОЧНЫЙ И УМНЫЙ КОНТРОЛЬ СНА ПО СИСТЕМНОМУ ВРЕМЕНИ УСТРОЙСТВА ---
         function checkSleepLock(age) {
-            if (age >= 18) return false; // 18+ без ограничений
+            if (age >= 18) return false; // 18+ сидят хоть всю ночь
 
             const now = new Date();
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
+            
+            // Превращаем текущее время в минуты от начала суток для точного сравнения
+            const totalCurrentMinutes = currentHour * 60 + currentMinute;
 
-            // Читаем, была ли нажата отсрочка СЕГОДНЯ
+            // Ключ для сегодняшней отсрочки в localStorage
             const dateKey = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
             const isExtendedToday = localStorage.getItem(`sleep_ext_${currentUser.uid}_${dateKey}`) === "true";
 
-            let isLocked = false;
-            let canExtend = false;
+            let sleepStartMinutes = 0;   // Во сколько штатный сон
+            let extensionLimitMinutes = 0; // До скольки можно отложить
             let ageLabel = "";
 
             if (age >= 9 && age <= 12) {
+                sleepStartMinutes = 22 * 60;       // 22:00
+                extensionLimitMinutes = 23 * 60;   // 23:00 (отсрочка 1 час)
                 ageLabel = "9-12 лет (сон в 22:00)";
-                
-                // Период сна: с 22:00 до 06:00 утра
-                if (currentHour >= 22 || currentHour < 6) {
-                    isLocked = true;
-
-                    // Отсрочка с 22:00 до 22:59 (до наступления 23:00)
-                    if (currentHour === 22 && !isExtendedToday) {
-                        canExtend = true;
-                    } else {
-                        // После 23:00 или если отсрочка уже нажата — жесткая блокировка
-                        canExtend = false;
-                    }
-                }
             } else if (age >= 13 && age <= 15) {
+                sleepStartMinutes = 23 * 60;       // 23:00
+                extensionLimitMinutes = 24 * 60;   // 00:00 (отсрочка 1 час)
                 ageLabel = "13-15 лет (сон в 23:00)";
-
-                // Период сна: с 23:00 до 06:00 утра
-                if (currentHour >= 23 || currentHour < 6) {
-                    isLocked = true;
-
-                    // Отсрочка с 23:00 до 23:59 (до наступления 00:00)
-                    if (currentHour === 23 && !isExtendedToday) {
-                        canExtend = true;
-                    } else {
-                        canExtend = false;
-                    }
-                }
             } else if (age >= 16 && age <= 17) {
+                sleepStartMinutes = 0;             // 00:00 ночи
+                extensionLimitMinutes = 1 * 60;    // 01:00 ночи (отсрочка 1 час)
                 ageLabel = "16-17 лет (сон в 00:00)";
+            }
 
-                // Период сна: с 00:00 до 06:00 утра
+            let isLocked = false;
+            let canExtend = false;
+
+            // Логика для 16-17 лет (ночной переход через полночь с 00:00 до 06:00)
+            if (age >= 16 && age <= 17) {
                 if (currentHour >= 0 && currentHour < 6) {
                     isLocked = true;
-
-                    // Отсрочка с 00:00 до 00:59 (до наступления 01:00)
-                    if (currentHour === 0 && !isExtendedToday) {
+                    if (totalCurrentMinutes < extensionLimitMinutes && !isExtendedToday) {
+                        canExtend = true;
+                    } else {
+                        canExtend = false;
+                    }
+                }
+            } 
+            // Логика для 9-12 и 13-15 лет (вечерний переход)
+            else {
+                if (totalCurrentMinutes >= sleepStartMinutes || currentHour < 6) {
+                    isLocked = true;
+                    
+                    if (totalCurrentMinutes < extensionLimitMinutes && !isExtendedToday) {
+                        canExtend = true;
+                    } else if (currentHour < 6 && !isExtendedToday && totalCurrentMinutes < (sleepStartMinutes + 60)) {
                         canExtend = true;
                     } else {
                         canExtend = false;
