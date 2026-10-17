@@ -18,16 +18,15 @@
         }
     </style>
 </head>
-<body class="bg-[#121212] text-white h-screen flex flex-col justify-between p-6 select-none">
+<body class="bg-[#121212] text-white h-screen flex flex-col justify-between p-6 select-none overflow-hidden">
 
-    <!-- Заголовок -->
-    <div id="main-content" class="flex flex-col items-center mt-10">
-        <h1 class="text-5xl font-extrabold tracking-tight">bibmeme</h1>
-        <p class="text-gray-400 text-lg mt-2 font-medium">Добро пожаловать в соцсеть</p>
+    <!-- Верхний заголовок -->
+    <div id="top-header" class="flex flex-col items-center mt-6">
+        <h1 class="text-4xl font-extrabold tracking-tight">bibmeme</h1>
     </div>
 
-    <!-- Блок авторизации / контента -->
-    <div id="auth-container" class="w-full max-w-sm mx-auto mb-6 flex flex-col gap-3">
+    <!-- Основной контейнер экрана -->
+    <div id="app-container" class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3">
         
         <!-- Табличка "Проект делается!" -->
         <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 text-center shadow-lg w-full flex items-center justify-center gap-3">
@@ -55,10 +54,19 @@
             </svg>
             Войти через Google
         </button>
-
     </div>
 
-    <!-- Firebase и логика авторизации -->
+    <!-- Нижняя панель навигации (скрыта до входа) -->
+    <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-2 flex justify-around items-center shadow-lg">
+        <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-sm text-gray-400 hover:text-white transition rounded-xl">
+            Лента
+        </button>
+        <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-sm text-white bg-white/10 transition rounded-xl">
+            Профиль
+        </button>
+    </div>
+
+    <!-- Firebase и логика приложения -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, deleteUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -76,6 +84,7 @@
         const auth = getAuth(app);
 
         let currentUser = null;
+        let activeTab = 'profile';
 
         function isAppleDevice() {
             const ua = navigator.userAgent;
@@ -86,13 +95,7 @@
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
-                const savedBirthday = localStorage.getItem(`user_birthday_${user.uid}`);
-                if (savedBirthday) {
-                    const data = JSON.parse(savedBirthday);
-                    renderProfile(user.displayName, user.email, data.fullBirthday, data.age, data.ageCategory);
-                } else {
-                    showBirthdayPrompt(user.displayName);
-                }
+                checkUserSessionState();
             }
         });
 
@@ -101,29 +104,75 @@
             try {
                 const result = await signInWithPopup(auth, provider);
                 currentUser = result.user;
-                
-                const savedBirthday = localStorage.getItem(`user_birthday_${currentUser.uid}`);
-                if (savedBirthday) {
-                    const data = JSON.parse(savedBirthday);
-                    renderProfile(currentUser.displayName, currentUser.email, data.fullBirthday, data.age, data.ageCategory);
-                } else {
-                    showBirthdayPrompt(currentUser.displayName);
-                }
+                checkUserSessionState();
             } catch (error) {
                 console.error("Ошибка входа:", error);
                 alert("Не удалось войти через Google: " + error.message);
             }
         };
 
+        function checkUserSessionState() {
+            const savedData = localStorage.getItem(`user_account_${currentUser.uid}`);
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                // Проверяем, есть ли сохраненный пароль у аккаунта
+                if (data.hasPassword && !sessionStorage.getItem(`auth_verified_${currentUser.uid}`)) {
+                    showPasswordLoginPrompt(currentUser.displayName);
+                } else {
+                    document.getElementById('bottom-nav').classList.remove('hidden');
+                    switchTab('profile');
+                }
+            } else {
+                showBirthdayPrompt(currentUser.displayName);
+            }
+        }
+
+        // Экран ввода пароля при входе (если пароль задан)
+        function showPasswordLoginPrompt(userName) {
+            document.getElementById('bottom-nav').classList.add('hidden');
+            const container = document.getElementById('app-container');
+            const topHeader = document.getElementById('top-header');
+
+            topHeader.innerHTML = `<h1 class="text-3xl font-extrabold tracking-tight">Вход, ${userName}</h1>`;
+
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
+                    <p class="text-sm text-gray-300">Для этого аккаунта установлен пароль. Введите его:</p>
+                    <input type="password" id="loginPassword" placeholder="Ваш пароль" 
+                        class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
+                    <button onclick="verifyLoginPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
+                        Войти
+                    </button>
+                    <p id="loginErrorMsg" class="text-red-400 text-sm font-medium hidden"></p>
+                </div>
+            `;
+        }
+
+        window.verifyLoginPassword = function() {
+            const enteredPass = document.getElementById('loginPassword').value;
+            const savedData = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
+            const errorMsg = document.getElementById('loginErrorMsg');
+
+            if (enteredPass === savedData.password) {
+                sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
+                document.getElementById('bottom-nav').classList.remove('hidden');
+                switchTab('profile');
+            } else {
+                errorMsg.textContent = "Неверный пароль!";
+                errorMsg.classList.remove('hidden');
+            }
+        };
+
         function showBirthdayPrompt(userName) {
-            const container = document.getElementById('auth-container');
-            const mainContent = document.getElementById('main-content');
+            document.getElementById('bottom-nav').classList.add('hidden');
+            const topHeader = document.getElementById('top-header');
+            const container = document.getElementById('app-container');
 
             const badge = isAppleDevice() ? ' ' : '';
 
-            mainContent.innerHTML = `
+            topHeader.innerHTML = `
                 <h1 class="text-3xl font-extrabold tracking-tight">Привет, ${userName}${badge}!</h1>
-                <p class="text-gray-400 text-base mt-2 font-medium">Укажите дату рождения (день, месяц, год)</p>
+                <p class="text-gray-400 text-sm mt-1 font-medium">Укажите дату рождения</p>
             `;
 
             container.innerHTML = `
@@ -136,7 +185,7 @@
                         <input type="number" id="birthYear" placeholder="Год" min="1900" max="2026" 
                             class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
                     </div>
-                    <button onclick="submitBirthday()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
+                    <button onclick="proceedToPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">
                         Продолжить
                     </button>
                     <p id="errorMsg" class="text-red-400 text-sm font-medium hidden"></p>
@@ -144,7 +193,9 @@
             `;
         }
 
-        window.submitBirthday = function() {
+        let tempBirthdayData = null;
+
+        window.proceedToPassword = function() {
             const day = parseInt(document.getElementById('birthDay').value);
             const month = parseInt(document.getElementById('birthMonth').value);
             const year = parseInt(document.getElementById('birthYear').value);
@@ -170,191 +221,269 @@
             }
 
             let ageCategory = "";
-            if (age >= 9 && age <= 12) {
-                ageCategory = "Предподросток";
-            } else if (age >= 13 && age <= 17) {
-                ageCategory = "Подросток";
-            } else {
-                ageCategory = "Взрослый";
-            }
+            if (age >= 9 && age <= 12) ageCategory = "Предподросток";
+            else if (age >= 13 && age <= 17) ageCategory = "Подросток";
+            else ageCategory = "Взрослый";
 
             const formattedDay = day < 10 ? '0' + day : day;
             const formattedMonth = month < 10 ? '0' + month : month;
-            const fullBirthday = `${formattedDay}.${formattedMonth}.${year}`;
-
-            localStorage.setItem(`user_birthday_${currentUser.uid}`, JSON.stringify({
-                fullBirthday,
+            
+            tempBirthdayData = {
+                fullBirthday: `${formattedDay}.${formattedMonth}.${year}`,
                 age,
                 ageCategory
-            }));
+            };
 
-            renderProfile(currentUser.displayName, currentUser.email, fullBirthday, age, ageCategory);
+            showPasswordCreationPrompt();
         };
 
-        function renderProfile(userName, email, fullBirthday, age, ageCategory) {
-            const container = document.getElementById('auth-container');
-            const mainContent = document.getElementById('main-content');
+        // Шаг создания пароля
+        function showPasswordCreationPrompt() {
+            const topHeader = document.getElementById('top-header');
+            const container = document.getElementById('app-container');
 
-            const badge = isAppleDevice() ? ' ' : '';
-
-            mainContent.innerHTML = `
-                <h1 class="text-4xl font-extrabold tracking-tight">Добро пожаловать!</h1>
-                <p class="text-gray-400 text-base mt-2 font-medium">${userName}${badge}</p>
+            topHeader.innerHTML = `
+                <h1 class="text-3xl font-extrabold tracking-tight">Защита аккаунта</h1>
+                <p class="text-gray-400 text-sm mt-1 font-medium">Создайте пароль или пропустите</p>
             `;
 
             container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-left shadow-lg w-full flex flex-col gap-3">
-                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span class="text-gray-400 text-sm">Дата рождения:</span>
-                        <span class="text-white font-bold">${fullBirthday} (${age} лет)</span>
-                    </div>
-                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span class="text-gray-400 text-sm">Статус:</span>
-                        <span class="text-white font-bold">${ageCategory}</span>
-                    </div>
-                    
-                    <!-- Кнопка Выйти из аккаунта -->
-                    <button onclick="logout()" class="w-full mt-2 border border-white/20 bg-white/5 text-white hover:bg-white/10 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                        </svg>
-                        Выйти из аккаунта
-                    </button>
-
-                    <!-- Кнопка Удалить аккаунт -->
-                    <button onclick="showDeleteWarning()" class="w-full border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                        </svg>
-                        Удалить аккаунт
-                    </button>
-                </div>
-            `;
-        }
-
-        window.showDeleteWarning = function() {
-            const container = document.getElementById('auth-container');
-            const mainContent = document.getElementById('main-content');
-
-            mainContent.innerHTML = `
-                <h1 class="text-2xl font-extrabold tracking-tight text-red-400">Удаление аккаунта</h1>
-                <p class="text-gray-400 text-sm mt-1 text-center font-medium">Это действие необратимо</p>
-            `;
-
-            container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
-                    <p class="text-sm text-gray-200 leading-relaxed">
-                        <strong class="text-white">Пока вы еще не ушли, прочитайте, это очень важно:</strong><br><br>
-                        Вы собираетесь удалить аккаунт в Bibmeme. После удаления вы не можете восстановить аккаунт, фотки, посты, сообщения, комментарии и друзей.<br><br>
-                        Вы можете скачать данные перед удалением аккаунта.<br><br>
-                        Если вы действительно хотите удалить аккаунт, согласитесь на удаление и то, что вы скачали данные.<br><br>
-                        После нажатия кнопки «Удалить аккаунт» все данные и аккаунт сотрутся безвозвратно.
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
+                    <p class="text-xs text-gray-300 leading-relaxed">
+                        Требования к паролю:<br>
+                        • От 6 символов и букв<br>
+                        • Минимум 2 цифры<br>
+                        • Содержит нижнее подчеркивание (_) и спецсимвол (!@#$%^&*)<br>
+                        • Минимум 1 заглавная буква
                     </p>
-
-                    <!-- Кнопка скачивания данных -->
-                    <button onclick="downloadUserData()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                        </svg>
-                        Скачать данные
+                    <input type="password" id="newPassword" placeholder="Придумайте пароль" 
+                        class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
+                    
+                    <button onclick="saveAccountWithPassword(false)" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">
+                        Сохранить пароль
                     </button>
-
-                    <!-- Чекбоксы согласия -->
-                    <div class="flex flex-col gap-2 mt-2">
-                        <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
-                            <input type="checkbox" id="checkDownloaded" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500 focus:ring-0">
-                            <span>Я скачал(а) свои данные перед удалением</span>
-                        </label>
-                        <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
-                            <input type="checkbox" id="checkAgree" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500 focus:ring-0">
-                            <span>Я согласен(на) на удаление аккаунта и понимаю, что всё сотрется безвозвратно</span>
-                        </label>
-                    </div>
-
-                    <!-- Кнопка финального удаления (изначально неактивна/полупрозрачна) -->
-                    <button id="finalDeleteBtn" onclick="executeAccountDeletion()" disabled class="w-full bg-red-500/40 text-white/50 font-bold py-3 rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-not-allowed">
-                        Удалить аккаунт навсегда
+                    <button onclick="saveAccountWithPassword(true)" class="w-full bg-transparent hover:bg-white/5 text-gray-400 font-bold py-2 rounded-xl text-xs transition">
+                        Пропустить этот шаг
                     </button>
-
-                    <!-- Кнопка отмены -->
-                    <button onclick="cancelDeletion()" class="w-full bg-transparent hover:bg-white/5 text-gray-400 font-bold py-2 rounded-xl text-xs transition">
-                        Отмена, вернуться назад
-                    </button>
+                    <p id="passErrorMsg" class="text-red-400 text-xs font-medium hidden"></p>
                 </div>
             `;
         }
 
-        window.toggleDeleteBtn = function() {
-            const check1 = document.getElementById('checkDownloaded').checked;
-            const check2 = document.getElementById('checkAgree').checked;
-            const btn = document.getElementById('finalDeleteBtn');
+        window.saveAccountWithPassword = function(skipped) {
+            let passwordToSave = null;
+            const passErrorMsg = document.getElementById('passErrorMsg');
 
-            if (check1 && check2) {
-                btn.disabled = false;
-                btn.classList.remove('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
-                btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
-            } else {
-                btn.disabled = true;
-                btn.classList.add('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
-                btn.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white');
+            if (!skipped) {
+                const pass = document.getElementById('newPassword').value;
+                
+                // Проверка правил пароля:
+                // 1. Длина >= 6
+                // 2. Хотя бы 2 цифры
+                // 3. Содержит нижнее подчеркивание (_) и хотя бы один спецсимвол
+                // 4. С заглавной буквой
+                const hasLength = pass.length >= 6;
+                const hasUppercase = /[A-ZА-ЯЁ]/.test(pass);
+                const digitsMatch = pass.match(/\d/g);
+                const hasTwoDigits = digitsMatch && digitsMatch.length >= 2;
+                const hasUnderscore = pass.includes('_');
+                const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>\-_]/.test(pass);
+
+                if (!hasLength || !hasUppercase || !hasTwoDigits || !hasUnderscore || !hasSpecialChar) {
+                    passErrorMsg.textContent = "Пароль не соответствует всем правилам безопасности!";
+                    passErrorMsg.classList.remove('hidden');
+                    return;
+                }
+                passwordToSave = pass;
             }
-        };
 
-        window.downloadUserData = function() {
-            const savedBirthday = localStorage.getItem(`user_birthday_${currentUser.uid}`) || "{}";
-            const dataToExport = {
+            const accountData = {
                 uid: currentUser.uid,
                 name: currentUser.displayName,
                 email: currentUser.email,
-                profileData: JSON.parse(savedBirthday),
-                exportDate: new Date().toISOString()
+                ...tempBirthdayData,
+                hasPassword: !skipped,
+                password: passwordToSave,
+                createdAt: new Date().toISOString()
             };
 
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `bibmeme_data_${currentUser.uid}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(accountData));
+            sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
+
+            document.getElementById('bottom-nav').classList.remove('hidden');
+            switchTab('profile');
         };
 
-        window.executeAccountDeletion = async function() {
-            if (!confirm("Вы уверены, что хотите окончательно удалить аккаунт в Bibmeme?")) return;
+        // Управление вкладками (Лента / Профиль)
+        window.switchTab = function(tab) {
+            activeTab = tab;
+            const topHeader = document.getElementById('top-header');
+            const container = document.getElementById('app-container');
             
-            try {
-                // Удаляем локальные данные
-                localStorage.removeItem(`user_birthday_${currentUser.uid}`);
+            const btnFeed = document.getElementById('nav-feed');
+            const btnProfile = document.getElementById('nav-profile');
+
+            if (tab === 'feed') {
+                btnFeed.className = "flex-1 py-2 text-center font-bold text-sm text-white bg-white/10 transition rounded-xl";
+                btnProfile.className = "flex-1 py-2 text-center font-bold text-sm text-gray-400 hover:text-white transition rounded-xl";
                 
-                // Удаляем аккаунт из Firebase Auth
-                await deleteUser(currentUser);
-                alert("Аккаунт успешно удален.");
-                location.reload();
-            } catch (error) {
-                console.error("Ошибка при удалении аккаунта:", error);
-                alert("Не удалось удалить аккаунт. Возможно, требуется повторный вход (перезайдите в аккаунт и попробуйте снова).");
-            }
-        };
-
-        window.cancelDeletion = function() {
-            const savedBirthday = localStorage.getItem(`user_birthday_${currentUser.uid}`);
-            if (savedBirthday && currentUser) {
-                const data = JSON.parse(savedBirthday);
-                renderProfile(currentUser.displayName, currentUser.email, data.fullBirthday, data.age, data.ageCategory);
+                topHeader.innerHTML = `<h1 class="text-4xl font-extrabold tracking-tight">Лента</h1>`;
+                container.innerHTML = `
+                    <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-8 text-center shadow-lg w-full flex flex-col items-center justify-center gap-2 my-auto">
+                        <svg class="w-12 h-12 text-gray-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2  0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>
+                        </svg>
+                        <p class="text-gray-400 text-base font-medium">Здесь пока пусто</p>
+                        <p class="text-gray-600 text-xs">Скоро здесь появятся посты и мемы</p>
+                    </div>
+                `;
             } else {
-                location.reload();
-            }
+                btnProfile.className = "flex-1 py-2 text-center font-bold text-sm text-white bg-white/10 transition rounded-xl";
+                btnFeed.className = "flex-1 py-2 text-center font-bold text-sm text-gray-400 hover:text-white transition rounded-xl";
+
+                const savedData = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
+                const badge = isAppleDevice() ? ' ' : '';
+
+                topHeader.innerHTML = `
+                    <h1 class="text-3xl font-extrabold tracking-tight">Профиль</h1>
+                    <p class="text-gray-400 text-base mt-1 font-medium">${currentUser.displayName}${badge}</p>
+                `;
+
+                container.innerHTML = `
+                    <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3 my-auto">
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                            <span class="text-gray-400 text-xs">Дата рождения:</span>
+                            <span class="text-white font-bold text-sm">${savedData.fullBirthday} (${savedData.age} лет)</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                            <span class="text-gray-400 text-xs">Статус:</span>
+                            <span class="text-white font-bold text-sm">${savedData.ageCategory}</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                            <span class="text-gray-400 text-xs">Защита паролем:</span>
+                            <span class="text-white font-bold text-sm">${savedData.hasPassword ? 'Установлен' : 'Не установлен'}</span>
+                        </div>
+                        
+                                            <div class="flex flex-col gap-2 mt-1">
+                        <button onclick="logout()" class="w-full border border-white/20 bg-white/5 text-white hover:bg-white/10 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            Выйти из аккаунта
+                        </button>
+                        <button onclick="showDeleteWarning()" class="w-full border border-red-500/40 bg-red-500/10 text-red-400 hover:bg-red-500/20 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                            Удалить аккаунт
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+    };
+
+    window.showDeleteWarning = function() {
+        document.getElementById('bottom-nav').classList.add('hidden');
+        const container = document.getElementById('app-container');
+        const topHeader = document.getElementById('top-header');
+
+        topHeader.innerHTML = `
+            <h1 class="text-2xl font-extrabold tracking-tight text-red-400">Удаление аккаунта</h1>
+        `;
+
+        container.innerHTML = `
+            <div class="bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-left shadow-lg w-full flex flex-col gap-2 overflow-y-auto max-h-[75vh]">
+                <p class="text-xs text-gray-200 leading-relaxed">
+                    <strong class="text-white">Пока вы еще не ушли, прочитайте, это очень важно:</strong><br><br>
+                    Вы собираетесь удалить аккаунт в Bibmeme. После удаления вы не можете восстановить аккаунт, фотки, посты, сообщения, комментарии и друзей.<br><br>
+                    Вы можете скачать данные перед удалением аккаунта.<br><br>
+                    Если вы действительно хотите удалить аккаунт, согласитесь на удаление и то, что вы скачали данные.<br><br>
+                    После нажатия кнопки «Удалить аккаунт» все данные и аккаунт сотрутся безвозвратно.
+                </p>
+
+                <button onclick="downloadUserData()" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                    Скачать данные
+                </button>
+
+                <div class="flex flex-col gap-1.5 mt-1">
+                    <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                        <input type="checkbox" id="checkDownloaded" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500">
+                        <span>Я скачал(а) свои данные перед удалением</span>
+                    </label>
+                    <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                        <input type="checkbox" id="checkAgree" onchange="toggleDeleteBtn()" class="mt-0.5 rounded bg-[#121212] border-white/20 text-red-500">
+                        <span>Я согласен(на) на удаление аккаунта</span>
+                    </label>
+                </div>
+
+                <button id="finalDeleteBtn" onclick="executeAccountDeletion()" disabled class="w-full bg-red-500/40 text-white/50 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-not-allowed">
+                    Удалить аккаунт навсегда
+                </button>
+                <button onclick="cancelDeletion()" class="w-full bg-transparent hover:bg-white/5 text-gray-400 font-bold py-2 rounded-xl text-xs transition">
+                    Отмена
+                </button>
+            </div>
+        `;
+    }
+
+    window.toggleDeleteBtn = function() {
+        const check1 = document.getElementById('checkDownloaded').checked;
+        const check2 = document.getElementById('checkAgree').checked;
+        const btn = document.getElementById('finalDeleteBtn');
+
+        if (check1 && check2) {
+            btn.disabled = false;
+            btn.classList.remove('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
+            btn.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white');
+        } else {
+            btn.disabled = true;
+            btn.classList.add('bg-red-500/40', 'text-white/50', 'cursor-not-allowed');
+            btn.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white');
+        }
+    };
+
+    window.downloadUserData = function() {
+        const savedData = localStorage.getItem(`user_account_${currentUser.uid}`) || "{}";
+        const dataToExport = {
+            exportDate: new Date().toISOString(),
+            accountInfo: JSON.parse(savedData)
         };
 
-        window.logout = async function() {
-            try {
-                await signOut(auth);
-                location.reload();
-            } catch (error) {
-                console.error("Ошибка при выходе:", error);
-            }
-        };
-    </script>
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataToExport, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `bibmeme_account_${currentUser.uid}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    };
+
+    window.executeAccountDeletion = async function() {
+        if (!confirm("Вы уверены, что хотите окончательно удалить аккаунт в Bibmeme?")) return;
+        try {
+            localStorage.removeItem(`user_account_${currentUser.uid}`);
+            sessionStorage.removeItem(`auth_verified_${currentUser.uid}`);
+            await deleteUser(currentUser);
+            alert("Аккаунт успешно удален.");
+            location.reload();
+        } catch (error) {
+            console.error("Ошибка при удалении:", error);
+            alert("Не удалось удалить аккаунт. Перезайдите в систему и попробуйте снова.");
+        }
+    };
+
+    window.cancelDeletion = function() {
+        document.getElementById('bottom-nav').classList.remove('hidden');
+        switchTab('profile');
+    };
+
+    window.logout = async function() {
+        try {
+            sessionStorage.clear();
+            await signOut(auth);
+            location.reload();
+        } catch (error) {
+            console.error("Ошибка при выходе:", error);
+        }
+    };
+</script>
 
 </body>
 </html>
+
+                        
