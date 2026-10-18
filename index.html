@@ -497,8 +497,71 @@
         location.reload();
     };
 
-    window.deleteAccount = async function() {
-        if (confirm("Удалить этот аккаунт с устройства? Данные будут очищены.")) {
+        window.deleteAccount = async function() {
+        const container = document.getElementById('app-container');
+        const topHeader = document.getElementById('top-header');
+
+        topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-red-500">Удаление аккаунта</h1>`;
+        
+        container.innerHTML = `
+            <div class="bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4 text-xs">
+                <p class="font-bold text-white text-sm">Пока вы еще не ушли, прочитайте это, это очень важно:</p>
+                <p class="text-gray-300 leading-relaxed">
+                    Вы собираетесь удалить аккаунт в bibmeme с данными. После удаления нельзя восстановить аккаунт, фотки, посты, клипы, сообщения, комментарии и лайки. Но можно их загрузить вовремя.
+                </p>
+                <p class="text-gray-300">
+                    Вы соглашаетесь на то, что после нажатия «Удалить аккаунт» ваши данные и аккаунт будут удалены.
+                </p>
+
+                <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" id="checkConsent" class="mt-0.5 rounded accent-red-500">
+                        <span class="text-gray-200">Я соглашаюсь на удаления данных и аккаунта</span>
+                    </label>
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" id="checkBackup" class="mt-0.5 rounded accent-red-500">
+                        <span class="text-gray-200">Я загрузил данные перед удалением</span>
+                    </label>
+                </div>
+
+                <div class="flex flex-col gap-2 pt-2">
+                    <button onclick="downloadUserData()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                        📥 Загрузить данные
+                    </button>
+                    <button onclick="confirmAndDeleteAccount()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                        Удалить аккаунт
+                    </button>
+                    <button onclick="switchTab('profile')" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">
+                        Отмена
+                    </button>
+                </div>
+            </div>
+        `;
+    };
+
+    window.downloadUserData = function() {
+        const data = localStorage.getItem(`user_account_${currentUser.uid}`);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bibmeme_backup_${currentUser.uid}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    window.confirmAndDeleteAccount = async function() {
+        const consentChecked = document.getElementById('checkConsent').checked;
+        const backupChecked = document.getElementById('checkBackup').checked;
+
+        if (!consentChecked || !backupChecked) {
+            alert("Пожалуйста, поставьте обе галочки для подтверждения удаления!");
+            return;
+        }
+
+        if (confirm("Вы точно уверены? Действие необратимо!")) {
             localStorage.removeItem(`user_account_${currentUser.uid}`);
             let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
             accounts = accounts.filter(id => id !== currentUser.uid);
@@ -507,6 +570,7 @@
             location.reload();
         }
     };
+                                                           
 </script>
 </body>
 </html>
