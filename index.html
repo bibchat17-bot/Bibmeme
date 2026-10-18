@@ -63,7 +63,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -108,35 +108,24 @@
             return true;
         }
 
-        // Проверяем результат перенаправления от Google сразу при загрузке
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                const user = result.user;
-                if (!registerDeviceAccount(user.uid)) {
-                    signOut(auth);
-                    const limitError = document.getElementById('accountLimitError');
-                    limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
-                    limitError.classList.remove('hidden');
-                    return;
-                }
-            }
-        }).catch((error) => {
-            console.error("Ошибка редиректа входа:", error);
-            alert("Ошибка входа через Google: " + error.message);
-        });
-
+        // Проверяем авторизацию при загрузке страницы
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 
-                // Проверка лимита аккаунтов на всякий случай
                 let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
-                if (!accounts.includes(user.uid) && accounts.length >= 3) {
-                    signOut(auth);
-                    const limitError = document.getElementById('accountLimitError');
-                    limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
-                    limitError.classList.remove('hidden');
-                    return;
+                if (!accounts.includes(user.uid)) {
+                    if (accounts.length >= 3) {
+                        signOut(auth);
+                        const limitError = document.getElementById('accountLimitError');
+                        if (limitError) {
+                            limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
+                            limitError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+                    accounts.push(user.uid);
+                    localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
                 }
 
                 document.getElementById('welcome-screen').classList.add('hidden');
@@ -144,14 +133,30 @@
             }
         });
 
+        // Вход через Google
         window.loginWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+
             try {
-                // Используем signInWithRedirect вместо popup, чтобы обходить блокировки браузеров
-                await signInWithRedirect(auth, provider);
+                const result = await signInWithPopup(auth, provider);
+                if (result && result.user) {
+                    currentUser = result.user;
+                    registerDeviceAccount(currentUser.uid);
+                    document.getElementById('welcome-screen').classList.add('hidden');
+                    checkUserSessionState();
+                }
             } catch (error) {
-                console.error("Ошибка входа:", error);
-                alert("Не удалось запустить вход через Google: " + error.message);
+                console.log("Popup заблокирован, пробуем Redirect...", error);
+                if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+                    try {
+                        await signInWithRedirect(auth, provider);
+                    } catch (redirectError) {
+                        alert("Ошибка входа через Google: " + redirectError.message);
+                    }
+                } else {
+                    alert("Ошибка авторизации: " + error.message);
+                }
             }
         };
 
@@ -497,7 +502,7 @@
         location.reload();
     };
 
-        window.deleteAccount = async function() {
+    window.deleteAccount = async function() {
         const container = document.getElementById('app-container');
         const topHeader = document.getElementById('top-header');
 
@@ -570,7 +575,6 @@
             location.reload();
         }
     };
-                                                           
 </script>
 </body>
 </html>
