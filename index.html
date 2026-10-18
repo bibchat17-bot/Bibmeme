@@ -53,16 +53,17 @@
         </div>
     </div>
 
-    <!-- Нижняя панель навигации (Лента, Сервера, Сервер Админа, Профиль) -->
+    <!-- Нижняя панель навигации -->
     <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-1.5 flex justify-around items-center shadow-lg mt-auto">
         <button onclick="switchTab('servers')" id="nav-servers" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Сервера</button>
         <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Лента</button>
         <button onclick="switchTab('adminServer')" id="nav-adminServer" class="hidden flex-1 py-2 text-center font-bold text-xs text-purple-400 hover:text-purple-300 transition rounded-xl">👑 Сервер</button>
         <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl">Профиль</button>
     </div>
-        <script type="module">
+
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -81,9 +82,8 @@
         let currentUser = null;
         let activeTab = 'profile';
 
-        // --- НАСТРОЙКА РОЛЕЙ ---
-        const OWNER_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"]; // Владелец
-        const ADMIN_UIDS = ["q4GyUEltlrS9KaSMoGYdbE4dkK13"]; // Админ
+        const OWNER_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"];
+        const ADMIN_UIDS = ["q4GyUEltlrS9KaSMoGYdbE4dkK13"];
 
         function getUserRole() {
             if (!currentUser || !currentUser.uid) return "user";
@@ -108,9 +108,37 @@
             return true;
         }
 
+        // Проверяем результат перенаправления от Google сразу при загрузке
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                const user = result.user;
+                if (!registerDeviceAccount(user.uid)) {
+                    signOut(auth);
+                    const limitError = document.getElementById('accountLimitError');
+                    limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
+                    limitError.classList.remove('hidden');
+                    return;
+                }
+            }
+        }).catch((error) => {
+            console.error("Ошибка редиректа входа:", error);
+            alert("Ошибка входа через Google: " + error.message);
+        });
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
+                
+                // Проверка лимита аккаунтов на всякий случай
+                let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
+                if (!accounts.includes(user.uid) && accounts.length >= 3) {
+                    signOut(auth);
+                    const limitError = document.getElementById('accountLimitError');
+                    limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
+                    limitError.classList.remove('hidden');
+                    return;
+                }
+
                 document.getElementById('welcome-screen').classList.add('hidden');
                 checkUserSessionState();
             }
@@ -119,23 +147,11 @@
         window.loginWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             try {
-                const result = await signInWithPopup(auth, provider);
-                const user = result.user;
-
-                if (!registerDeviceAccount(user.uid)) {
-                    await signOut(auth);
-                    const limitError = document.getElementById('accountLimitError');
-                    limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
-                    limitError.classList.remove('hidden');
-                    return;
-                }
-
-                currentUser = user;
-                document.getElementById('welcome-screen').classList.add('hidden');
-                checkUserSessionState();
+                // Используем signInWithRedirect вместо popup, чтобы обходить блокировки браузеров
+                await signInWithRedirect(auth, provider);
             } catch (error) {
                 console.error("Ошибка входа:", error);
-                alert("Не удалось войти через Google: " + error.message);
+                alert("Не удалось запустить вход через Google: " + error.message);
             }
         };
 
@@ -160,7 +176,6 @@
             }
         }
 
-        // --- ТОЧНЫЙ КОНТРОЛЬ СНА ---
         function checkSleepLock(age) {
             if (age >= 18) return false;
 
@@ -238,7 +253,8 @@
             localStorage.setItem(`sleep_ext_${currentUser.uid}_${dateKey}`, "true");
             location.reload();
         };
-                    function showPasswordLoginPrompt(userName) {
+
+        function showPasswordLoginPrompt(userName) {
             document.getElementById('bottom-nav').classList.add('hidden');
             const container = document.getElementById('app-container');
             const topHeader = document.getElementById('top-header');
@@ -330,168 +346,167 @@
             showPasswordCreationPrompt();
         };
 
-        function showPasswordCreationPrompt() {
-            const topHeader = document.getElementById('top-header');
-            const container = document.getElementById('app-container');
-            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Защита аккаунта</h1><p class="text-gray-400 text-xs mt-1 font-medium">Создайте пароль или пропустите</p>`;
+            function showPasswordCreationPrompt() {
+        const topHeader = document.getElementById('top-header');
+        const container = document.getElementById('app-container');
+        topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Защита аккаунта</h1><p class="text-gray-400 text-xs mt-1 font-medium">Создайте пароль или пропустите</p>`;
+        container.innerHTML = `
+            <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
+                <p class="text-xs text-gray-300 leading-relaxed">Требования к паролю:<br>• От 6 символов<br>• Мин. 2 цифры<br>• Нижнее подчеркивание (_) и спецсимвол (!@#$%^&*)<br>• Мин. 1 заглавная буква</p>
+                <input type="password" id="newPassword" placeholder="Придумайте пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
+                <button onclick="saveAccountWithPassword(true)" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">Сохранить с паролем</button>
+                <button onclick="saveAccountWithPassword(false)" class="w-full bg-transparent border border-white/20 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-white/5 transition">Пропустить</button>
+                <p id="passErrorMsg" class="text-red-400 text-xs font-medium hidden"></p>
+            </div>
+        `;
+    }
+
+    window.saveAccountWithPassword = function(withPassword) {
+        let password = "";
+        if (withPassword) {
+            password = document.getElementById('newPassword').value;
+            const passErrorMsg = document.getElementById('passErrorMsg');
+            const hasLength = password.length >= 6;
+            const hasDigits = (password.match(/\d/g) || []).length >= 2;
+            const hasSpecial = password.includes('_') && /[!@#$%^&*]/.test(password);
+            const hasUpper = /[A-ZА-Я]/.test(password);
+
+            if (!hasLength || !hasDigits || !hasSpecial || !hasUpper) {
+                passErrorMsg.textContent = "Пароль не соответствует требованиям безопасности!";
+                passErrorMsg.classList.remove('hidden');
+                return;
+            }
+        }
+
+        const accountData = { ...tempBirthdayData, hasPassword: withPassword, password: password, createdAt: new Date().toISOString() };
+        localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(accountData));
+        document.getElementById('bottom-nav').classList.remove('hidden');
+        const role = getUserRole();
+        if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
+        switchTab('profile');
+    };
+
+    window.switchTab = function(tabName) {
+        activeTab = tabName;
+        const container = document.getElementById('app-container');
+        const topHeader = document.getElementById('top-header');
+
+        document.querySelectorAll('#bottom-nav button').forEach(btn => {
+            btn.classList.remove('bg-white/10', 'text-white');
+            btn.classList.add('text-gray-400');
+        });
+        const activeBtn = document.getElementById(`nav-${tabName}`);
+        if (activeBtn) {
+            activeBtn.classList.add('bg-white/10', 'text-white');
+            activeBtn.classList.remove('text-gray-400');
+        }
+
+        if (tabName === 'profile') {
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>`;
+            const data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`) || '{}');
+            const role = getUserRole();
+            let roleBadge = `<span class="bg-gray-800 text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium">Участник</span>`;
+            if (role === 'owner') roleBadge = `<span class="bg-red-600/30 text-red-400 border border-red-500/30 text-xs px-2.5 py-1 rounded-full font-bold">👑 Владелец</span>`;
+            if (role === 'admin') roleBadge = `<span class="bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-full font-bold">🛡️ Админ</span>`;
+
             container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
-                    <p class="text-xs text-gray-300 leading-relaxed">Требования к паролю:<br>• От 6 символов<br>• Мин. 2 цифры<br>• Нижнее подчеркивание (_) и спецсимвол (!@#$%^&*)<br>• Мин. 1 заглавная буква</p>
-                    <input type="password" id="newPassword" placeholder="Придумайте пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
-                    <button onclick="saveAccountWithPassword(true)" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">Сохранить с паролем</button>
-                    <button onclick="saveAccountWithPassword(false)" class="w-full bg-transparent border border-white/20 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-white/5 transition">Пропустить</button>
-                    <p id="passErrorMsg" class="text-red-400 text-xs font-medium hidden"></p>
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
+                    <div class="flex items-center gap-4">
+                        <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-full border border-white/20 object-cover">
+                        <div>
+                            <h2 class="text-lg font-bold">${currentUser.displayName}</h2>
+                            <p class="text-xs text-gray-400">${currentUser.email}</p>
+                            <div class="mt-1.5">${roleBadge}</div>
+                        </div>
+                    </div>
+                    <div class="bg-[#121212] rounded-xl p-3 border border-white/10 text-xs space-y-1.5 text-gray-300">
+                        <p>🎂 Дата рождения: <span class="text-white font-bold">${data.fullBirthday || 'Не указана'}</span></p>
+                        <p>📌 Возраст: <span class="text-white font-bold">${data.age || '--'} лет</span></p>
+                        <p>🏷️ Категория: <span class="text-white font-bold">${data.ageCategory || '--'}</span></p>
+                        <p>🔒 Пароль: <span class="text-white font-bold">${data.hasPassword ? 'Установлен' : 'Нет'}</span></p>
+                    </div>
+                    <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                        <button onclick="togglePasswordManagement()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">⚙️ Управление паролем</button>
+                        <div id="passwordManagerBox" class="hidden flex flex-col gap-2 bg-[#121212] p-3 rounded-xl border border-white/10">
+                            <input type="password" id="newPassInput" placeholder="Новый пароль" class="w-full bg-[#1e1e1e] border border-white/20 rounded-lg px-3 py-2 text-xs text-white">
+                            <button onclick="updatePassword()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg text-xs transition">Изменить пароль</button>
+                            ${data.hasPassword ? `<button onclick="removePassword()" class="w-full bg-red-600/20 text-red-400 hover:bg-red-600/30 font-bold py-2 rounded-lg text-xs transition">Удалить пароль</button>` : ''}
+                        </div>
+                        <button onclick="logoutAccount()" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
+                        <button onclick="deleteAccount()" class="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-bold py-2.5 rounded-xl text-xs transition">Удалить аккаунт с устройства</button>
+                    </div>
+                </div>
+            `;
+        } else if (tabName === 'feed') {
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Лента мемов</h1>`;
+            container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Лента пуста. Скоро здесь появятся лучшие мемы!</p></div>`;
+        } else if (tabName === 'servers') {
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Сервера</h1>`;
+            container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Список игровых и чат-серверов пуст.</p></div>`;
+        } else if (tabName === 'adminServer') {
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
+            const role = getUserRole();
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-purple-500/30 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
+                    <div class="flex items-center justify-between"><span class="text-xs text-gray-400">Статус системы:</span><span class="text-xs text-green-400 font-bold">● Онлайн</span></div>
+                    <div class="bg-purple-950/30 border border-purple-500/20 rounded-xl p-3 text-xs text-purple-300">🛡️ Права доступа: <strong class="text-white">${role === 'owner' ? '👑 Владелец' : 'Администратор'}</strong></div>
+                    ${role === 'owner' ? `<button onclick="alert('Системный кеш успешно сброшен!')" class="w-full bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 font-bold py-2.5 rounded-xl text-xs transition">⚡ Сбросить системные кеши (Owner)</button>` : ''}
                 </div>
             `;
         }
+    };
 
-        window.saveAccountWithPassword = function(withPassword) {
-            let password = "";
-            if (withPassword) {
-                password = document.getElementById('newPassword').value;
-                const passErrorMsg = document.getElementById('passErrorMsg');
-                const hasLength = password.length >= 6;
-                const hasDigits = (password.match(/\d/g) || []).length >= 2;
-                const hasSpecial = password.includes('_') && /[!@#$%^&*]/.test(password);
-                const hasUpper = /[A-ZА-Я]/.test(password);
+    window.togglePasswordManagement = function() {
+        const box = document.getElementById('passwordManagerBox');
+        if (box) box.classList.toggle('hidden');
+    };
 
-                if (!hasLength || !hasDigits || !hasSpecial || !hasUpper) {
-                    passErrorMsg.textContent = "Пароль не соответствует требованиям безопасности!";
-                    passErrorMsg.classList.remove('hidden');
-                    return;
-                }
-            }
+    window.updatePassword = function() {
+        const newPass = document.getElementById('newPassInput').value;
+        const hasLength = newPass.length >= 6;
+        const hasDigits = (newPass.match(/\d/g) || []).length >= 2;
+        const hasSpecial = newPass.includes('_') && /[!@#$%^&*]/.test(newPass);
+        const hasUpper = /[A-ZА-Я]/.test(newPass);
 
-            const accountData = { ...tempBirthdayData, hasPassword: withPassword, password: password, createdAt: new Date().toISOString() };
-            localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(accountData));
-            document.getElementById('bottom-nav').classList.remove('hidden');
-            const role = getUserRole();
-            if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
-            switchTab('profile');
-        };
+        if (!hasLength || !hasDigits || !hasSpecial || !hasUpper) {
+            alert("Пароль не соответствует требованиям безопасности!");
+            return;
+        }
 
-        // --- УПРАВЛЕНИЕ ВКЛАДКАМИ И ПРОФИЛЕМ ---
-        window.switchTab = function(tabName) {
-            activeTab = tabName;
-            const container = document.getElementById('app-container');
-            const topHeader = document.getElementById('top-header');
+        let data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
+        data.hasPassword = true;
+        data.password = newPass;
+        localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(data));
+        alert("Пароль успешно изменен!");
+        switchTab('profile');
+    };
 
-            document.querySelectorAll('#bottom-nav button').forEach(btn => {
-                btn.classList.remove('bg-white/10', 'text-white');
-                btn.classList.add('text-gray-400');
-            });
-            const activeBtn = document.getElementById(`nav-${tabName}`);
-            if (activeBtn) {
-                activeBtn.classList.add('bg-white/10', 'text-white');
-                activeBtn.classList.remove('text-gray-400');
-            }
-
-            if (tabName === 'profile') {
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>`;
-                const data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`) || '{}');
-                const role = getUserRole();
-                let roleBadge = `<span class="bg-gray-800 text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium">Участник</span>`;
-                if (role === 'owner') roleBadge = `<span class="bg-red-600/30 text-red-400 border border-red-500/30 text-xs px-2.5 py-1 rounded-full font-bold">👑 Владелец</span>`;
-                if (role === 'admin') roleBadge = `<span class="bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-full font-bold">🛡️ Админ</span>`;
-
-                container.innerHTML = `
-                    <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
-                        <div class="flex items-center gap-4">
-                            <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-full border border-white/20 object-cover">
-                            <div>
-                                <h2 class="text-lg font-bold">${currentUser.displayName}</h2>
-                                <p class="text-xs text-gray-400">${currentUser.email}</p>
-                                <div class="mt-1.5">${roleBadge}</div>
-                            </div>
-                        </div>
-                        <div class="bg-[#121212] rounded-xl p-3 border border-white/10 text-xs space-y-1.5 text-gray-300">
-                            <p>🎂 Дата рождения: <span class="text-white font-bold">${data.fullBirthday || 'Не указана'}</span></p>
-                            <p>📌 Возраст: <span class="text-white font-bold">${data.age || '--'} лет</span></p>
-                            <p>🏷️ Категория: <span class="text-white font-bold">${data.ageCategory || '--'}</span></p>
-                            <p>🔒 Пароль: <span class="text-white font-bold">${data.hasPassword ? 'Установлен' : 'Нет'}</span></p>
-                        </div>
-                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
-                            <button onclick="togglePasswordManagement()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">⚙️ Управление паролем</button>
-                            <div id="passwordManagerBox" class="hidden flex flex-col gap-2 bg-[#121212] p-3 rounded-xl border border-white/10">
-                                <input type="password" id="newPassInput" placeholder="Новый пароль" class="w-full bg-[#1e1e1e] border border-white/20 rounded-lg px-3 py-2 text-xs text-white">
-                                <button onclick="updatePassword()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg text-xs transition">Изменить пароль</button>
-                                ${data.hasPassword ? `<button onclick="removePassword()" class="w-full bg-red-600/20 text-red-400 hover:bg-red-600/30 font-bold py-2 rounded-lg text-xs transition">Удалить пароль</button>` : ''}
-                            </div>
-                            <button onclick="logoutAccount()" class="w-full bg-white/5 hover:bg-white/10 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
-                            <button onclick="deleteAccount()" class="w-full bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 font-bold py-2.5 rounded-xl text-xs transition">Удалить аккаунт с устройства</button>
-                        </div>
-                    </div>
-                `;
-            } else if (tabName === 'feed') {
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Лента мемов</h1>`;
-                container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Лента пуста. Скоро здесь появятся лучшие мемы!</p></div>`;
-            } else if (tabName === 'servers') {
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Сервера</h1>`;
-                container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Список игровых и чат-серверов пуст.</p></div>`;
-            } else if (tabName === 'adminServer') {
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
-                const role = getUserRole();
-                container.innerHTML = `
-                    <div class="bg-[#1e1e1e] border border-purple-500/30 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
-                        <div class="flex items-center justify-between"><span class="text-xs text-gray-400">Статус системы:</span><span class="text-xs text-green-400 font-bold">● Онлайн</span></div>
-                        <div class="bg-purple-950/30 border border-purple-500/20 rounded-xl p-3 text-xs text-purple-300">🛡️ Права доступа: <strong class="text-white">${role === 'owner' ? '👑 Владелец' : 'Администратор'}</strong></div>
-                        ${role === 'owner' ? `<button onclick="alert('Системный кеш успешно сброшен!')" class="w-full bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 font-bold py-2.5 rounded-xl text-xs transition">⚡ Сбросить системные кеши (Owner)</button>` : ''}
-                    </div>
-                `;
-            }
-        };
-
-        window.togglePasswordManagement = function() {
-            const box = document.getElementById('passwordManagerBox');
-            if (box) box.classList.toggle('hidden');
-        };
-
-        window.updatePassword = function() {
-            const newPass = document.getElementById('newPassInput').value;
-            const hasLength = newPass.length >= 6;
-            const hasDigits = (newPass.match(/\d/g) || []).length >= 2;
-            const hasSpecial = newPass.includes('_') && /[!@#$%^&*]/.test(newPass);
-            const hasUpper = /[A-ZА-Я]/.test(newPass);
-
-            if (!hasLength || !hasDigits || !hasSpecial || !hasUpper) {
-                alert("Пароль не соответствует требованиям безопасности!");
-                return;
-            }
-
+    window.removePassword = function() {
+        if (confirm("Вы уверены, что хотите удалить пароль?")) {
             let data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
-            data.hasPassword = true;
-            data.password = newPass;
+            data.hasPassword = false;
+            data.password = "";
             localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(data));
-            alert("Пароль успешно изменен!");
+            alert("Пароль удален!");
             switchTab('profile');
-        };
+        }
+    };
 
-        window.removePassword = function() {
-            if (confirm("Вы уверены, что хотите удалить пароль?")) {
-                let data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
-                data.hasPassword = false;
-                data.password = "";
-                localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(data));
-                alert("Пароль удален!");
-                switchTab('profile');
-            }
-        };
+    window.logoutAccount = async function() {
+        await signOut(auth);
+        location.reload();
+    };
 
-        window.logoutAccount = async function() {
+    window.deleteAccount = async function() {
+        if (confirm("Удалить этот аккаунт с устройства? Данные будут очищены.")) {
+            localStorage.removeItem(`user_account_${currentUser.uid}`);
+            let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
+            accounts = accounts.filter(id => id !== currentUser.uid);
+            localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
             await signOut(auth);
             location.reload();
-        };
-
-        window.deleteAccount = async function() {
-            if (confirm("Удалить этот аккаунт с устройства? Данные будут очищены.")) {
-                localStorage.removeItem(`user_account_${currentUser.uid}`);
-                let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
-                accounts = accounts.filter(id => id !== currentUser.uid);
-                localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
-                await signOut(auth);
-                location.reload();
-            }
-        };
-    </script>
+        }
+    };
+</script>
 </body>
 </html>
