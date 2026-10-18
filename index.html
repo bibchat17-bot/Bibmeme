@@ -63,7 +63,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -108,7 +108,29 @@
             return true;
         }
 
-        // Проверяем авторизацию при загрузке страницы
+        // Обработка результата редиректа Google
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                const user = result.user;
+                if (!registerDeviceAccount(user.uid)) {
+                    signOut(auth);
+                    const limitError = document.getElementById('accountLimitError');
+                    if (limitError) {
+                        limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
+                        limitError.classList.remove('hidden');
+                    }
+                    return;
+                }
+                currentUser = user;
+                document.getElementById('welcome-screen').classList.add('hidden');
+                checkUserSessionState();
+            }
+        }).catch((error) => {
+            console.error("Ошибка редиректа:", error);
+            alert("Ошибка входа через Google: " + error.message);
+        });
+
+        // Отслеживание состояния сессии
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -133,30 +155,14 @@
             }
         });
 
-        // Вход через Google
         window.loginWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
-
             try {
-                const result = await signInWithPopup(auth, provider);
-                if (result && result.user) {
-                    currentUser = result.user;
-                    registerDeviceAccount(currentUser.uid);
-                    document.getElementById('welcome-screen').classList.add('hidden');
-                    checkUserSessionState();
-                }
+                await signInWithRedirect(auth, provider);
             } catch (error) {
-                console.log("Popup заблокирован, пробуем Redirect...", error);
-                if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
-                    try {
-                        await signInWithRedirect(auth, provider);
-                    } catch (redirectError) {
-                        alert("Ошибка входа через Google: " + redirectError.message);
-                    }
-                } else {
-                    alert("Ошибка авторизации: " + error.message);
-                }
+                console.error("Ошибка входа:", error);
+                alert("Не удалось запустить вход через Google: " + error.message);
             }
         };
 
