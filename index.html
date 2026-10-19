@@ -57,13 +57,13 @@
     <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-1.5 flex justify-around items-center shadow-lg mt-auto">
         <button onclick="switchTab('servers')" id="nav-servers" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Сервера</button>
         <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Лента</button>
-        <button onclick="switchTab('adminServer')" id="nav-adminServer" class="hidden flex-1 py-2 text-center font-bold text-xs text-purple-400 hover:text-purple-300 transition rounded-xl">👑 Сервер</button>
+        <button onclick="switchTab('adminServer')" id="nav-adminServer" class="hidden flex-1 py-2 text-center font-bold text-xs text-purple-400 hover:text-purple-300 transition rounded-xl">Сервер</button>
         <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl">Профиль</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -108,29 +108,14 @@
             return true;
         }
 
-        // Обработка результата редиректа Google
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                const user = result.user;
-                if (!registerDeviceAccount(user.uid)) {
-                    signOut(auth);
-                    const limitError = document.getElementById('accountLimitError');
-                    if (limitError) {
-                        limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
-                        limitError.classList.remove('hidden');
-                    }
-                    return;
-                }
-                currentUser = user;
-                document.getElementById('welcome-screen').classList.add('hidden');
-                checkUserSessionState();
-            }
-        }).catch((error) => {
-            console.error("Ошибка редиректа:", error);
-            alert("Ошибка входа через Google: " + error.message);
-        });
+        // Векторные SVG значки
+        const SIGNS = {
+            owner: `<span class="inline-flex items-center gap-1.5 bg-red-600/30 text-red-400 border border-red-500/30 text-xs px-2.5 py-1 rounded-full font-bold"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>Владелец</span>`,
+            admin: `<span class="inline-flex items-center gap-1.5 bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-full font-bold"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-4zm-1 16l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>Админ</span>`,
+            user: `<span class="inline-flex items-center gap-1.5 bg-gray-800 text-gray-300 border border-gray-700 text-xs px-2.5 py-1 rounded-full font-medium"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Участник</span>`
+        };
 
-        // Отслеживание состояния сессии
+        // Отслеживание сессии
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -155,14 +140,29 @@
             }
         });
 
+        // Вход через Popup
         window.loginWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
             try {
-                await signInWithRedirect(auth, provider);
+                const result = await signInWithPopup(auth, provider);
+                if (result && result.user) {
+                    currentUser = result.user;
+                    if (!registerDeviceAccount(currentUser.uid)) {
+                        await signOut(auth);
+                        const limitError = document.getElementById('accountLimitError');
+                        if (limitError) {
+                            limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
+                            limitError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+                    document.getElementById('welcome-screen').classList.add('hidden');
+                    checkUserSessionState();
+                }
             } catch (error) {
-                console.error("Ошибка входа:", error);
-                alert("Не удалось запустить вход через Google: " + error.message);
+                console.error("Ошибка входа через Popup:", error);
+                alert("Не удалось войти через Google: " + error.message);
             }
         };
 
@@ -246,10 +246,12 @@
             const container = document.getElementById('app-container');
             const topHeader = document.getElementById('top-header');
 
-            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-indigo-400">Пора спать! 🌙</h1>`;
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-indigo-400">Пора спать!</h1>`;
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col items-center gap-4">
-                    <div class="text-4xl">😴</div>
+                    <div class="w-12 h-12 text-indigo-400 flex items-center justify-center bg-indigo-500/10 rounded-full">
+                        <svg class="w-8 h-8 fill-current" viewBox="0 0 24 24"><path d="M12.3 2a10 10 0 0 0-1.9 20 10 10 0 0 0 9.8-7.7 1 1 0 0 0-1.2-1.2 8 8 0 1 1-6.7-11.1 1 1 0 0 0 0-2z"/></svg>
+                    </div>
                     <p class="text-sm text-gray-200 font-medium">Время отдыха для категории <strong class="text-white">${ageLabel}</strong>. Приложение заблокировано.</p>
                     ${canExtend ? `
                         <button onclick="extendSleepTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-sm transition">Отложить на 1 час</button>
@@ -301,9 +303,8 @@
             document.getElementById('bottom-nav').classList.add('hidden');
             const topHeader = document.getElementById('top-header');
             const container = document.getElementById('app-container');
-            const badge = isAppleDevice() ? ' ' : '';
 
-            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Привет, ${userName}${badge}!</h1><p class="text-gray-400 text-xs mt-1 font-medium">Укажите дату рождения</p>`;
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Привет, ${userName}!</h1><p class="text-gray-400 text-xs mt-1 font-medium">Укажите дату рождения</p>`;
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
                     <div class="flex gap-2">
@@ -336,28 +337,28 @@
             const m = today.getMonth() + 1 - month;
             if (m < 0 || (m === 0 && today.getDate() < day)) age--;
 
-            if (age < 9) {
-                errorMsg.textContent = `Вам ${age} лет. Регистрация запрещена (только с 9 лет)!`;
-                errorMsg.classList.remove('hidden');
-                return;
-            }
+                    if (age < 9) {
+            errorMsg.textContent = `Вам ${age} лет. Регистрация запрещена (только с 9 лет)!`;
+            errorMsg.classList.remove('hidden');
+            return;
+        }
 
-            let ageCategory = "";
-            if (age >= 9 && age <= 12) ageCategory = "Предподросток (9-12)";
-            else if (age >= 13 && age <= 15) ageCategory = "Подросток (13-15)";
-            else if (age >= 16 && age <= 17) ageCategory = "Старший подросток (16-17)";
-            else ageCategory = "Взрослый (18+)";
+        let ageCategory = "";
+        if (age >= 9 && age <= 12) ageCategory = "Предподросток (9-12)";
+        else if (age >= 13 && age <= 15) ageCategory = "Подросток (13-15)";
+        else if (age >= 16 && age <= 17) ageCategory = "Старший подросток (16-17)";
+        else ageCategory = "Взрослый (18+)";
 
-            tempBirthdayData = {
-                fullBirthday: `${day < 10 ? '0'+day : day}.${month < 10 ? '0'+month : month}.${year}`,
-                age,
-                ageCategory
-            };
-
-            showPasswordCreationPrompt();
+        tempBirthdayData = {
+            fullBirthday: `${day < 10 ? '0'+day : day}.${month < 10 ? '0'+month : month}.${year}`,
+            age,
+            ageCategory
         };
 
-            function showPasswordCreationPrompt() {
+        showPasswordCreationPrompt();
+    };
+
+    function showPasswordCreationPrompt() {
         const topHeader = document.getElementById('top-header');
         const container = document.getElementById('app-container');
         topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Защита аккаунта</h1><p class="text-gray-400 text-xs mt-1 font-medium">Создайте пароль или пропустите</p>`;
@@ -416,9 +417,7 @@
             topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>`;
             const data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`) || '{}');
             const role = getUserRole();
-            let roleBadge = `<span class="bg-gray-800 text-gray-300 text-xs px-2.5 py-1 rounded-full font-medium">Участник</span>`;
-            if (role === 'owner') roleBadge = `<span class="bg-red-600/30 text-red-400 border border-red-500/30 text-xs px-2.5 py-1 rounded-full font-bold">👑 Владелец</span>`;
-            if (role === 'admin') roleBadge = `<span class="bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-full font-bold">🛡️ Админ</span>`;
+            const roleBadge = SIGNS[role] || SIGNS.user;
 
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
@@ -431,13 +430,13 @@
                         </div>
                     </div>
                     <div class="bg-[#121212] rounded-xl p-3 border border-white/10 text-xs space-y-1.5 text-gray-300">
-                        <p>🎂 Дата рождения: <span class="text-white font-bold">${data.fullBirthday || 'Не указана'}</span></p>
-                        <p>📌 Возраст: <span class="text-white font-bold">${data.age || '--'} лет</span></p>
-                        <p>🏷️ Категория: <span class="text-white font-bold">${data.ageCategory || '--'}</span></p>
-                        <p>🔒 Пароль: <span class="text-white font-bold">${data.hasPassword ? 'Установлен' : 'Нет'}</span></p>
+                        <p>Дата рождения: <span class="text-white font-bold">${data.fullBirthday || 'Не указана'}</span></p>
+                        <p>Возраст: <span class="text-white font-bold">${data.age || '--'} лет</span></p>
+                        <p>Категория: <span class="text-white font-bold">${data.ageCategory || '--'}</span></p>
+                        <p>Пароль: <span class="text-white font-bold">${data.hasPassword ? 'Установлен' : 'Нет'}</span></p>
                     </div>
                     <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
-                        <button onclick="togglePasswordManagement()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">⚙️ Управление паролем</button>
+                        <button onclick="togglePasswordManagement()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Управление паролем</button>
                         <div id="passwordManagerBox" class="hidden flex flex-col gap-2 bg-[#121212] p-3 rounded-xl border border-white/10">
                             <input type="password" id="newPassInput" placeholder="Новый пароль" class="w-full bg-[#1e1e1e] border border-white/20 rounded-lg px-3 py-2 text-xs text-white">
                             <button onclick="updatePassword()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-lg text-xs transition">Изменить пароль</button>
@@ -450,18 +449,35 @@
             `;
         } else if (tabName === 'feed') {
             topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Лента мемов</h1>`;
-            container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Лента пуста. Скоро здесь появятся лучшие мемы!</p></div>`;
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-8 text-center shadow-lg w-full flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400">
+                        <svg class="w-6 h-6 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/><path d="M7 7h10"/><path d="M7 11h10"/><path d="M7 15h6"/></svg>
+                    </div>
+                    <h3 class="text-base font-bold text-white">Пока нету постов</h3>
+                    <p class="text-xs text-gray-400">Создайте свой первый пост!</p>
+                </div>
+            `;
         } else if (tabName === 'servers') {
             topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Сервера</h1>`;
-            container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Список игровых и чат-серверов пуст.</p></div>`;
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-8 text-center shadow-lg w-full flex flex-col items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gray-400">
+                        <svg class="w-6 h-6 stroke-current fill-none" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                    </div>
+                    <h3 class="text-base font-bold text-white">Список серверов пуст</h3>
+                    <p class="text-xs text-gray-400">Скоро здесь появятся доступные сервера</p>
+                </div>
+            `;
         } else if (tabName === 'adminServer') {
             topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
             const role = getUserRole();
+            const roleBadge = SIGNS[role] || SIGNS.user;
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-purple-500/30 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
-                    <div class="flex items-center justify-between"><span class="text-xs text-gray-400">Статус системы:</span><span class="text-xs text-green-400 font-bold">● Онлайн</span></div>
-                    <div class="bg-purple-950/30 border border-purple-500/20 rounded-xl p-3 text-xs text-purple-300">🛡️ Права доступа: <strong class="text-white">${role === 'owner' ? '👑 Владелец' : 'Администратор'}</strong></div>
-                    ${role === 'owner' ? `<button onclick="alert('Системный кеш успешно сброшен!')" class="w-full bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 font-bold py-2.5 rounded-xl text-xs transition">⚡ Сбросить системные кеши (Owner)</button>` : ''}
+                    <div class="flex items-center justify-between"><span class="text-xs text-gray-400">Статус системы:</span><span class="text-xs text-green-400 font-bold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-green-400"></span>Онлайн</span></div>
+                    <div class="bg-purple-950/30 border border-purple-500/20 rounded-xl p-3 text-xs text-purple-300 flex items-center justify-between"><span>Права доступа:</span> ${roleBadge}</div>
+                    ${role === 'owner' ? `<button onclick="alert('Системный кеш успешно сброшен!')" class="w-full bg-amber-600/20 hover:bg-amber-600/30 text-amber-300 border border-amber-500/30 font-bold py-2.5 rounded-xl text-xs transition">Сбросить системные кеши (Owner)</button>` : ''}
                 </div>
             `;
         }
@@ -536,8 +552,9 @@
                 </div>
 
                 <div class="flex flex-col gap-2 pt-2">
-                    <button onclick="downloadUserData()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">
-                        📥 Загрузить данные
+                    <button onclick="downloadUserData()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                        Загрузить данные
                     </button>
                     <button onclick="confirmAndDeleteAccount()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition">
                         Удалить аккаунт
