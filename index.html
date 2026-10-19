@@ -64,7 +64,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -80,6 +80,7 @@
         const db = getFirestore(app);
 
         let currentUser = null;
+        let currentUserData = null;
         let activeTab = 'profile';
 
         const OWNER_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"];
@@ -108,8 +109,8 @@
             user: `<span class="inline-flex items-center gap-1.5 bg-gray-800 text-gray-300 border border-gray-700 text-xs px-2.5 py-1 rounded-full font-medium"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Участник</span>`
         };
 
-        // Отслеживание сессии с безопасной проверкой элементов
-        onAuthStateChanged(auth, (user) => {
+        // Отслеживание сессии
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 
@@ -130,11 +131,11 @@
 
                 const welcomeScreen = document.getElementById('welcome-screen');
                 if (welcomeScreen) welcomeScreen.classList.add('hidden');
-                checkUserSessionState();
+                await checkUserSessionState();
             }
         });
 
-        // Безопасный вход через Popup
+        // Вход через Google
         window.loginWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
@@ -153,7 +154,7 @@
                     }
                     const welcomeScreen = document.getElementById('welcome-screen');
                     if (welcomeScreen) welcomeScreen.classList.add('hidden');
-                    checkUserSessionState();
+                    await checkUserSessionState();
                 }
             } catch (error) {
                 console.error("Ошибка входа через Popup:", error);
@@ -161,23 +162,31 @@
             }
         };
 
-        function checkUserSessionState() {
-            const savedData = localStorage.getItem(`user_account_${currentUser.uid}`);
-            if (savedData) {
-                const data = JSON.parse(savedData);
-                if (checkSleepLock(data.age)) return;
+        // Загрузка данных из Облака Firestore
+        async function checkUserSessionState() {
+            try {
+                const userDocRef = doc(db, "users", currentUser.uid);
+                const userSnap = await getDoc(userDocRef);
 
-                if (data.hasPassword && !sessionStorage.getItem(`auth_verified_${currentUser.uid}`)) {
-                    showPasswordLoginPrompt(currentUser.displayName);
-                } else {
-                    document.getElementById('bottom-nav').classList.remove('hidden');
-                    const role = getUserRole();
-                    if (role === 'owner' || role === 'admin') {
-                        document.getElementById('nav-adminServer').classList.remove('hidden');
+                if (userSnap.exists()) {
+                    currentUserData = userSnap.data();
+                    if (checkSleepLock(currentUserData.age)) return;
+
+                    if (currentUserData.hasPassword && !sessionStorage.getItem(`auth_verified_${currentUser.uid}`)) {
+                        showPasswordLoginPrompt(currentUser.displayName);
+                    } else {
+                        document.getElementById('bottom-nav').classList.remove('hidden');
+                        const role = getUserRole();
+                        if (role === 'owner' || role === 'admin') {
+                            document.getElementById('nav-adminServer').classList.remove('hidden');
+                        }
+                        switchTab('profile');
                     }
-                    switchTab('profile');
+                } else {
+                    showBirthdayPrompt(currentUser.displayName);
                 }
-            } else {
+            } catch (e) {
+                console.error("Ошибка загрузки профиля из облака:", e);
                 showBirthdayPrompt(currentUser.displayName);
             }
         }
@@ -279,10 +288,9 @@
 
         window.verifyLoginPassword = function() {
             const enteredPass = document.getElementById('loginPassword').value;
-            const savedData = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
             const errorMsg = document.getElementById('loginErrorMsg');
 
-            if (enteredPass === savedData.password) {
+            if (currentUserData && enteredPass === currentUserData.password) {
                 sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
                 document.getElementById('bottom-nav').classList.remove('hidden');
                 const role = getUserRole();
@@ -327,12 +335,12 @@
                 return;
             }
 
-            const today = new Date();
-            let age = today.getFullYear() - year;
-            const m = today.getMonth() + 1 - month;
-            if (m < 0 || (m === 0 && today.getDate() < day)) age--;
+                    const today = new Date();
+        let age = today.getFullYear() - year;
+        const m = today.getMonth() + 1 - month;
+        if (m < 0 || (m === 0 && today.getDate() < day)) age--;
 
-                    if (age < 9) {
+        if (age < 9) {
             errorMsg.textContent = `Вам ${age} лет. Регистрация запрещена (только с 9 лет)!`;
             errorMsg.classList.remove('hidden');
             return;
@@ -368,7 +376,7 @@
         `;
     }
 
-    window.saveAccountWithPassword = function(withPassword) {
+    window.saveAccountWithPassword = async function(withPassword) {
         let password = "";
         if (withPassword) {
             password = document.getElementById('newPassword').value;
@@ -385,8 +393,23 @@
             }
         }
 
-        const accountData = { ...tempBirthdayData, hasPassword: withPassword, password: password, createdAt: new Date().toISOString() };
-        localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(accountData));
+        currentUserData = { 
+            uid: currentUser.uid,
+            email: currentUser.email,
+            displayName: currentUser.displayName,
+            photoURL: currentUser.photoURL,
+            ...tempBirthdayData, 
+            hasPassword: withPassword, 
+            password: password, 
+            createdAt: new Date().toISOString() 
+        };
+
+        try {
+            await setDoc(doc(db, "users", currentUser.uid), currentUserData);
+        } catch (e) {
+            console.error("Ошибка сохранения в базу данных:", e);
+        }
+
         document.getElementById('bottom-nav').classList.remove('hidden');
         const role = getUserRole();
         if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
@@ -410,7 +433,7 @@
 
         if (tabName === 'profile') {
             topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>`;
-            const data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`) || '{}');
+            const data = currentUserData || {};
             const role = getUserRole();
             const roleBadge = SIGNS[role] || SIGNS.user;
 
@@ -483,7 +506,7 @@
         if (box) box.classList.toggle('hidden');
     };
 
-    window.updatePassword = function() {
+    window.updatePassword = async function() {
         const newPass = document.getElementById('newPassInput').value;
         const hasLength = newPass.length >= 6;
         const hasDigits = (newPass.match(/\d/g) || []).length >= 2;
@@ -495,21 +518,31 @@
             return;
         }
 
-        let data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
-        data.hasPassword = true;
-        data.password = newPass;
-        localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(data));
-        alert("Пароль успешно изменен!");
+        currentUserData.hasPassword = true;
+        currentUserData.password = newPass;
+        
+        try {
+            await setDoc(doc(db, "users", currentUser.uid), currentUserData);
+            alert("Пароль успешно обновлен в облаке!");
+        } catch (e) {
+            console.error("Ошибка обновления пароля:", e);
+        }
+
         switchTab('profile');
     };
 
-    window.removePassword = function() {
+    window.removePassword = async function() {
         if (confirm("Вы уверены, что хотите удалить пароль?")) {
-            let data = JSON.parse(localStorage.getItem(`user_account_${currentUser.uid}`));
-            data.hasPassword = false;
-            data.password = "";
-            localStorage.setItem(`user_account_${currentUser.uid}`, JSON.stringify(data));
-            alert("Пароль удален!");
+            currentUserData.hasPassword = false;
+            currentUserData.password = "";
+            
+            try {
+                await setDoc(doc(db, "users", currentUser.uid), currentUserData);
+                alert("Пароль удален из облака!");
+            } catch (e) {
+                console.error("Ошибка удаления пароля:", e);
+            }
+
             switchTab('profile');
         }
     };
@@ -563,7 +596,7 @@
     };
 
     window.downloadUserData = function() {
-        const data = localStorage.getItem(`user_account_${currentUser.uid}`);
+        const data = JSON.stringify(currentUserData || {});
         const blob = new Blob([data], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -585,7 +618,12 @@
         }
 
         if (confirm("Вы точно уверены? Действие необратимо!")) {
-            localStorage.removeItem(`user_account_${currentUser.uid}`);
+            try {
+                await deleteDoc(doc(db, "users", currentUser.uid));
+            } catch (e) {
+                console.error("Ошибка удаления из базы:", e);
+            }
+
             let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
             accounts = accounts.filter(id => id !== currentUser.uid);
             localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
