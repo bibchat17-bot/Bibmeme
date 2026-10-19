@@ -22,14 +22,19 @@
 <body class="bg-[#121212] text-white min-h-screen flex flex-col justify-between p-4 select-none pt-10 overflow-x-hidden">
 
     <!-- Верхний заголовок -->
-    <div id="top-header" class="flex flex-col items-center w-full mb-4 text-center">
+    <div id="top-header" class="flex flex-col items-center w-full mb-2 text-center">
         <h1 class="text-3xl font-extrabold tracking-tight">bibmeme</h1>
+    </div>
+
+    <!-- Уведомление за 15 минут до сна -->
+    <div id="sleepWarningBanner" class="hidden w-full max-w-sm mx-auto bg-amber-500/20 border border-amber-500/40 rounded-2xl p-3 text-amber-300 text-xs text-center font-bold mb-3 shadow-lg animate-pulse">
+        ⚠️ Внимание! До режима сна осталось менее 15 минут!
     </div>
 
     <!-- Основной контейнер экрана -->
     <div id="app-container" class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3">
         
-        <!-- Стартовый экран (Приветствие + Вход через Google) -->
+        <!-- Стартовый экран -->
         <div id="welcome-screen" class="w-full flex flex-col gap-3">
             <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 text-center shadow-lg w-full flex items-center justify-center gap-3">
                 <span class="relative flex h-3 w-3">
@@ -90,6 +95,41 @@
         </div>
     </div>
 
+    <!-- Модальное окно удаления аккаунта -->
+    <div id="deleteAccountModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
+            <h2 class="text-lg font-bold text-red-400">Удаление аккаунта</h2>
+            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-gray-200 leading-relaxed">
+                <p class="font-bold text-red-400 mb-1">Пока вы не ушли, прочитайте, это очень важно!</p>
+                <p>Вы собираетесь удалить аккаунт в <strong>Bibmeme</strong> с постами, комментариями, с лайками, с сообщениями и т.д.</p>
+                <p class="mt-1">После удаления их нельзя восстановить, но можно до удаления скачать данные.</p>
+                <p class="mt-1 text-gray-400">После нажатия "Удалить аккаунт" вы соглашаетесь на удаление ваших данных и подтверждаете, что вы их скачали.</p>
+            </div>
+            <div class="flex flex-col gap-2 pt-1">
+                <button onclick="downloadUserDataBackup()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    Загрузить данные
+                </button>
+                <button onclick="confirmAccountDeletion()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Удалить аккаунт</button>
+                <button onclick="closeDeleteAccountModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно управления паролем -->
+    <div id="passwordManageModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
+            <h2 id="passModalTitle" class="text-lg font-bold">Управление паролем</h2>
+            <p class="text-xs text-gray-400">Пароль должен быть от 6 символов, содержать мин. 2 цифры, _, спецсимвол и заглавную букву.</p>
+            <input type="password" id="modalNewPassword" placeholder="Новый пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-sm">
+            <p id="modalPassError" class="text-red-400 text-xs hidden"></p>
+            <div class="flex gap-2 pt-1">
+                <button onclick="saveManagedPassword()" class="flex-1 bg-white text-black font-bold py-2.5 rounded-xl text-xs transition">Сохранить</button>
+                <button onclick="closePasswordManageModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Скрипты Firebase и логика приложения -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -124,7 +164,6 @@
             return "user";
         }
 
-        // Фирменные значки (Газета / СМИ / Владелец, Админ, Участник)
         const SIGNS = {
             owner: `<span class="inline-flex items-center gap-1 bg-red-600/30 text-red-400 border border-red-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">📰 СМИ / Владелец</span>`,
             admin: `<span class="inline-flex items-center gap-1 bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">🛡️ Админ</span>`,
@@ -212,6 +251,7 @@
             }
         }
 
+        // ПРОВЕРКА РЕЖИМА СНА И ПРЕДУПРЕЖДЕНИЕ ЗА 15 МИНУТ
         function checkSleepLock(age) {
             if (age >= 18) return false;
             const now = new Date();
@@ -221,25 +261,58 @@
             const dateKey = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
             const isExtendedToday = localStorage.getItem(`sleep_ext_${currentUser.uid}_${dateKey}`) === "true";
 
-            let sleepStartMinutes = (age >= 9 && age <= 12) ? 22 * 60 : (age <= 15 ? 23 * 60 : 0);
-            let extensionLimitMinutes = (age >= 9 && age <= 12) ? 23 * 60 : (age <= 15 ? 24 * 60 : 60);
+            let sleepStartMinutes = 0;
+            let extendedLimitMinutes = 0;
+            let ageLabel = "";
 
-            if (totalCurrentMinutes >= sleepStartMinutes || currentHour < 6) {
-                if (!isExtendedToday && totalCurrentMinutes < extensionLimitMinutes) {
-                    return false;
+            if (age >= 9 && age <= 12) {
+                sleepStartMinutes = 22 * 60; // 22:00
+                extendedLimitMinutes = 23 * 60; // 23:00
+                ageLabel = "для 9-12 летних";
+            } else if (age >= 13 && age <= 15) {
+                sleepStartMinutes = 23 * 60; // 23:00
+                extendedLimitMinutes = 24 * 60; // 0:00
+                ageLabel = "для 13-15 летних";
+            } else if (age >= 16 && age <= 17) {
+                sleepStartMinutes = 24 * 60; // 0:00
+                extendedLimitMinutes = 25 * 60; // 1:00
+                ageLabel = "для 16-17 летних";
+            }
+
+            // Предупреждение за 15 минут
+            const warningStart = sleepStartMinutes - 15;
+            const sleepWarningBanner = document.getElementById('sleepWarningBanner');
+            if (totalCurrentMinutes >= warningStart && totalCurrentMinutes < sleepStartMinutes) {
+                if (sleepWarningBanner) {
+                    sleepWarningBanner.textContent = `⚠️ Скоро пора спать! В ${(sleepStartMinutes/60)%24}:00 ${ageLabel} пора спать.`;
+                    sleepWarningBanner.classList.remove('hidden');
                 }
-                showSleepLockScreen(age >= 9 && age <= 12 ? "9-12 лет" : "Подросток", true);
+            } else if (sleepWarningBanner) {
+                sleepWarningBanner.classList.add('hidden');
+            }
+
+            // Проверка наступления режима сна
+            if (totalCurrentMinutes >= sleepStartMinutes || currentHour < 6) {
+                if (!isExtendedToday && totalCurrentMinutes < extendedLimitMinutes) {
+                    showSleepLockScreen(ageLabel, true, (sleepStartMinutes/60)%24, (extendedLimitMinutes/60)%24);
+                    return true;
+                } else if (isExtendedToday && totalCurrentMinutes < extendedLimitMinutes) {
+                    return false; // Отложено на час
+                }
+                showSleepLockScreen(ageLabel, false, (sleepStartMinutes/60)%24, (extendedLimitMinutes/60)%24);
                 return true;
             }
             return false;
         }
 
-        function showSleepLockScreen(ageLabel, canExtend) {
+        function showSleepLockScreen(ageLabel, canExtend, normalHour, extendHour) {
             document.getElementById('bottom-nav').classList.add('hidden');
             document.getElementById('app-container').innerHTML = `
                 <div class="bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col items-center gap-4">
-                    <p class="text-sm text-gray-200">Время отдыха (${ageLabel}). Приложение заблокировано.</p>
-                    ${canExtend ? `<button onclick="extendSleepTime()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl text-sm">Отложить на 1 час</button>` : ''}
+                    <div class="text-4xl">🌙</div>
+                    <h2 class="text-lg font-bold">Время спать!</h2>
+                    <p class="text-xs text-gray-300 leading-relaxed">В ${normalHour}:00 ${ageLabel} пора спать.</p>
+                    ${canExtend ? `<button onclick="extendSleepTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs transition">Отложить ещё на час (до ${extendHour}:00)</button>` : '<p class="text-xs text-red-400 font-bold">Дополнительный час исчерпан! Время спать.</p>'}
                 </div>
             `;
         }
@@ -250,7 +323,7 @@
             location.reload();
         };
 
-        function showPasswordLoginPrompt() {
+                function showPasswordLoginPrompt() {
             document.getElementById('bottom-nav').classList.add('hidden');
             document.getElementById('app-container').innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
@@ -331,7 +404,7 @@
             document.getElementById('app-container').innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
                     <h1 class="text-lg font-bold">Защита аккаунта</h1>
-                    <p class="text-xs text-gray-300 leading-relaxed">Требования к паролю:<br>• От 6 символов<br>• Мин. 2 цифры<br>• Нижнее подчеркивание (_) и спецсимвол (!@#$%^&*)<br>• Мин. 1 заглавная буква</p>
+                    <p class="text-xs text-gray-300 leading-relaxed">Пароль (необязательно):<br>• От 6 символов<br>• Мин. 2 цифры<br>• Спецсимвол и заглавная буква</p>
                     <input type="password" id="newPassword" placeholder="Придумайте пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-sm">
                     <button onclick="saveAccountWithPassword(true)" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">Сохранить с паролем</button>
                     <button onclick="saveAccountWithPassword(false)" class="w-full bg-transparent border border-white/20 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-white/5 transition">Пропустить</button>
@@ -340,7 +413,7 @@
             `;
         }
 
-                window.saveAccountWithPassword = async function(withPassword) {
+        window.saveAccountWithPassword = async function(withPassword) {
             let password = "";
             if (withPassword) {
                 password = document.getElementById('newPassword').value;
@@ -380,7 +453,7 @@
             switchTab('profile');
         };
 
-        // Управление вкладками
+        // УПРАВЛЕНИЕ ВКЛАДКАМИ
         window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
@@ -404,7 +477,21 @@
                                 <div class="mt-1.5">${SIGNS[getUserRole()]}</div>
                             </div>
                         </div>
-                        <button onclick="signOut(auth); location.reload();" class="w-full bg-red-600/20 text-red-400 font-bold py-2.5 rounded-xl text-xs">Выйти</button>
+
+                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                            <h3 class="text-xs font-bold text-gray-400">Безопасность и пароль:</h3>
+                            ${currentUserData && currentUserData.hasPassword ? `
+                                <button onclick="openPasswordManageModal('change')" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Изменить пароль</button>
+                                <button onclick="removeAccountPassword()" class="w-full bg-amber-600/20 text-amber-400 font-bold py-2.5 rounded-xl text-xs transition">Удалить пароль</button>
+                            ` : `
+                                <button onclick="openPasswordManageModal('add')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Добавить пароль</button>
+                            `}
+                        </div>
+
+                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                            <button onclick="signOut(auth); location.reload();" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
+                            <button onclick="openDeleteAccountModal()" class="w-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold py-2.5 rounded-xl text-xs hover:bg-red-600/30 transition">Удалить аккаунт</button>
+                        </div>
                     </div>
                 `;
             } else if (tabName === 'feed') {
@@ -428,7 +515,80 @@
             }
         };
 
-        // --- ЛЕНТА И АЛГОРИТМЫ ПОСТОВ ---
+        // УПРАВЛЕНИЕ ПАРОЛЕМ В ПРОФИЛЕ
+        window.openPasswordManageModal = function(type) {
+            document.getElementById('passwordManageModal').classList.remove('hidden');
+        };
+
+        window.closePasswordManageModal = function() {
+            document.getElementById('passwordManageModal').classList.add('hidden');
+            document.getElementById('modalPassError').classList.add('hidden');
+            document.getElementById('modalNewPassword').value = "";
+        };
+
+        window.saveManagedPassword = async function() {
+            const newPass = document.getElementById('modalNewPassword').value;
+            const err = document.getElementById('modalPassError');
+
+            const hasLength = newPass.length >= 6;
+            const hasDigits = (newPass.match(/\d/g) || []).length >= 2;
+            const hasSpecial = newPass.includes('_') && /[!@#$%^&*]/.test(newPass);
+            const hasUpper = /[A-ZА-Я]/.test(newPass);
+
+            if (!hasLength || !hasDigits || !hasSpecial || !hasUpper) {
+                err.textContent = "Пароль не соответствует требованиям!";
+                err.classList.remove('hidden');
+                return;
+            }
+
+            currentUserData.hasPassword = true;
+            currentUserData.password = newPass;
+
+            await setDoc(doc(db, "users", currentUser.uid), currentUserData);
+            closePasswordManageModal();
+            switchTab('profile');
+        };
+
+        window.removeAccountPassword = async function() {
+            if (confirm("Вы уверены, что хотите удалить пароль аккаунта?")) {
+                currentUserData.hasPassword = false;
+                currentUserData.password = "";
+                await setDoc(doc(db, "users", currentUser.uid), currentUserData);
+                switchTab('profile');
+            }
+        };
+
+        // УДАЛЕНИЕ АККАУНТА
+        window.openDeleteAccountModal = function() {
+            document.getElementById('deleteAccountModal').classList.remove('hidden');
+        };
+
+        window.closeDeleteAccountModal = function() {
+            document.getElementById('deleteAccountModal').classList.add('hidden');
+        };
+
+        window.downloadUserDataBackup = function() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentUserData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `bibmeme_backup_${currentUser.uid}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        };
+
+        window.confirmAccountDeletion = async function() {
+            try {
+                await deleteDoc(doc(db, "users", currentUser.uid));
+                await signOut(auth);
+                alert("Ваш аккаунт и данные успешно удалены.");
+                location.reload();
+            } catch (e) {
+                alert("Ошибка при удалении аккаунта: " + e.message);
+            }
+        };
+
+        // ЛЕНТА И АЛГОРИТМЫ ПОСТОВ
         window.openCreatePostModal = function() {
             document.getElementById('createPostModal').classList.remove('hidden');
         };
@@ -460,7 +620,6 @@
                 });
             }
 
-            // АЛГОРИТМЫ РАНЖИРОВАНИЯ (залеталка)
             let algorithmScore = 10;
             if (imageUrl) algorithmScore += 50;
             if (text.length > 20) algorithmScore += 20;
@@ -516,12 +675,10 @@
 
                     let authorRole = getUserRole(post.uid);
 
-                    // Проверка возрастных ограничений
                     if (post.ageLimit === '18+' && currentUserData.age < 18) return;
 
                     html += `
                         <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 shadow-lg w-full flex flex-col gap-3">
-                            <!-- ШАПКА ПОСТА СО ЗНАЧКАМИ -->
                             <div class="flex items-start justify-between">
                                 <div class="flex items-center gap-3">
                                     <img src="${post.authorPhoto}" class="w-10 h-10 rounded-full object-cover border border-white/20">
@@ -532,7 +689,10 @@
                                             ${SIGNS[authorRole]}
                                         </div>
                                         <div class="flex items-center gap-1.5 mt-0.5">
-                                            <span class="text-[10px] text-gray-400">🕒 ${post.timeString}</span>
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-gray-400">
+                                                <svg class="w-3 h-3 text-gray-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                ${post.timeString}
+                                            </span>
                                             ${post.ageLimit && post.ageLimit !== 'none' ? `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-md font-bold">${post.ageLimit}</span>` : ''}
                                         </div>
                                     </div>
@@ -543,7 +703,6 @@
                             ${post.text ? `<p class="text-xs text-gray-200 leading-relaxed">${post.text}</p>` : ''}
                             ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover border border-white/10">` : ''}
 
-                            <!-- ИНТЕРАКТИВ (Лайки, Комменты, Шэр) -->
                             <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
                                 <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500 font-bold' : ''}">
                                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -559,14 +718,28 @@
                                 </button>
                             </div>
 
-                            <!-- КОММЕНТАРИИ -->
                             <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
-                                <div id="comments-list-${postId}" class="flex flex-col gap-1.5 max-h-32 overflow-y-auto">
-                                    ${(post.comments || []).map(c => `<div class="bg-[#121212] p-2 rounded-lg text-[11px]"><strong class="text-indigo-400">${c.author}:</strong>${c.text}</div>`).join('') || '<p class="text-[10px] text-gray-500">Нет комментариев</p>'}
+                                <div id="comments-list-${postId}" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
+                                    ${(post.comments || []).map((c, idx) => `
+                                        <div class="bg-[#121212] p-2 rounded-lg text-[11px] flex justify-between items-start gap-2">
+                                            <div>
+                                                <div class="flex items-center gap-1.5">
+                                                    <strong class="text-indigo-400">${c.author}</strong>
+                                                    <span class="text-[9px] text-gray-500">${c.timeString || ''}</span>
+                                                </div>
+                                                <p class="text-gray-200 mt-0.5">${c.text}</p>
+                                            </div>
+                                            ${c.uid === currentUser.uid ? `
+                                                <button onclick="deleteComment('${postId}', ${idx})" class="text-gray-500 hover:text-red-400 transition" title="Удалить комментарий">
+                                                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                                </button>
+                                            ` : ''}
+                                        </div>
+                                    `).join('') || '<p class="text-[10px] text-gray-500">Нет комментариев</p>'}
                                 </div>
                                 <div class="flex gap-2 mt-1">
                                     <input type="text" id="comment-input-${postId}" placeholder="Написать коммент..." class="flex-1 bg-[#121212] border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                                    <button onclick="addComment('${postId}')" class="bg-indigo-600 text-white font-bold px-3 py-1.5 rounded-lg text-xs">Отправить</button>
+                                    <button onclick="addComment('${postId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">Отправить</button>
                                 </div>
                             </div>
                         </div>
@@ -593,10 +766,15 @@
             const text = input.value.trim();
             if (!text) return;
 
+            const now = new Date();
+            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
             const postRef = doc(db, "posts", postId);
             const newComment = {
+                uid: currentUser.uid,
                 author: currentUser.displayName,
                 text: text,
+                timeString: timeString,
                 createdAt: Date.now()
             };
 
@@ -604,6 +782,20 @@
                 comments: arrayUnion(newComment)
             });
             input.value = "";
+        };
+
+        window.deleteComment = async function(postId, commentIndex) {
+            const postRef = doc(db, "posts", postId);
+            const postSnap = await getDoc(postRef);
+            if (postSnap.exists()) {
+                const comments = postSnap.data().comments || [];
+                if (comments[commentIndex]) {
+                    const commentToDelete = comments[commentIndex];
+                    await updateDoc(postRef, {
+                        comments: arrayRemove(commentToDelete)
+                    });
+                }
+            }
         };
 
         window.sharePost = function(text) {
