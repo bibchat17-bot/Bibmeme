@@ -92,12 +92,6 @@
             return "user";
         }
 
-        function isAppleDevice() {
-            const ua = navigator.userAgent;
-            if (/Android/i.test(ua)) return false;
-            return /iPhone|iPad|iPod|Macintosh|Mac OS X/i.test(ua);
-        }
-
         function registerDeviceAccount(uid) {
             let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
             if (!accounts.includes(uid)) {
@@ -108,14 +102,13 @@
             return true;
         }
 
-        // Векторные SVG значки
         const SIGNS = {
             owner: `<span class="inline-flex items-center gap-1.5 bg-red-600/30 text-red-400 border border-red-500/30 text-xs px-2.5 py-1 rounded-full font-bold"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z"/></svg>Владелец</span>`,
             admin: `<span class="inline-flex items-center gap-1.5 bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs px-2.5 py-1 rounded-full font-bold"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-5.45 9-12V5l-9-4zm-1 16l-4-4 1.41-1.41L11 14.17l6.59-6.59L19 9l-8 8z"/></svg>Админ</span>`,
             user: `<span class="inline-flex items-center gap-1.5 bg-gray-800 text-gray-300 border border-gray-700 text-xs px-2.5 py-1 rounded-full font-medium"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Участник</span>`
         };
 
-        // Отслеживание сессии
+        // Отслеживание сессии с безопасной проверкой элементов
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -135,12 +128,13 @@
                     localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
                 }
 
-                document.getElementById('welcome-screen').classList.add('hidden');
+                const welcomeScreen = document.getElementById('welcome-screen');
+                if (welcomeScreen) welcomeScreen.classList.add('hidden');
                 checkUserSessionState();
             }
         });
 
-        // Вход через Popup
+        // Безопасный вход через Popup
         window.loginWithGoogle = async function() {
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
@@ -157,7 +151,8 @@
                         }
                         return;
                     }
-                    document.getElementById('welcome-screen').classList.add('hidden');
+                    const welcomeScreen = document.getElementById('welcome-screen');
+                    if (welcomeScreen) welcomeScreen.classList.add('hidden');
                     checkUserSessionState();
                 }
             } catch (error) {
