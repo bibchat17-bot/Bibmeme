@@ -40,14 +40,14 @@
                 <span class="text-lg font-bold text-white tracking-wide">Проект делается!</span>
             </div>
 
-            <button onclick="loginWithGoogle()" class="w-full bg-white text-black hover:bg-gray-200 font-bold py-3.5 rounded-2xl text-base transition flex items-center justify-center gap-3 shadow-md">
+            <button id="googleAuthBtn" onclick="loginWithGoogle()" class="w-full bg-white text-black hover:bg-gray-200 font-bold py-3.5 rounded-2xl text-base transition flex items-center justify-center gap-3 shadow-md active:scale-95">
                 <svg class="w-5 h-5" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-8.87z"/>
                     <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.19v3.15C3.18 21.31 7.24 24 12 24z"/>
                     <path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.19C.43 8.14 0 9.99 0 12s.43 3.86 1.19 5.39l4.08-3.15z"/>
                     <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.24 0 3.18 2.69 1.19 6.61l4.08 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/>
                 </svg>
-                Войти через Google
+                <span>Войти через Google</span>
             </button>
             <p id="accountLimitError" class="text-red-400 text-xs text-center font-medium hidden"></p>
         </div>
@@ -63,7 +63,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -109,94 +109,93 @@
             user: `<span class="inline-flex items-center gap-1.5 bg-gray-800 text-gray-300 border border-gray-700 text-xs px-2.5 py-1 rounded-full font-medium"><svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>Участник</span>`
         };
 
-         // Отслеживание сессии
+        // Обработка возврата после перенаправления (Redirect)
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                currentUser = result.user;
+                handleUserAuthSuccess();
+            }
+        }).catch((err) => {
+            console.error("Ошибка авторизации через Redirect:", err);
+        });
+
+        // Отслеживание состояния сессии
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                
-                let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
-                if (!accounts.includes(user.uid)) {
-                    if (accounts.length >= 3) {
-                        signOut(auth);
-                        const limitError = document.getElementById('accountLimitError');
-                        if (limitError) {
-                            limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
-                            limitError.classList.remove('hidden');
-                        }
-                        return;
-                    }
-                    accounts.push(user.uid);
-                    localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
-                }
-
-                const welcomeScreen = document.getElementById('welcome-screen');
-                if (welcomeScreen) welcomeScreen.classList.add('hidden');
-                await checkUserSessionState();
+                await handleUserAuthSuccess();
             }
         });
 
-        // Надежная проверка сессии с ожиданием загрузки из облака
-        async function checkUserSessionState() {
-            const container = document.getElementById('app-container');
-            container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-400">Загрузка профиля...</p></div>`;
+        async function handleUserAuthSuccess() {
+            if (!currentUser) return;
 
-            try {
-                const userDocRef = doc(db, "users", currentUser.uid);
-                const userSnap = await getDoc(userDocRef);
-
-                if (userSnap.exists()) {
-                    currentUserData = userSnap.data();
-                    if (checkSleepLock(currentUserData.age)) return;
-
-                    if (currentUserData.hasPassword && !sessionStorage.getItem(`auth_verified_${currentUser.uid}`)) {
-                        showPasswordLoginPrompt(currentUser.displayName);
-                    } else {
-                        document.getElementById('bottom-nav').classList.remove('hidden');
-                        const role = getUserRole();
-                        if (role === 'owner' || role === 'admin') {
-                            document.getElementById('nav-adminServer').classList.remove('hidden');
-                        }
-                        switchTab('profile');
+            let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
+            if (!accounts.includes(currentUser.uid)) {
+                if (accounts.length >= 3) {
+                    await signOut(auth);
+                    const limitError = document.getElementById('accountLimitError');
+                    if (limitError) {
+                        limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
+                        limitError.classList.remove('hidden');
                     }
-                } else {
-                    showBirthdayPrompt(currentUser.displayName);
+                    return;
                 }
-            } catch (e) {
-                console.error("Ошибка загрузки профиля из облака:", e);
-                showBirthdayPrompt(currentUser.displayName);
+                accounts.push(currentUser.uid);
+                localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
             }
+
+            const welcomeScreen = document.getElementById('welcome-screen');
+            if (welcomeScreen) welcomeScreen.classList.add('hidden');
+            await checkUserSessionState();
         }
 
-        // Вход через Google
+        // Вход через Google с надежным фоллбеком для мобильных
         window.loginWithGoogle = async function() {
+            const btn = document.getElementById('googleAuthBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+            }
+
             const provider = new GoogleAuthProvider();
             provider.setCustomParameters({ prompt: 'select_account' });
+
             try {
+                // Сначала пытаемся войти через Popup
                 const result = await signInWithPopup(auth, provider);
                 if (result && result.user) {
                     currentUser = result.user;
-                    if (!registerDeviceAccount(currentUser.uid)) {
-                        await signOut(auth);
-                        const limitError = document.getElementById('accountLimitError');
-                        if (limitError) {
-                            limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
-                            limitError.classList.remove('hidden');
-                        }
-                        return;
-                    }
-                    const welcomeScreen = document.getElementById('welcome-screen');
-                    if (welcomeScreen) welcomeScreen.classList.add('hidden');
-                    await checkUserSessionState();
+                    await handleUserAuthSuccess();
                 }
             } catch (error) {
-                console.error("Ошибка входа через Popup:", error);
-                alert("Не удалось войти через Google: " + error.message);
+                console.warn("Popup заблокирован или не поддерживается браузером, переключаемся на Redirect:", error);
+                try {
+                    // Если Popup заблокирован мобильным браузером — запускаем Redirect
+                    await signInWithRedirect(auth, provider);
+                } catch (redirectErr) {
+                    console.error("Ошибка входа через Redirect:", redirectErr);
+                    alert("Не удалось войти: " + redirectErr.message);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                    }
+                }
             }
         };
 
-        // Загрузка данных из Облака Firestore
+        // Гарантированная загрузка из облака с экраном ожидания
         async function checkUserSessionState() {
+            const container = document.getElementById('app-container');
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col items-center gap-3">
+                    <div class="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-sm text-gray-300 font-medium">Загрузка профиля из облака...</p>
+                </div>
+            `;
+
             try {
+                // Чтение сохраненных данных из Firestore
                 const userDocRef = doc(db, "users", currentUser.uid);
                 const userSnap = await getDoc(userDocRef);
 
@@ -218,7 +217,7 @@
                     showBirthdayPrompt(currentUser.displayName);
                 }
             } catch (e) {
-                console.error("Ошибка загрузки профиля из облака:", e);
+                console.error("Ошибка загрузки из Firestore:", e);
                 showBirthdayPrompt(currentUser.displayName);
             }
         }
@@ -339,35 +338,35 @@
             const topHeader = document.getElementById('top-header');
             const container = document.getElementById('app-container');
 
-            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Привет, ${userName}!</h1><p class="text-gray-400 text-xs mt-1 font-medium">Укажите дату рождения</p>`;
-            container.innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
-                    <div class="flex gap-2">
-                        <input type="number" id="birthDay" placeholder="День" min="1" max="31" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
-                        <input type="number" id="birthMonth" placeholder="Месяц" min="1" max="12" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
-                        <input type="number" id="birthYear" placeholder="Год" min="1900" max="2026" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
-                    </div>
-                    <button onclick="proceedToPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">Продолжить</button>
-                    <p id="errorMsg" class="text-red-400 text-sm font-medium hidden"></p>
+                    topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Привет, ${userName}!</h1><p class="text-gray-400 text-xs mt-1 font-medium">Укажите дату рождения</p>`;
+        container.innerHTML = `
+            <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
+                <div class="flex gap-2">
+                    <input type="number" id="birthDay" placeholder="День" min="1" max="31" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
+                    <input type="number" id="birthMonth" placeholder="Месяц" min="1" max="12" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
+                    <input type="number" id="birthYear" placeholder="Год" min="1900" max="2026" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl px-3 py-3 text-white text-center text-sm focus:outline-none focus:border-white">
                 </div>
-            `;
+                <button onclick="proceedToPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">Продолжить</button>
+                <p id="errorMsg" class="text-red-400 text-sm font-medium hidden"></p>
+            </div>
+        `;
+    }
+
+    let tempBirthdayData = null;
+
+    window.proceedToPassword = function() {
+        const day = parseInt(document.getElementById('birthDay').value);
+        const month = parseInt(document.getElementById('birthMonth').value);
+        const year = parseInt(document.getElementById('birthYear').value);
+        const errorMsg = document.getElementById('errorMsg');
+
+        if (!day || !month || !year || day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2026) {
+            errorMsg.textContent = "Введите корректную дату рождения!";
+            errorMsg.classList.remove('hidden');
+            return;
         }
 
-        let tempBirthdayData = null;
-
-        window.proceedToPassword = function() {
-            const day = parseInt(document.getElementById('birthDay').value);
-            const month = parseInt(document.getElementById('birthMonth').value);
-            const year = parseInt(document.getElementById('birthYear').value);
-            const errorMsg = document.getElementById('errorMsg');
-
-            if (!day || !month || !year || day < 1 || day > 31 || month < 1 || month > 12 || year < 1900 || year > 2026) {
-                errorMsg.textContent = "Введите корректную дату рождения!";
-                errorMsg.classList.remove('hidden');
-                return;
-            }
-
-                    const today = new Date();
+        const today = new Date();
         let age = today.getFullYear() - year;
         const m = today.getMonth() + 1 - month;
         if (m < 0 || (m === 0 && today.getDate() < day)) age--;
