@@ -812,9 +812,9 @@
                 }
             }
         };
-
+        
         window.loginWithGoogle = async function() {
-    alert("Функция входа вызвана!");
+    alert("Кнопка нажата!"); // Если это окно выскочит — значит, кнопка работает, а проблема внутри Firebase.
     try {
         const provider = new GoogleAuthProvider();
         await signInWithRedirect(auth, provider);
