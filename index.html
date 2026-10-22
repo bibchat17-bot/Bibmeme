@@ -812,17 +812,16 @@
                 }
             }
         };
-        
-                                window.loginWithGoogle = async function() {
-            try {
-                console.log("Запуск входа через Google...");
-                const provider = new GoogleAuthProvider();
-                await signInWithRedirect(auth, provider);
-            } catch (e) {
-                console.error("Ошибка входа:", e);
-                alert("Ошибка: " + e.message);
-            }
-        };
+
+        window.loginWithGoogle = async function() {
+    alert("Функция входа вызвана!");
+    try {
+        const provider = new GoogleAuthProvider();
+        await signInWithRedirect(auth, provider);
+    } catch (e) {
+        alert("Ошибка: " + e.message);
+    }
+};
 
         window.deletePost = async function(postId) {
     if (confirm("Вы уверены, что хотите удалить этот пост?")) {
