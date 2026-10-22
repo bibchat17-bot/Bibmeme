@@ -21,19 +21,6 @@
 </head>
 <body class="bg-[#121212] text-white min-h-screen flex flex-col justify-between p-4 select-none pt-10 overflow-x-hidden">
 
-    <!-- Экран входа bibmeme -->
-    <div id="authScreen" class="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 class="text-3xl font-bold mb-6 text-white">bibmeme</h1>
-        <div class="bg-gray-800 border border-gray-700 p-4 rounded-2xl mb-4 w-full max-w-sm text-center">
-            <span class="text-orange-400 font-medium">● Облачное хранилище активно</span>
-        </div>
-        <button onclick="loginWithGoogle()" class="w-full max-w-sm bg-white text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition shadow-lg">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
-            Войти через Google
-        </button>
-    </div>
-    
-    
     <!-- Верхний заголовок -->
     <div id="top-header" class="flex flex-col items-center w-full mb-2 text-center">
         <h1 class="text-3xl font-extrabold tracking-tight">bibmeme</h1>
@@ -826,14 +813,15 @@
             }
         };
 
-        window.loginWithGoogle = async function() {
+                window.loginWithGoogle = async function() {
             try {
                 const provider = new GoogleAuthProvider();
-                await signInWithPopup(auth, provider);
+                await signInWithRedirect(auth, provider);
             } catch (e) {
                 alert("Ошибка входа: " + e.message);
             }
         };
+        
 
         window.deletePost = async function(postId) {
     if (confirm("Вы уверены, что хотите удалить этот пост?")) {
