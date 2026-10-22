@@ -812,8 +812,8 @@
                 }
             }
         };
-
-                window.loginWithGoogle = async function() {
+        
+                        window.loginWithGoogle = async function() {
             try {
                 const provider = new GoogleAuthProvider();
                 await signInWithRedirect(auth, provider);
@@ -821,7 +821,6 @@
                 alert("Ошибка входа: " + e.message);
             }
         };
-        
 
         window.deletePost = async function(postId) {
     if (confirm("Вы уверены, что хотите удалить этот пост?")) {
