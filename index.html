@@ -44,15 +44,11 @@
                 <span class="text-lg font-bold text-white tracking-wide">Облачное хранилище активно</span>
             </div>
 
-<button id="googleAuthBtn" onclick="(async () => {
-    try {
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
-    } catch (e) {
-        alert('Ошибка входа: ' + e.message);
-    }
-})();" class="w-full max-w-sm bg-white text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition shadow-lg">
-    
+<button id="googleAuthBtn" class="w-full max-w-sm bg-white text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition shadow-lg">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
+    <span>Войти через Google</span>
+</button>
+            
             <p id="accountLimitError" class="text-red-400 text-xs text-center font-medium hidden"></p>
         </div>
     </div>
@@ -157,6 +153,15 @@
         const OWNER_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"];
         const ADMIN_UIDS = ["q4GyUEltlrS9KaSMoGYdbE4dkK13"];
 
+        document.getElementById('googleAuthBtn').addEventListener('click', async () => {
+    try {
+        const provider = new GoogleAuthProvider();
+        await signInWithRedirect(auth, provider);
+    } catch (e) {
+        alert('Ошибка входа: ' + e.message);
+    }
+});
+        
         function getUserRole(uid = currentUser?.uid) {
             if (!uid) return "user";
             if (OWNER_UIDS.includes(uid)) return "owner";
