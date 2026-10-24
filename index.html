@@ -153,15 +153,18 @@
         const OWNER_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"];
         const ADMIN_UIDS = ["q4GyUEltlrS9KaSMoGYdbE4dkK13"];
 
-        document.getElementById('googleAuthBtn').addEventListener('click', async () => {
-    try {
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
-    } catch (e) {
-        alert('Ошибка входа: ' + e.message);
-    }
-});
-        
+        document.addEventListener("DOMContentLoaded", () => {
+    const authBtn = document.getElementById('googleAuthBtn');
+    if (authBtn) {
+        authBtn.addEventListener('click', async () => {
+            try {
+                const provider = new GoogleAuthProvider();
+                await signInWithRedirect(auth, provider);
+            } catch (e) {
+                alert('Ошибка входа: ' + e.message);
+            }
+        }); });
+
         function getUserRole(uid = currentUser?.uid) {
             if (!uid) return "user";
             if (OWNER_UIDS.includes(uid)) return "owner";
