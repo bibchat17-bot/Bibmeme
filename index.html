@@ -157,13 +157,18 @@
     const authBtn = document.getElementById('googleAuthBtn');
     if (authBtn) {
         authBtn.addEventListener('click', async () => {
+            alert('Кнопка нажата!');
             try {
                 const provider = new GoogleAuthProvider();
                 await signInWithRedirect(auth, provider);
             } catch (e) {
                 alert('Ошибка входа: ' + e.message);
             }
-        }); });
+        });
+    } else {
+        alert('Кнопка не найдена в HTML!');
+    }
+});
 
         function getUserRole(uid = currentUser?.uid) {
             if (!uid) return "user";
