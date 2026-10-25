@@ -152,34 +152,7 @@
 
         const OWNER_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"];
         const ADMIN_UIDS = ["q4GyUEltlrS9KaSMoGYdbE4dkK13"];
-<script type="module">
-  import { 
-    getAuth, 
-    signInWithPopup, 
-    GoogleAuthProvider 
-  } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         
-  document.addEventListener("DOMContentLoaded", () => {
-      const authBtn = document.getElementById('googleAuthBtn');
-      if (authBtn) {
-          authBtn.addEventListener('click', async () => {
-              try {
-                  const auth = getAuth();
-                  const provider = new GoogleAuthProvider();
-                  const result = await signInWithPopup(
-                      auth, 
-                      provider
-                  );
-                  alert('Успешный вход!');
-              } catch (e) {
-                  alert('Ошибка: ' + e.message);
-              }
-          });
-      }
-  });
-</script>
-    
-    
         function getUserRole(uid = currentUser?.uid) {
             if (!uid) return "user";
             if (OWNER_UIDS.includes(uid)) return "owner";
