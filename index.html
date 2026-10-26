@@ -44,7 +44,7 @@
                 <span class="text-lg font-bold text-white tracking-wide">Облачное хранилище активно</span>
             </div>
 
-<button id="googleAuthBtn" class="w-full max-w-sm bg-white text-black font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 transition shadow-lg">
+<button id="googleAuthBtn" onclick="loginWithGoogle()" class="w-full max-w-sm bg-white text-black font-bold py-3 rounded-xl flex items-center justify-center gap-3">
     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5">
     <span>Войти через Google</span>
 </button>
@@ -810,7 +810,7 @@
         };
         
         window.loginWithGoogle = async function() {
-    alert("Кнопка нажата!"); // Если это окно выскочит — значит, кнопка работает, а проблема внутри Firebase.
+    alert("Кнопка нажата!"); 
     try {
         const provider = new GoogleAuthProvider();
         await signInWithRedirect(auth, provider);
@@ -819,7 +819,7 @@
     }
 };
 
-        window.deletePost = async function(postId) {
+window.deletePost = async function(postId) {
     if (confirm("Вы уверены, что хотите удалить этот пост?")) {
         try {
             await deleteDoc(doc(db, "posts", postId));
@@ -829,17 +829,19 @@
     }
 };
 
-        window.sharePost = function(text) {
-            if (navigator.share) {
-                navigator.share({ title: 'bibmeme', text: decodeURIComponent(text), url: window.location.href }).catch(() => {});
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Ссылка скопирована!");
-            }
-        };
-    </script>
+window.sharePost = function(text) {
+    if (navigator.share) {
+        navigator.share({ title: 'Bibmeme', text: decodeURIComponent(text), url: window.location.href });
+    } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert("Ссылка скопирована!");
+    }
+}; 
+
+</script>
 </body>
 </html>
+
 
     </script>
 </body>
