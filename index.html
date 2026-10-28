@@ -162,7 +162,10 @@
             admin: `<span class="inline-flex items-center gap-1 bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">🛡️ Админ</span>`,
             user: `<span class="inline-flex items-center gap-1 bg-gray-800 text-gray-300 border border-gray-700 text-[10px] px-2 py-0.5 rounded-full font-medium">👤 Участник</span>`
         };
-
+        
+          const provider = new GoogleAuthProvider();
+  window.loginWithGoogle = () => signInWithRedirect(auth, provider);
+        
         getRedirectResult(auth).then((result) => {
             if (result && result.user) {
                 currentUser = result.user;
