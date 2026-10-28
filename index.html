@@ -127,9 +127,7 @@
 
     <!-- Скрипты Firebase и логика приложения -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, addDoc, getDocs, updateDoc, arrayUnion, arrayRemove, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+          import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -144,13 +142,13 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let currentUser = null;
-        let currentUserData = null;
-        let activeTab = 'profile';
-        let unsubscribePosts = null;
+          let currentUser = null;
+  let currentUserData = null;
+  let activeTab = 'profile';
+  let unsubscribePosts = null;
 
-        const OWNER_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"];
-        const ADMIN_UIDS = ["q4GyUEltlrS9KaSMoGYdbE4dkK13"];
+  const provider = new GoogleAuthProvider();
+  window.loginWithGoogle = () => signInWithRedirect(auth, provider);
         
         function getUserRole(uid = currentUser?.uid) {
             if (!uid) return "user";
