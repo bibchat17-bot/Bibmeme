@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bibmeme</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 26px;
+            margin-bottom: 10px;
+        }
+        /* Кнопки */
+        .btn {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+        .btn:active {
+            opacity: 0.8;
+        }
+        /* Серая кнопка помощника */
+        .btn-gray {
+            background-color: #333333;
+            color: #ffffff;
+        }
+        .btn-gray:active {
+            background-color: #444444;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Добро пожаловать в Bibmeme!</h1>
+        <p style="color: #aaa; font-size: 14px; margin-bottom: 20px;">Войдите через аккаунт Google или перейдите к ИИ-помощнику.</p>
+
+        <!-- Кнопка входа через Google (твоя основная логика авторизации) -->
+        <button class="btn" onclick="loginWithGoogle()">Войти через Google</button>
+
+        <!-- Серая кнопка переключения на помощника -->
+        <button class="btn btn-gray" onclick="window.location.href='oxel.html'">Помощник</button>
+    </div>
+
+    <!-- Firebase скрипты и логика авторизации -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Твои настройки Firebase (если уже подключены в другом месте, можно оставить те)
+        const firebaseConfig = {
+            apiKey: "AIzaSy...",
+            authDomain: "bibmeme-def4d.firebaseapp.com",
+            projectId: "bibmeme-def4d",
+            storageBucket: "bibmeme-def4d.appspot.com",
+            messagingSenderId: "...",
+            appId: "..."
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Привязываем функцию входа к глобальному окну, чтобы HTML-кнопка её видела
+        window.loginWithGoogle = () => {
+            signInWithRedirect(auth, provider);
+        };
+
+        // Проверка результата редиректа после возврата из Google
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                console.log("Успешный вход:", result.user);
+            }
+        }).catch((error) => {
+            console.error("Ошибка входа:", error);
+        });
+    </script>
+</body>
+</html>
