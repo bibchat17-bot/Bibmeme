@@ -841,6 +841,99 @@ window.sharePost = function(text) {
     }
 }; 
 
+<!-- === БЛОК АВТОРИЗАЦИИ BIBMEME (FIREBASE) === -->
+<div class="bib-auth-container" style="background: #1e1e1e; color: #fff; padding: 20px; border-radius: 12px; max-width: 350px; font-family: sans-serif;">
+    <h3>Авторизация Bibmeme</h3>
+    
+    <!-- Форма входа -->
+    <div id="auth-form">
+        <input type="email" id="auth-email" placeholder="Email" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #2c2c2c; border: 1px solid #444; color: #fff; border-radius: 6px; box-sizing: border-box;">
+        <input type="password" id="auth-password" placeholder="Пароль" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #2c2c2c; border: 1px solid #444; color: #fff; border-radius: 6px; box-sizing: border-box;">
+        <div style="display: flex; gap: 10px;">
+            <button onclick="loginUser()" style="flex: 1; padding: 10px; background: #6200ee; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Войти</button>
+            <button onclick="registerUser()" style="flex: 1; padding: 10px; background: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Регистрация</button>
+        </div>
+    </div>
+
+    <!-- Профиль (показывается после входа) -->
+    <div id="user-profile" style="display: none;">
+        <p>Привет, <span id="user-email-display" style="color: #bb86fc;"></span>!</p>
+        <button onclick="logoutUser()" style="width: 100%; padding: 10px; background: #cf6679; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Выйти</button>
+    </div>
+    
+    <div id="auth-error" style="color: #ff5252; font-size: 13px; margin-top: 10px;"></div>
+</div>
+
+<!-- Подключаем Firebase SDK (версия compat для работы со старым синтаксисом) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+<script>
+    // Конфигурация твоего проекта Firebase
+    const firebaseConfig = {
+        apiKey: "ТВОЙ_API_KEY", // Вставь свой ключ из консоли Firebase
+        authDomain: "bib-chat-64027.firebaseapp.com",
+        projectId: "bib-chat-64027",
+        storageBucket: "bib-chat-64027.appspot.com",
+        messagingSenderId: "ТВОЙ_MESSAGING_SENDER_ID",
+        appId: "ТВОЙ_APP_ID"
+    };
+
+    // Инициализация Firebase (если еще не инициализирован)
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    const auth = firebase.auth();
+
+    // Функция входа
+    function loginUser() {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-password').value;
+        const errorDiv = document.getElementById('auth-error');
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .catch((error) => {
+                errorDiv.innerText = "Ошибка: " + error.message;
+            });
+    }
+
+    // Функция регистрации
+    function registerUser() {
+        const email = document.getElementById('auth-email').value;
+        const pass = document.getElementById('auth-password').value;
+        const errorDiv = document.getElementById('auth-error');
+
+        auth.createUserWithEmailAndPassword(email, pass)
+            .catch((error) => {
+                errorDiv.innerText = "Ошибка: " + error.message;
+            });
+    }
+
+    // Функция выхода
+    function logoutUser() {
+        auth.signOut();
+    }
+
+    // Отслеживание состояния сессии (автоматически переключает интерфейс)
+    auth.onAuthStateChanged((user) => {
+        const authForm = document.getElementById('auth-form');
+        const userProfile = document.getElementById('user-profile');
+        const emailDisplay = document.getElementById('user-email-display');
+        const errorDiv = document.getElementById('auth-error');
+
+        errorDiv.innerText = "";
+
+        if (user) {
+            authForm.style.display = 'none';
+            userProfile.style.display = 'block';
+            emailDisplay.innerText = user.email;
+        } else {
+            authForm.style.display = 'block';
+            userProfile.style.display = 'none';
+        }
+    });
+    
     </script>
 </body>
 </html>
