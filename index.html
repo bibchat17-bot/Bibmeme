@@ -44,9 +44,9 @@
                 <span class="text-lg font-bold text-white tracking-wide">Облачное хранилище активно</span>
             </div>
 
-<button id="googleAuthBtn" onclick="loginWithGoogle()" style="width: 100%; background: white; color: black; font-weight: bold; padding: 12px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
-    Войти через Google
-</button>
+            <button id="googleAuthBtn" onclick="loginWithGoogle()" style="width: 100%; background: white; color: black; font-weight: bold; padding: 12px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                Войти через Google
+            </button>
             
             <p id="accountLimitError" class="text-red-400 text-xs text-center font-medium hidden"></p>
         </div>
@@ -127,7 +127,9 @@
 
     <!-- Скрипты Firebase и логика приложения -->
     <script type="module">
-          import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -141,15 +143,16 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-          let currentUser = null;
-  let currentUserData = null;
-  let activeTab = 'profile';
-  let unsubscribePosts = null;
+        let currentUser = null;
+        let currentUserData = null;
+        let activeTab = 'profile';
+        let unsubscribePosts = null;
 
-  const provider = new GoogleAuthProvider();
-  window.loginWithGoogle = () => signInWithRedirect(auth, provider);
-        
+        const OWNER_UIDS = []; // Сюда при необходимости можно добавить UID владельцев
+        const ADMIN_UIDS = []; // Сюда UID админов
+
         function getUserRole(uid = currentUser?.uid) {
             if (!uid) return "user";
             if (OWNER_UIDS.includes(uid)) return "owner";
@@ -162,12 +165,18 @@
             admin: `<span class="inline-flex items-center gap-1 bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">🛡️ Админ</span>`,
             user: `<span class="inline-flex items-center gap-1 bg-gray-800 text-gray-300 border border-gray-700 text-[10px] px-2 py-0.5 rounded-full font-medium">👤 Участник</span>`
         };
-        
-          const provider = new GoogleAuthProvider();
-  window.loginWithGoogle = () => {
-      alert("Клик поймал!");
-      signInWithRedirect(auth, provider);
-  };
+
+        window.loginWithGoogle = async function() {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                try {
+                    await signInWithRedirect(auth, provider);
+                } catch (redirectErr) {
+                    alert("Не удалось войти: " + redirectErr.message);
+                }
+            }
+        };
         
         getRedirectResult(auth).then((result) => {
             if (result && result.user) {
@@ -203,24 +212,6 @@
             if (welcomeScreen) welcomeScreen.classList.add('hidden');
             await checkUserSessionState();
         }
-
-        window.loginWithGoogle = async function() {
-            const provider = new GoogleAuthProvider();
-            provider.setCustomParameters({ prompt: 'select_account' });
-            try {
-                const result = await signInWithPopup(auth, provider);
-                if (result && result.user) {
-                    currentUser = result.user;
-                    await handleUserAuthSuccess();
-                }
-            } catch (error) {
-                try {
-                    await signInWithRedirect(auth, provider);
-                } catch (redirectErr) {
-                    alert("Не удалось войти: " + redirectErr.message);
-                }
-            }
-        };
 
         async function checkUserSessionState() {
             const container = document.getElementById('app-container');
@@ -278,7 +269,6 @@
                 ageLabel = "для 16-17 летних";
             }
 
-            // Предупреждение за 15 минут
             const warningStart = sleepStartMinutes - 15;
             const sleepWarningBanner = document.getElementById('sleepWarningBanner');
             if (totalCurrentMinutes >= warningStart && totalCurrentMinutes < sleepStartMinutes) {
@@ -290,13 +280,12 @@
                 sleepWarningBanner.classList.add('hidden');
             }
 
-            // Проверка наступления режима сна
             if (totalCurrentMinutes >= sleepStartMinutes || currentHour < 6) {
                 if (!isExtendedToday && totalCurrentMinutes < extendedLimitMinutes) {
                     showSleepLockScreen(ageLabel, true, (sleepStartMinutes/60)%24, (extendedLimitMinutes/60)%24);
                     return true;
                 } else if (isExtendedToday && totalCurrentMinutes < extendedLimitMinutes) {
-                    return false; // Отложено на час
+                    return false; 
                 }
                 showSleepLockScreen(ageLabel, false, (sleepStartMinutes/60)%24, (extendedLimitMinutes/60)%24);
                 return true;
@@ -322,7 +311,7 @@
             location.reload();
         };
 
-                function showPasswordLoginPrompt() {
+        function showPasswordLoginPrompt() {
             document.getElementById('bottom-nav').classList.add('hidden');
             document.getElementById('app-container').innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
@@ -348,7 +337,7 @@
             }
         };
 
-        function showBirthdayPrompt(userName) {
+                function showBirthdayPrompt(userName) {
             document.getElementById('bottom-nav').classList.add('hidden');
             document.getElementById('app-container').innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
@@ -692,19 +681,19 @@
                                               <svg class="w-3 h-3 text-gray-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                                 ${post.timeString}
                                             </span>
-
                                             ${post.ageLimit && post.ageLimit !== 'none' ? `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-md font-bold">${post.ageLimit}</span>` : ''}
                                         </div>
-                                                                    <div class="flex items-center gap-2">
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
                                     ${post.score > 70 ? `<span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">🔥 В топе</span>` : ''}
                                     ${post.uid === currentUser.uid ? `
                                         <button onclick="deletePost('${postId}')" class="text-gray-500 hover:text-red-400 transition p-1" title="Удалить пост">
                                             <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
                                         </button>
                                     ` : ''}
-                                </div>
-                                
-                                
+
+                                                    </div>
 
                             ${post.text ? `<p class="text-xs text-gray-200 leading-relaxed">${post.text}</p>` : ''}
                             ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover border border-white/10">` : ''}
@@ -724,7 +713,7 @@
                                 </button>
                             </div>
 
-                                                        <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
+                            <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
                                 <div id="comments-list-${postId}" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
                                     ${(post.comments || []).map((c, idx) => `
                                         <div class="bg-[#121212] p-2 rounded-lg text-[11px] flex justify-between items-start gap-2">
@@ -748,14 +737,6 @@
                                     <button onclick="addComment('${postId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">Отправить</button>
                                 </div>
                             </div>
-                            
-                                    `).join('') || '<p class="text-[10px] text-gray-500">Нет комментариев</p>'}
-                                </div>
-                                <div class="flex gap-2 mt-1">
-                                    <input type="text" id="comment-input-${postId}" placeholder="Написать коммент..." class="flex-1 bg-[#121212] border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                                    <button onclick="addComment('${postId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">Отправить</button>
-                                </div>
-                            </div>
                         </div>
                     `;
                 });
@@ -763,7 +744,7 @@
             });
         }
 
-        window.toggleLike = async function(postId, isLiked) {
+                window.toggleLike = async function(postId, isLiked) {
             const postRef = doc(db, "posts", postId);
             await updateDoc(postRef, {
                 likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
@@ -811,129 +792,25 @@
                 }
             }
         };
-        
-        window.loginWithGoogle = async function() {
-    alert("Кнопка нажата!"); 
-    try {
-        const provider = new GoogleAuthProvider();
-        await signInWithRedirect(auth, provider);
-    } catch (e) {
-        alert("Ошибка: " + e.message);
-    }
-};
 
-window.deletePost = async function(postId) {
-    if (confirm("Вы уверены, что хотите удалить этот пост?")) {
-        try {
-            await deleteDoc(doc(db, "posts", postId));
-        } catch (e) {
-            alert("Ошибка при удалении поста!");
-        }
-    }
-};
+        window.deletePost = async function(postId) {
+            if (confirm("Вы уверены, что хотите удалить этот пост?")) {
+                try {
+                    await deleteDoc(doc(db, "posts", postId));
+                } catch (e) {
+                    alert("Ошибка при удалении поста!");
+                }
+            }
+        };
 
-window.sharePost = function(text) {
-    if (navigator.share) {
-        navigator.share({ title: 'Bibmeme', text: decodeURIComponent(text), url: window.location.href });
-    } else {
-        navigator.clipboard.writeText(window.location.href);
-        alert("Ссылка скопирована!");
-    }
-}; 
-
-<!-- === БЛОК АВТОРИЗАЦИИ BIBMEME (FIREBASE) === -->
-<div class="bib-auth-container" style="background: #1e1e1e; color: #fff; padding: 20px; border-radius: 12px; max-width: 350px; font-family: sans-serif;">
-    <h3>Авторизация Bibmeme</h3>
-    
-    <!-- Форма входа -->
-    <div id="auth-form">
-        <input type="email" id="auth-email" placeholder="Email" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #2c2c2c; border: 1px solid #444; color: #fff; border-radius: 6px; box-sizing: border-box;">
-        <input type="password" id="auth-password" placeholder="Пароль" style="width: 100%; padding: 10px; margin-bottom: 10px; background: #2c2c2c; border: 1px solid #444; color: #fff; border-radius: 6px; box-sizing: border-box;">
-        <div style="display: flex; gap: 10px;">
-            <button onclick="loginUser()" style="flex: 1; padding: 10px; background: #6200ee; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Войти</button>
-            <button onclick="registerUser()" style="flex: 1; padding: 10px; background: #333; color: #fff; border: none; border-radius: 6px; cursor: pointer;">Регистрация</button>
-        </div>
-    </div>
-
-    <!-- Профиль (показывается после входа) -->
-    <div id="user-profile" style="display: none;">
-        <p>Привет, <span id="user-email-display" style="color: #bb86fc;"></span>!</p>
-        <button onclick="logoutUser()" style="width: 100%; padding: 10px; background: #cf6679; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Выйти</button>
-    </div>
-    
-    <div id="auth-error" style="color: #ff5252; font-size: 13px; margin-top: 10px;"></div>
-</div>
-
-<!-- Подключаем Firebase SDK (версия compat для работы со старым синтаксисом) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
-<script>
-    // Конфигурация твоего проекта Firebase
-    const firebaseConfig = {
-        apiKey: "ТВОЙ_API_KEY", // Вставь свой ключ из консоли Firebase
-        authDomain: "bib-chat-64027.firebaseapp.com",
-        projectId: "bib-chat-64027",
-        storageBucket: "bib-chat-64027.appspot.com",
-        messagingSenderId: "ТВОЙ_MESSAGING_SENDER_ID",
-        appId: "ТВОЙ_APP_ID"
-    };
-
-    // Инициализация Firebase (если еще не инициализирован)
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-
-    const auth = firebase.auth();
-
-    // Функция входа
-    function loginUser() {
-        const email = document.getElementById('auth-email').value;
-        const pass = document.getElementById('auth-password').value;
-        const errorDiv = document.getElementById('auth-error');
-
-        auth.signInWithEmailAndPassword(email, pass)
-            .catch((error) => {
-                errorDiv.innerText = "Ошибка: " + error.message;
-            });
-    }
-
-    // Функция регистрации
-    function registerUser() {
-        const email = document.getElementById('auth-email').value;
-        const pass = document.getElementById('auth-password').value;
-        const errorDiv = document.getElementById('auth-error');
-
-        auth.createUserWithEmailAndPassword(email, pass)
-            .catch((error) => {
-                errorDiv.innerText = "Ошибка: " + error.message;
-            });
-    }
-
-    // Функция выхода
-    function logoutUser() {
-        auth.signOut();
-    }
-
-    // Отслеживание состояния сессии (автоматически переключает интерфейс)
-    auth.onAuthStateChanged((user) => {
-        const authForm = document.getElementById('auth-form');
-        const userProfile = document.getElementById('user-profile');
-        const emailDisplay = document.getElementById('user-email-display');
-        const errorDiv = document.getElementById('auth-error');
-
-        errorDiv.innerText = "";
-
-        if (user) {
-            authForm.style.display = 'none';
-            userProfile.style.display = 'block';
-            emailDisplay.innerText = user.email;
-        } else {
-            authForm.style.display = 'block';
-            userProfile.style.display = 'none';
-        }
-    });
-    
+        window.sharePost = function(text) {
+            if (navigator.share) {
+                navigator.share({ title: 'Bibmeme', text: decodeURIComponent(text), url: window.location.href });
+            } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Ссылка скопирована!");
+            }
+        };
     </script>
 </body>
 </html>
