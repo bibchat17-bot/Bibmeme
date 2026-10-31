@@ -52,9 +52,8 @@
         </div>
     </div>
 
-    <!-- Нижняя панель навигации -->
+    <!-- Нижняя панель навигации (Без вкладки "Сервера" для обычных юзеров) -->
     <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-1.5 flex justify-around items-center shadow-lg mt-auto">
-        <button onclick="switchTab('servers')" id="nav-servers" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Сервера</button>
         <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Лента</button>
         <button onclick="switchTab('adminServer')" id="nav-adminServer" class="hidden flex-1 py-2 text-center font-bold text-xs text-purple-400 hover:text-purple-300 transition rounded-xl">Сервер</button>
         <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl">Профиль</button>
@@ -110,7 +109,7 @@
     <div id="passwordManageModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
             <h2 id="passModalTitle" class="text-lg font-bold">Управление паролем</h2>
-            <p class="text-xs text-gray-400">Пароль: от 6 символов, мин. 2 цифры, заглавная буква и спецсимвол (например, _).</p>
+            <p class="text-xs text-gray-400">Пароль: от 6 символов, мин. 2 цифры, заглавная буква и спецсимвол (_).</p>
             <input type="password" id="modalNewPassword" placeholder="Новый пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-sm">
             <p id="modalPassError" class="text-red-400 text-xs hidden"></p>
             <div class="flex gap-2 pt-1">
@@ -160,7 +159,6 @@
             user: `<span class="inline-flex items-center gap-1 bg-gray-800 text-gray-300 border border-gray-700 text-[10px] px-2 py-0.5 rounded-full font-medium">👤 Участник</span>`
         };
 
-        // Надежная проверка пароля без багов
         function validatePasswordRules(password) {
             const hasLength = password.length >= 6;
             const digitsMatch = password.match(/\d/g);
@@ -404,7 +402,7 @@
             `;
         }
 
-        // ИСПРАВЛЕНО: Кнопка "Пропустить" и валидация теперь работают без сбоев
+        // ИСПРАВЛЕНО: Сразу после сохранения или пропуска перекидывает в профиль
         window.saveAccountWithPassword = async function(withPassword) {
             let password = "";
             if (withPassword) {
@@ -441,10 +439,9 @@
             if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
             switchTab('profile');
         };
-                </script>
+            </script>
 
         <script type="module">
-        // УПРАВЛЕНИЕ ВКЛАДКАМИ
         window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
@@ -480,7 +477,6 @@
                         </div>
 
                         <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
-                            <!-- ИСПРАВЛЕНО: Кнопка выхода теперь гарантированно вызывает signOut и перезагружает сессию -->
                             <button onclick="handleSignOut()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
                             <button onclick="openDeleteAccountModal()" class="w-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold py-2.5 rounded-xl text-xs hover:bg-red-600/30 transition">Удалить аккаунт</button>
                         </div>
@@ -498,16 +494,12 @@
                     </div>
                 `;
                 loadRealtimeFeed();
-            } else if (tabName === 'servers') {
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Сервера</h1>`;
-                container.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-gray-400">Список серверов пуст</div>`;
             } else if (tabName === 'adminServer') {
                 topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
                 container.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-purple-300">Панель администратора активна</div>`;
             }
         };
 
-        // НАДЕЖНАЯ ФУНКЦИЯ ВЫХОДА ИЗ АККАУНТА
         window.handleSignOut = async function() {
             try {
                 sessionStorage.clear();
