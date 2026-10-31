@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <!-- Нижняя панель навигации (Без вкладки "Сервера" для обычных юзеров) -->
+    <!-- Нижняя панель навигации (Без вкладки "Сервера" для обычных участников) -->
     <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-1.5 flex justify-around items-center shadow-lg mt-auto">
         <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Лента</button>
         <button onclick="switchTab('adminServer')" id="nav-adminServer" class="hidden flex-1 py-2 text-center font-bold text-xs text-purple-400 hover:text-purple-300 transition rounded-xl">Сервер</button>
@@ -402,7 +402,6 @@
             `;
         }
 
-        // ИСПРАВЛЕНО: Сразу после сохранения или пропуска перекидывает в профиль
         window.saveAccountWithPassword = async function(withPassword) {
             let password = "";
             if (withPassword) {
@@ -439,7 +438,7 @@
             if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
             switchTab('profile');
         };
-            </script>
+   </script>
 
         <script type="module">
         window.switchTab = function(tabName) {
@@ -801,3 +800,5 @@
     </script>
 </body>
 </html>
+
+                                       
