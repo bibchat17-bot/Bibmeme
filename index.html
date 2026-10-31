@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>bibmeme</title>
+    <title>bibmeme — Платформа мемов (9+)</title>
     <meta name="google-signin-client_id" content="754087180561-rvtiaemjn16g4s800emdfkmaskp49j64.apps.googleusercontent.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,18 +12,19 @@
     <style>
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #121212;
+            background-color: #09090b;
             color: white;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-[#121212] text-white min-h-screen flex flex-col justify-between p-4 select-none pt-10 overflow-x-hidden">
+<body class="bg-[#09090b] text-white min-h-screen flex flex-col justify-between p-4 select-none pt-8 overflow-x-hidden">
 
     <!-- Верхний заголовок -->
     <div id="top-header" class="flex flex-col items-center w-full mb-2 text-center">
-        <h1 class="text-3xl font-extrabold tracking-tight">bibmeme</h1>
+        <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">bibmeme</h1>
+        <span class="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full border border-zinc-700 mt-1">9+ Secure Platform & Enterprise Shield</span>
     </div>
 
     <!-- Уведомление за 15 минут до сна -->
@@ -36,15 +37,16 @@
         
         <!-- Стартовый экран -->
         <div id="welcome-screen" class="w-full flex flex-col gap-3">
-            <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 text-center shadow-lg w-full flex items-center justify-center gap-3">
+            <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-center shadow-lg w-full flex items-center justify-center gap-3">
                 <span class="relative flex h-3 w-3">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
                 </span>
-                <span class="text-lg font-bold text-white tracking-wide">Облачное хранилище активно</span>
+                <span class="text-sm font-bold text-white tracking-wide">Облачная защита Oxel активна</span>
             </div>
 
-            <button id="googleAuthBtn" onclick="loginWithGoogle()" style="width: 100%; background: white; color: black; font-weight: bold; padding: 12px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <button id="googleAuthBtn" onclick="loginWithGoogle()" class="w-full bg-white text-black font-bold p-3.5 rounded-xl border-none cursor-pointer flex items-center justify-center gap-2.5 hover:bg-gray-200 transition text-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
                 Войти через Google
             </button>
             
@@ -53,80 +55,74 @@
     </div>
 
     <!-- Нижняя панель навигации -->
-    <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-1.5 flex justify-around items-center shadow-lg mt-auto">
-        <button onclick="switchTab('servers')" id="nav-servers" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Сервера</button>
-        <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Лента</button>
+    <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-zinc-900 border border-zinc-800 rounded-2xl p-1.5 flex justify-around items-center shadow-lg mt-auto">
+        <button onclick="switchTab('servers')" id="nav-servers" class="flex-1 py-2 text-center font-bold text-xs text-zinc-400 hover:text-white transition rounded-xl">Сервера</button>
+        <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-zinc-400 hover:text-white transition rounded-xl">Лента</button>
         <button onclick="switchTab('adminServer')" id="nav-adminServer" class="hidden flex-1 py-2 text-center font-bold text-xs text-purple-400 hover:text-purple-300 transition rounded-xl">Сервер</button>
         <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl">Профиль</button>
     </div>
 
     <!-- Модальное окно создания поста -->
     <div id="createPostModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-bold">Создать пост</h2>
-            <textarea id="postText" placeholder="Что у вас нового?" rows="3" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-white"></textarea>
+            <textarea id="postText" placeholder="Что у вас нового? (Ссылки на Likee и спам блокируются)" rows="3" class="w-full bg-[#121214] border border-zinc-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-blue-500"></textarea>
             
             <div class="flex flex-col gap-1.5">
-                <label class="text-xs text-gray-400">Прикрепить фото (камера / галерея):</label>
-                <input type="file" id="postImageInput" accept="image/*" class="text-xs text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-white file:text-black hover:file:bg-gray-200 cursor-pointer">
+                <label class="text-xs text-zinc-400">Прикрепить фото:</label>
+                <input type="file" id="postImageInput" accept="image/*" class="text-xs text-zinc-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-white file:text-black hover:file:bg-gray-200 cursor-pointer">
             </div>
 
             <div class="flex flex-col gap-1.5">
-                <label class="text-xs text-gray-400">Возрастное ограничение:</label>
-                <select id="postAgeLimit" class="w-full bg-[#121212] border border-white/20 rounded-xl p-2.5 text-xs text-white focus:outline-none">
-                    <option value="none">Оставить пустым (для всех)</option>
+                <label class="text-xs text-zinc-400">Возрастное ограничение:</label>
+                <select id="postAgeLimit" class="w-full bg-[#121214] border border-zinc-800 rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                    <option value="none">Для всех (от 9 лет)</option>
                     <option value="9-12">9-12 лет</option>
                     <option value="13-17">13-17 лет</option>
                     <option value="18+">18+</option>
                 </select>
             </div>
 
-            <div id="postStatusMsg" class="text-xs text-amber-400 font-medium text-center hidden">Выкладываем пост в облако...</div>
+            <div id="postStatusMsg" class="text-xs text-blue-400 font-medium text-center hidden">Проверка Oxel и публикация...</div>
 
             <div class="flex gap-2 pt-2">
                 <button onclick="publishPost()" class="flex-1 bg-white text-black font-bold py-2.5 rounded-xl text-xs hover:bg-gray-200 transition">Опубликовать</button>
-                <button onclick="closeCreatePostModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
+                <button onclick="closeCreatePostModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
             </div>
         </div>
     </div>
 
     <!-- Модальное окно удаления аккаунта -->
     <div id="deleteAccountModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
+        <div class="bg-zinc-900 border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
             <h2 class="text-lg font-bold text-red-400">Удаление аккаунта</h2>
-            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-gray-200 leading-relaxed">
-                <p class="font-bold text-red-400 mb-1">Пока вы не ушли, прочитайте, это очень важно!</p>
-                <p>Вы собираетесь удалить аккаунт в <strong>Bibmeme</strong> с постами, комментариями, с лайками, с сообщениями и т.д.</p>
-                <p class="mt-1">После удаления их нельзя восстановить, но можно до удаления скачать данные.</p>
-                <p class="mt-1 text-gray-400">После нажатия "Удалить аккаунт" вы соглашаетесь на удаление ваших данных и подтверждаете, что вы их скачали.</p>
+            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-zinc-300 leading-relaxed">
+                <p class="font-bold text-red-400 mb-1">Внимание!</p>
+                <p>Вы удаляете аккаунт в <strong>bibmeme</strong> со всеми данными.</p>
             </div>
             <div class="flex flex-col gap-2 pt-1">
-                <button onclick="downloadUserDataBackup()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                    Загрузить данные
-                </button>
+                <button onclick="downloadUserDataBackup()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Загрузить данные</button>
                 <button onclick="confirmAccountDeletion()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Удалить аккаунт</button>
-                <button onclick="closeDeleteAccountModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
+                <button onclick="closeDeleteAccountModal()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
             </div>
         </div>
     </div>
 
     <!-- Модальное окно управления паролем -->
     <div id="passwordManageModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
-            <h2 id="passModalTitle" class="text-lg font-bold">Управление паролем</h2>
-            <p class="text-xs text-gray-400">Пароль должен быть от 6 символов, содержать мин. 2 цифры, _, спецсимвол и заглавную букву.</p>
-            <input type="password" id="modalNewPassword" placeholder="Новый пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-sm">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
+            <h2 class="text-lg font-bold">Управление паролем</h2>
+            <p class="text-xs text-zinc-400">От 6 символов, мин. 2 цифры, _ , спецсимвол и заглавная буква.</p>
+            <input type="password" id="modalNewPassword" placeholder="Новый пароль" class="w-full bg-[#121214] border border-zinc-800 rounded-xl p-3 text-white text-sm">
             <p id="modalPassError" class="text-red-400 text-xs hidden"></p>
             <div class="flex gap-2 pt-1">
                 <button onclick="saveManagedPassword()" class="flex-1 bg-white text-black font-bold py-2.5 rounded-xl text-xs transition">Сохранить</button>
-                <button onclick="closePasswordManageModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
+                <button onclick="closePasswordManageModal()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
             </div>
         </div>
     </div>
 
-    <!-- Скрипты Firebase и логика приложения -->
-    <script type="module">
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -150,8 +146,8 @@
         let activeTab = 'profile';
         let unsubscribePosts = null;
 
-        const OWNER_UIDS = []; // Сюда при необходимости можно добавить UID владельцев
-        const ADMIN_UIDS = []; // Сюда UID админов
+        const OWNER_UIDS = []; 
+        const ADMIN_UIDS = []; 
 
         function getUserRole(uid = currentUser?.uid) {
             if (!uid) return "user";
@@ -163,7 +159,17 @@
         const SIGNS = {
             owner: `<span class="inline-flex items-center gap-1 bg-red-600/30 text-red-400 border border-red-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">📰 СМИ / Владелец</span>`,
             admin: `<span class="inline-flex items-center gap-1 bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">🛡️ Админ</span>`,
-            user: `<span class="inline-flex items-center gap-1 bg-gray-800 text-gray-300 border border-gray-700 text-[10px] px-2 py-0.5 rounded-full font-medium">👤 Участник</span>`
+            user: `<span class="inline-flex items-center gap-1 bg-zinc-800 text-zinc-300 border border-zinc-700 text-[10px] px-2 py-0.5 rounded-full font-medium">👤 Участник</span>`
+        };
+
+        // Защита брендов (Enterprise Shield)
+        const BrandSecurity = {
+            reservedNames: ['google', 'yandex', 'vk', 'bibmeme', 'admin', 'official', 'support', 'telegram'],
+            isFakeBrand: function(username) {
+                const clean = username.toLowerCase().trim();
+                const normalized = clean.replace(/0/g, 'o').replace(/1/g, 'i').replace(/3/g, 'e');
+                return this.reservedNames.some(b => normalized.includes(b) && clean !== b);
+            }
         };
 
         window.loginWithGoogle = async function() {
@@ -200,7 +206,7 @@
                     await signOut(auth);
                     const limitError = document.getElementById('accountLimitError');
                     if (limitError) {
-                        limitError.textContent = "На этом устройстве уже создано 3 аккаунта! Доступ ограничен.";
+                        limitError.textContent = "На этом устройстве уже создано 3 аккаунта!";
                         limitError.classList.remove('hidden');
                     }
                     return;
@@ -215,7 +221,7 @@
 
         async function checkUserSessionState() {
             const container = document.getElementById('app-container');
-            container.innerHTML = `<div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-gray-300">Загрузка данных из облака...</p></div>`;
+            container.innerHTML = `<div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center shadow-lg w-full"><p class="text-sm text-zinc-300">Загрузка данных из облака...</p></div>`;
 
             try {
                 const userDocRef = doc(db, "users", currentUser.uid);
@@ -241,7 +247,6 @@
             }
         }
 
-        // ПРОВЕРКА РЕЖИМА СНА И ПРЕДУПРЕЖДЕНИЕ ЗА 15 МИНУТ
         function checkSleepLock(age) {
             if (age >= 18) return false;
             const now = new Date();
@@ -256,16 +261,16 @@
             let ageLabel = "";
 
             if (age >= 9 && age <= 12) {
-                sleepStartMinutes = 22 * 60; // 22:00
-                extendedLimitMinutes = 23 * 60; // 23:00
+                sleepStartMinutes = 22 * 60;
+                extendedLimitMinutes = 23 * 60;
                 ageLabel = "для 9-12 летних";
             } else if (age >= 13 && age <= 15) {
-                sleepStartMinutes = 23 * 60; // 23:00
-                extendedLimitMinutes = 24 * 60; // 0:00
+                sleepStartMinutes = 23 * 60;
+                extendedLimitMinutes = 24 * 60;
                 ageLabel = "для 13-15 летних";
             } else if (age >= 16 && age <= 17) {
-                sleepStartMinutes = 24 * 60; // 0:00
-                extendedLimitMinutes = 25 * 60; // 1:00
+                sleepStartMinutes = 24 * 60;
+                extendedLimitMinutes = 25 * 60;
                 ageLabel = "для 16-17 летних";
             }
 
@@ -273,7 +278,7 @@
             const sleepWarningBanner = document.getElementById('sleepWarningBanner');
             if (totalCurrentMinutes >= warningStart && totalCurrentMinutes < sleepStartMinutes) {
                 if (sleepWarningBanner) {
-                    sleepWarningBanner.textContent = `⚠️ Скоро пора спать! В ${(sleepStartMinutes/60)%24}:00 ${ageLabel} пора спать.`;
+                    sleepWarningBanner.textContent = `⚠️ Скоро спать! В ${(sleepStartMinutes/60)%24}:00 ${ageLabel} пора спать.`;
                     sleepWarningBanner.classList.remove('hidden');
                 }
             } else if (sleepWarningBanner) {
@@ -296,11 +301,11 @@
         function showSleepLockScreen(ageLabel, canExtend, normalHour, extendHour) {
             document.getElementById('bottom-nav').classList.add('hidden');
             document.getElementById('app-container').innerHTML = `
-                <div class="bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col items-center gap-4">
+                <div class="bg-zinc-900 border border-indigo-500/30 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col items-center gap-4">
                     <div class="text-4xl">🌙</div>
                     <h2 class="text-lg font-bold">Время спать!</h2>
-                    <p class="text-xs text-gray-300 leading-relaxed">В ${normalHour}:00 ${ageLabel} пора спать.</p>
-                    ${canExtend ? `<button onclick="extendSleepTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs transition">Отложить ещё на час (до ${extendHour}:00)</button>` : '<p class="text-xs text-red-400 font-bold">Дополнительный час исчерпан! Время спать.</p>'}
+                    <p class="text-xs text-zinc-300 leading-relaxed">В ${normalHour}:00 ${ageLabel} пора спать.</p>
+                    ${canExtend ? `<button onclick="extendSleepTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs transition">Отложить на час (до ${extendHour}:00)</button>` : '<p class="text-xs text-red-400 font-bold">Дополнительный час исчерпан!</p>'}
                 </div>
             `;
         }
@@ -314,11 +319,11 @@
         function showPasswordLoginPrompt() {
             document.getElementById('bottom-nav').classList.add('hidden');
             document.getElementById('app-container').innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
-                    <p class="text-sm text-gray-300">Введите пароль аккаунта:</p>
-                    <input type="password" id="loginPassword" placeholder="Пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm">
-                    <button onclick="verifyLoginPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base">Войти</button>
-                    <p id="loginErrorMsg" class="text-red-400 text-sm hidden"></p>
+                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
+                    <p class="text-sm text-zinc-300">Введите пароль аккаунта:</p>
+                    <input type="password" id="loginPassword" placeholder="Пароль" class="w-full bg-[#121214] border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm">
+                    <button onclick="verifyLoginPassword()" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm">Войти</button>
+                    <p id="loginErrorMsg" class="text-red-400 text-xs hidden"></p>
                 </div>
             `;
         }
@@ -337,18 +342,18 @@
             }
         };
 
-                function showBirthdayPrompt(userName) {
+        function showBirthdayPrompt(userName) {
             document.getElementById('bottom-nav').classList.add('hidden');
             document.getElementById('app-container').innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
+                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
                     <h1 class="text-xl font-extrabold tracking-tight">Привет, ${userName}!</h1>
-                    <p class="text-xs text-gray-400">Укажите дату рождения для регистрации</p>
+                    <p class="text-xs text-zinc-400">Укажите дату рождения (доступ строго с 9 лет)</p>
                     <div class="flex gap-2">
-                        <input type="number" id="birthDay" placeholder="День" min="1" max="31" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-center text-sm">
-                        <input type="number" id="birthMonth" placeholder="Месяц" min="1" max="12" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-center text-sm">
-                        <input type="number" id="birthYear" placeholder="Год" min="1900" max="2026" class="w-1/3 bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-center text-sm">
+                        <input type="number" id="birthDay" placeholder="День" min="1" max="31" class="w-1/3 bg-[#121214] border border-zinc-800 rounded-xl p-3 text-white text-center text-sm">
+                        <input type="number" id="birthMonth" placeholder="Месяц" min="1" max="12" class="w-1/3 bg-[#121214] border border-zinc-800 rounded-xl p-3 text-white text-center text-sm">
+                        <input type="number" id="birthYear" placeholder="Год" min="1900" max="2026" class="w-1/3 bg-[#121214] border border-zinc-800 rounded-xl p-3 text-white text-center text-sm">
                     </div>
-                    <button onclick="proceedToPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">Продолжить</button>
+                    <button onclick="proceedToPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-sm hover:bg-gray-200 transition">Продолжить</button>
                     <p id="errorMsg" class="text-red-400 text-xs font-medium hidden"></p>
                 </div>
             `;
@@ -373,8 +378,9 @@
             const m = today.getMonth() + 1 - month;
             if (m < 0 || (m === 0 && today.getDate() < day)) age--;
 
+            // СТРОГОЕ ПРАВИЛО: МЕНЬШЕ 9 ЛЕТ — БЛОК
             if (age < 9) {
-                errorMsg.textContent = `Вам ${age} лет. Регистрация разрешена с 9 лет!`;
+                errorMsg.textContent = `⛔ [bibmeme Policy]: Вам ${age} лет. Доступ строго с 9 лет!`;
                 errorMsg.classList.remove('hidden');
                 return;
             }
@@ -382,7 +388,8 @@
             tempBirthdayData = {
                 fullBirthday: `${day}.${month}.${year}`,
                 age,
-                ageCategory: age >= 18 ? "18+" : "Подросток"
+                accountAgeDays: 0, // Новый аккаунт получает 0 дней (включается 7-дневный карантин на комменты)
+                ageCategory: age >= 18 ? "18+" : "Подросток (9-17)"
             };
 
             showPasswordCreationPrompt();
@@ -390,12 +397,12 @@
 
         function showPasswordCreationPrompt() {
             document.getElementById('app-container').innerHTML = `
-                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
+                <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 text-left shadow-lg w-full flex flex-col gap-3">
                     <h1 class="text-lg font-bold">Защита аккаунта</h1>
-                    <p class="text-xs text-gray-300 leading-relaxed">Пароль (необязательно):<br>• От 6 символов<br>• Мин. 2 цифры<br>• Спецсимвол и заглавная буква</p>
-                    <input type="password" id="newPassword" placeholder="Придумайте пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-sm">
+                    <p class="text-xs text-zinc-300 leading-relaxed">Пароль (необязательно):<br>• От 6 символов<br>• Мин. 2 цифры<br>• Спецсимвол и заглавная буква</p>
+                    <input type="password" id="newPassword" placeholder="Придумайте пароль" class="w-full bg-[#121214] border border-zinc-800 rounded-xl p-3 text-white text-sm">
                     <button onclick="saveAccountWithPassword(true)" class="w-full bg-white text-black font-bold py-3 rounded-xl text-sm hover:bg-gray-200 transition">Сохранить с паролем</button>
-                    <button onclick="saveAccountWithPassword(false)" class="w-full bg-transparent border border-white/20 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-white/5 transition">Пропустить</button>
+                    <button onclick="saveAccountWithPassword(false)" class="w-full bg-transparent border border-zinc-800 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-white/5 transition">Пропустить</button>
                     <p id="passErrorMsg" class="text-red-400 text-xs font-medium hidden"></p>
                 </div>
             `;
@@ -412,7 +419,7 @@
                 const hasUpper = /[A-ZА-Я]/.test(password);
 
                 if (!hasLength || !hasDigits || !hasSpecial || !hasUpper) {
-                    passErrorMsg.textContent = "Пароль не соответствует требованиям безопасности!";
+                    passErrorMsg.textContent = "Пароль не соответствует требованиям!";
                     passErrorMsg.classList.remove('hidden');
                     return;
                 }
@@ -440,7 +447,9 @@
             if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
             switchTab('profile');
         };
+            </script>
 
+        <script type="module">
         // УПРАВЛЕНИЕ ВКЛАДКАМИ
         window.switchTab = function(tabName) {
             activeTab = tabName;
@@ -456,28 +465,29 @@
             if (tabName === 'profile') {
                 topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>`;
                 container.innerHTML = `
-                    <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
                         <div class="flex items-center gap-4">
-                            <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-full border border-white/20 object-cover">
+                            <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-full border border-zinc-700 object-cover">
                             <div>
                                 <h2 class="text-lg font-bold">${currentUser.displayName}</h2>
-                                <p class="text-xs text-gray-400">${currentUser.email}</p>
+                                <p class="text-xs text-zinc-400">${currentUser.email}</p>
+                                <p class="text-[11px] text-blue-400 mt-0.5">Возраст: ${currentUserData.age} лет (9+ режим)</p>
                                 <div class="mt-1.5">${SIGNS[getUserRole()]}</div>
                             </div>
                         </div>
 
-                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
-                            <h3 class="text-xs font-bold text-gray-400">Безопасность и пароль:</h3>
+                        <div class="flex flex-col gap-2 pt-2 border-t border-zinc-800">
+                            <h3 class="text-xs font-bold text-zinc-400">Безопасность и пароль:</h3>
                             ${currentUserData && currentUserData.hasPassword ? `
-                                <button onclick="openPasswordManageModal('change')" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Изменить пароль</button>
+                                <button onclick="openPasswordManageModal('change')" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-2.5 rounded-xl text-xs transition">Изменить пароль</button>
                                 <button onclick="removeAccountPassword()" class="w-full bg-amber-600/20 text-amber-400 font-bold py-2.5 rounded-xl text-xs transition">Удалить пароль</button>
                             ` : `
                                 <button onclick="openPasswordManageModal('add')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Добавить пароль</button>
                             `}
                         </div>
 
-                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
-                            <button onclick="signOut(auth); location.reload();" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
+                        <div class="flex flex-col gap-2 pt-2 border-t border-zinc-800">
+                            <button onclick="signOut(auth); location.reload();" class="w-full bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
                             <button onclick="openDeleteAccountModal()" class="w-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold py-2.5 rounded-xl text-xs hover:bg-red-600/30 transition">Удалить аккаунт</button>
                         </div>
                     </div>
@@ -485,26 +495,25 @@
             } else if (tabName === 'feed') {
                 topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Лента мемов</h1>`;
                 container.innerHTML = `
-                    <button onclick="openCreatePostModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-2xl text-sm shadow-md transition flex items-center justify-center gap-2 mb-2">
+                    <button onclick="openCreatePostModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-2xl text-sm shadow-md transition flex items-center justify-center gap-2 mb-2 cursor-pointer">
                         <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        Создайте свой первый пост!
+                        Создать пост
                     </button>
                     <div id="postsList" class="flex flex-col gap-3 w-full">
-                        <p class="text-xs text-center text-gray-400">Загрузка ленты из облака...</p>
+                        <p class="text-xs text-center text-zinc-400">Загрузка ленты из облака...</p>
                     </div>
                 `;
                 loadRealtimeFeed();
             } else if (tabName === 'servers') {
                 topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Сервера</h1>`;
-                container.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-gray-400">Список серверов пуст</div>`;
+                container.innerHTML = `<div class="bg-zinc-900 border border-zinc-800 p-6 text-center rounded-2xl text-xs text-zinc-400">Сервера сообщества bibmeme</div>`;
             } else if (tabName === 'adminServer') {
                 topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
-                container.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-purple-300">Панель администратора активна</div>`;
+                container.innerHTML = `<div class="bg-zinc-900 border border-zinc-800 p-6 text-center rounded-2xl text-xs text-purple-300">Панель администратора Oxel активна</div>`;
             }
         };
 
-        // УПРАВЛЕНИЕ ПАРОЛЕМ В ПРОФИЛЕ
-        window.openPasswordManageModal = function(type) {
+        window.openPasswordManageModal = function() {
             document.getElementById('passwordManageModal').classList.remove('hidden');
         };
 
@@ -538,7 +547,7 @@
         };
 
         window.removeAccountPassword = async function() {
-            if (confirm("Вы уверены, что хотите удалить пароль аккаунта?")) {
+            if (confirm("Удалить пароль аккаунта?")) {
                 currentUserData.hasPassword = false;
                 currentUserData.password = "";
                 await setDoc(doc(db, "users", currentUser.uid), currentUserData);
@@ -546,7 +555,6 @@
             }
         };
 
-        // УДАЛЕНИЕ АККАУНТА
         window.openDeleteAccountModal = function() {
             document.getElementById('deleteAccountModal').classList.remove('hidden');
         };
@@ -569,14 +577,13 @@
             try {
                 await deleteDoc(doc(db, "users", currentUser.uid));
                 await signOut(auth);
-                alert("Ваш аккаунт и данные успешно удалены.");
+                alert("Аккаунт успешно удален.");
                 location.reload();
             } catch (e) {
-                alert("Ошибка при удалении аккаунта: " + e.message);
+                alert("Ошибка при удалении: " + e.message);
             }
         };
 
-        // ЛЕНТА И АЛГОРИТМЫ ПОСТОВ
         window.openCreatePostModal = function() {
             document.getElementById('createPostModal').classList.remove('hidden');
         };
@@ -585,6 +592,7 @@
             document.getElementById('createPostModal').classList.add('hidden');
         };
 
+        // ПУБЛИКАЦИЯ ПОСТА С АНТИ-СПАМ ФИЛЬТРОМ
         window.publishPost = async function() {
             const text = document.getElementById('postText').value.trim();
             const fileInput = document.getElementById('postImageInput');
@@ -592,7 +600,14 @@
             const statusMsg = document.getElementById('postStatusMsg');
 
             if (!text && fileInput.files.length === 0) {
-                alert("Добавьте текст или фото для поста!");
+                alert("Добавьте текст или фото!");
+                return;
+            }
+
+            // Фильтрация спама и Likee ссылок в посте
+            const lower = text.toLowerCase();
+            if (lower.includes('likee') || lower.includes('лайкни') || lower.includes('likee.video')) {
+                alert("🚫 [Oxel Anti-Spam]: Ссылки на Likee и сторонние видеосервисы запрещены!");
                 return;
             }
 
@@ -611,7 +626,6 @@
             let algorithmScore = 10;
             if (imageUrl) algorithmScore += 50;
             if (text.length > 20) algorithmScore += 20;
-            if (text.includes('#') || text.includes('мем') || text.includes('brawl')) algorithmScore += 30;
 
             const now = new Date();
             const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} (${now.getDate()}.${now.getMonth()+1})`;
@@ -649,7 +663,7 @@
                 if (!postsList) return;
 
                 if (snapshot.empty) {
-                    postsList.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-gray-400">Пока нет постов. Будьте первыми!</div>`;
+                    postsList.innerHTML = `<div class="bg-zinc-900 border border-zinc-800 p-6 text-center rounded-2xl text-xs text-zinc-400">Пока нет постов. Будьте первыми!</div>`;
                     return;
                 }
 
@@ -666,10 +680,10 @@
                     if (post.ageLimit === '18+' && currentUserData.age < 18) return;
 
                     html += `
-                        <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 shadow-lg w-full flex flex-col gap-3">
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 shadow-lg w-full flex flex-col gap-3">
                             <div class="flex items-start justify-between">
                                 <div class="flex items-center gap-3">
-                                    <img src="${post.authorPhoto}" class="w-10 h-10 rounded-full object-cover border border-white/20">
+                                    <img src="${post.authorPhoto}" class="w-10 h-10 rounded-full object-cover border border-zinc-700">
                                     <div class="flex flex-col">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <h4 class="text-xs font-bold text-white">${post.authorName}</h4>
@@ -677,64 +691,55 @@
                                             ${SIGNS[authorRole]}
                                         </div>
                                         <div class="flex items-center gap-1.5 mt-0.5">
-                                            <span class="inline-flex items-center gap-1 text-[10px] text-gray-400">
-                                              <svg class="w-3 h-3 text-gray-400 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                                ${post.timeString}
-                                            </span>
+                                            <span class="text-[10px] text-zinc-400">${post.timeString}</span>
                                             ${post.ageLimit && post.ageLimit !== 'none' ? `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-md font-bold">${post.ageLimit}</span>` : ''}
                                         </div>
                                     </div>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    ${post.score > 70 ? `<span class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">🔥 В топе</span>` : ''}
-                                    ${post.uid === currentUser.uid ? `
-                                        <button onclick="deletePost('${postId}')" class="text-gray-500 hover:text-red-400 transition p-1" title="Удалить пост">
-                                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                                        </button>
-                                    ` : ''}
+                                ${post.uid === currentUser.uid ? `
+                                    <button onclick="deletePost('${postId}')" class="text-zinc-500 hover:text-red-400 transition p-1 cursor-pointer" title="Удалить">
+                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                    </button>
+                                ` : ''}
+                            </div>
 
-                                                    </div>
+                            ${post.text ? `<p class="text-xs text-zinc-200 leading-relaxed">${post.text}</p>` : ''}
+                            ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover border border-zinc-800">` : ''}
 
-                            ${post.text ? `<p class="text-xs text-gray-200 leading-relaxed">${post.text}</p>` : ''}
-                            ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover border border-white/10">` : ''}
-
-                            <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
-                                <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500 font-bold' : ''}">
+                            <div class="flex items-center justify-between pt-2 border-t border-zinc-800 text-xs text-zinc-400">
+                                <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1.5 hover:text-red-500 transition cursor-pointer ${isLiked ? 'text-red-500 font-bold' : ''}">
                                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                     <span>${likesCount}</span>
                                 </button>
-                                <button onclick="toggleComments('${postId}')" class="flex items-center gap-1.5 hover:text-white transition">
+                                <button onclick="toggleComments('${postId}')" class="flex items-center gap-1.5 hover:text-white transition cursor-pointer">
                                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
                                     <span>${commentsCount}</span>
                                 </button>
-                                <button onclick="sharePost('${encodeURIComponent(post.text || 'Мем из bibmeme')}')" class="flex items-center gap-1.5 hover:text-white transition">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
+                                <button onclick="sharePost('${encodeURIComponent(post.text || 'Мем')}')" class="flex items-center gap-1.5 hover:text-white transition cursor-pointer">
                                     <span>Поделиться</span>
                                 </button>
                             </div>
 
-                            <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
+                            <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-zinc-800">
                                 <div id="comments-list-${postId}" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
                                     ${(post.comments || []).map((c, idx) => `
-                                        <div class="bg-[#121212] p-2 rounded-lg text-[11px] flex justify-between items-start gap-2">
+                                        <div class="bg-[#121214] p-2 rounded-lg text-[11px] flex justify-between items-start gap-2 border border-zinc-800">
                                             <div>
                                                 <div class="flex items-center gap-1.5">
                                                     <strong class="text-indigo-400">${c.author}</strong>
-                                                    <span class="text-[9px] text-gray-500">${c.timeString || ''}</span>
+                                                    <span class="text-[9px] text-zinc-500">${c.timeString || ''}</span>
                                                 </div>
-                                                <p class="text-gray-200 mt-0.5">${c.text}</p>
+                                                <p class="text-zinc-200 mt-0.5">${c.text}</p>
                                             </div>
                                             ${c.uid === currentUser.uid ? `
-                                                <button onclick="deleteComment('${postId}', ${idx})" class="text-gray-500 hover:text-red-400 transition" title="Удалить комментарий">
-                                                    <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                                                </button>
+                                                <button onclick="deleteComment('${postId}', ${idx})" class="text-zinc-500 hover:text-red-400 transition cursor-pointer">✕</button>
                                             ` : ''}
                                         </div>
-                                    `).join('') || '<p class="text-[10px] text-gray-500">Нет комментариев</p>'}
+                                    `).join('') || '<p class="text-[10px] text-zinc-500">Нет комментариев</p>'}
                                 </div>
                                 <div class="flex gap-2 mt-1">
-                                    <input type="text" id="comment-input-${postId}" placeholder="Написать коммент..." class="flex-1 bg-[#121212] border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                                    <button onclick="addComment('${postId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">Отправить</button>
+                                    <input type="text" id="comment-input-${postId}" placeholder="Написать коммент (9+ защита)..." class="flex-1 bg-[#121214] border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500">
+                                    <button onclick="addComment('${postId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition cursor-pointer">Отправить</button>
                                 </div>
                             </div>
                         </div>
@@ -744,7 +749,7 @@
             });
         }
 
-                window.toggleLike = async function(postId, isLiked) {
+        window.toggleLike = async function(postId, isLiked) {
             const postRef = doc(db, "posts", postId);
             await updateDoc(postRef, {
                 likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
@@ -756,61 +761,94 @@
             if (section) section.classList.toggle('hidden');
         };
 
+        // ОТПРАВКА КОММЕНТАРИЯ С АНТИ-АГРО ФИЛЬТРОМ И КАРАНТИНОМ
         window.addComment = async function(postId) {
             const input = document.getElementById(`comment-input-${postId}`);
             const text = input.value.trim();
             if (!text) return;
 
-            const now = new Date();
-            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            const now = Date.now();
+            const cooldown = 3 * 60 * 1000; // 3 минуты таймер
 
-            const postRef = doc(db, "posts", postId);
-            const newComment = {
-                uid: currentUser.uid,
-                author: currentUser.displayName,
-                text: text,
-                timeString: timeString,
-                createdAt: Date.now()
-            };
-
-            await updateDoc(postRef, {
-                comments: arrayUnion(newComment)
-            });
-            input.value = "";
-        };
-
-        window.deleteComment = async function(postId, commentIndex) {
-            const postRef = doc(db, "posts", postId);
-            const postSnap = await getDoc(postRef);
-            if (postSnap.exists()) {
-                const comments = postSnap.data().comments || [];
-                if (comments[commentIndex]) {
-                    const commentToDelete = comments[commentIndex];
-                    await updateDoc(postRef, {
-                        comments: arrayRemove(commentToDelete)
-                    });
+            // 1. Проверка 7-дневного карантина для новых аккаунтов
+            if (currentUserData.accountAgeDays < 7) {
+                // Для симуляции проверяем по времени создания в профиле, если меньше 7 дней
+                const createdDate = new Date(currentUserData.createdAt).getTime();
+                const daysPassed = (now - createdDate) / (1000 * 60 * 60 * 24);
+                if (daysPassed < 7) {
+                    alert("🔒 [Oxel Guard]: Комментарии доступны через 7 дней после регистрации аккаунта.");
+                    return;
                 }
             }
+
+            // 2. Лимит частоты (1 сообщение в 3 минуты)
+            if (currentUserData.lastCommentTime && (now - currentUserData.lastCommentTime < cooldown)) {
+                const sec = Math.ceil((cooldown - (now - currentUserData.lastCommentTime)) / 1000);
+                alert(`⏳ [Oxel Anti-Spam]: Подождите еще ${sec} сек. перед отправкой следующего комментария.`);
+                return;
+            }
+
+                    // 3. Анти-Агро и Likee-спам фильтр
+        const lower = text.toLowerCase();
+        const agroWords = ['дурак', 'тупой', 'нуб', 'слит', 'соси', 'ауе', 'likee', 'лайкни', 'подпишись на мой', 'likee.video', 'взаимка'];
+        const isToxic = agroWords.some(w => lower.includes(w));
+        const isCapsSpam = text.length > 6 && text === text.toUpperCase();
+
+        if (isToxic || isCapsSpam) {
+            alert("🚫 [Oxel Anti-Agro]: Сообщение заблокировано системой безопасности за токсичность или спам!");
+            return;
+        }
+
+        currentUserData.lastCommentTime = now;
+
+        const timeString = `${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`;
+
+        const postRef = doc(db, "posts", postId);
+        const newComment = {
+            uid: currentUser.uid,
+            author: currentUser.displayName,
+            text: text,
+            timeString: timeString,
+            createdAt: now
         };
 
-        window.deletePost = async function(postId) {
-            if (confirm("Вы уверены, что хотите удалить этот пост?")) {
-                try {
-                    await deleteDoc(doc(db, "posts", postId));
-                } catch (e) {
-                    alert("Ошибка при удалении поста!");
-                }
-            }
-        };
+        await updateDoc(postRef, {
+            comments: arrayUnion(newComment)
+        });
+        input.value = "";
+    };
 
-        window.sharePost = function(text) {
-            if (navigator.share) {
-                navigator.share({ title: 'Bibmeme', text: decodeURIComponent(text), url: window.location.href });
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Ссылка скопирована!");
+    window.deleteComment = async function(postId, commentIndex) {
+        const postRef = doc(db, "posts", postId);
+        const postSnap = await getDoc(postRef);
+        if (postSnap.exists()) {
+            const comments = postSnap.data().comments || [];
+            if (comments[commentIndex]) {
+                await updateDoc(postRef, {
+                    comments: arrayRemove(comments[commentIndex])
+                });
             }
-        };
-    </script>
+        }
+    };
+
+    window.deletePost = async function(postId) {
+        if (confirm("Удалить этот пост?")) {
+            try {
+                await deleteDoc(doc(db, "posts", postId));
+            } catch (e) {
+                alert("Ошибка удаления поста!");
+            }
+        }
+    };
+
+    window.sharePost = function(text) {
+        if (navigator.share) {
+            navigator.share({ title: 'bibmeme', text: decodeURIComponent(text), url: window.location.href });
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Ссылка скопирована!");
+        }
+    };
+</script>
 </body>
 </html>
