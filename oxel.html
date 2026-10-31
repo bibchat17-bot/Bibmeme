@@ -3,117 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oxel AI — Помощь</title>
-    <!-- Tailwind CSS -->
+    <title>bibmeme — Платформа мемов и сообщества</title>
+    <!-- Подключаем Tailwind CSS для стильного дизайна -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Шрифт Inter (как в bibmeme) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #09090b;
-            color: #f4f4f5;
-        }
-        /* Кастомный скроллбар для чата */
-        .scrollbar-thin::-webkit-scrollbar {
-            width: 6px;
-        }
-        .scrollbar-thin::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .scrollbar-thin::-webkit-scrollbar-thumb {
-            background: #27272a;
-            border-radius: 10px;
-        }
-    </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between items-center p-4">
+<body class="bg-[#09090b] text-zinc-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white">
 
-    <!-- Заголовок страницы -->
-    <header class="w-full max-w-2xl text-center py-8">
-        <h1 class="text-3xl font-bold text-white tracking-tight mb-2">Центр поддержки</h1>
-        <p class="text-zinc-400 text-sm">Если у вас возникли вопросы, наш ИИ всегда на связи</p>
+    <!-- Шапка сайта -->
+    <header class="border-b border-zinc-800 bg-[#121214]/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl font-black tracking-wider bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">bibmeme</span>
+            <span class="text-xs bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded-full border border-zinc-700">Beta v1.2</span>
+        </div>
+        
+        <!-- Кнопка входа -->
+        <div>
+            <button onclick="loginWithGoogle()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-medium px-4 py-2 rounded-xl text-sm border border-zinc-700 transition-all flex items-center gap-2 active:scale-95">
+                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                Войти через Google
+            </button>
+        </div>
     </header>
 
-    <!-- Подвал с серой кнопкой Помощь -->
-    <footer class="w-full max-w-2xl text-center py-6 border-t border-zinc-800/80 mt-auto">
-        <button onclick="openOxelIntro()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white font-medium px-6 py-2.5 rounded-xl text-sm transition-all duration-200 shadow-md active:scale-95 border border-zinc-700/50">
-            💬 Помощь (Oxel ИИ)
-        </button>
+    <!-- Основной контент -->
+    <main class="flex-1 max-w-4xl mx-auto px-6 py-12 w-full flex flex-col items-center text-center">
+        <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-white">
+            Новое поколение цифровой культуры
+        </h1>
+        <p class="text-zinc-400 text-sm sm:text-base max-w-xl mb-8 leading-relaxed">
+            Создавайте, делитесь и оценивайте контент на современной платформе. Надежная верификация аккаунтов, защита брендов и умный ассистент Oxel.
+        </p>
+
+        <!-- Информационная карточка про систему верификации -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full text-left mt-4">
+            <div class="bg-zinc-900/60 border border-zinc-800 p-5 rounded-2xl">
+                <h3 class="font-bold text-white text-base mb-1 flex items-center gap-2">
+                    <span class="text-white text-xs bg-zinc-700 w-5 h-5 rounded-full inline-flex items-center justify-center">✓</span> Белая галочка
+                </h3>
+                <p class="text-xs text-zinc-400 leading-normal">Для личных аккаунтов от 5 000 подписчиков. Строго для персонального использования.</p>
+            </div>
+            <div class="bg-zinc-900/60 border border-zinc-800 p-5 rounded-2xl">
+                <h3 class="font-bold text-white text-base mb-1 flex items-center gap-2">
+                    <span class="text-blue-500 text-xs bg-blue-500/20 w-5 h-5 rounded-full inline-flex items-center justify-center border border-blue-500/40">✓</span> Синяя галочка
+                </h3>
+                <p class="text-xs text-zinc-400 leading-normal">Для личных аккаунтов от 25к подписчиков или Компаний (от 3к сабов, проверка сайта и прав до 14 дней).</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Подвал -->
+    <footer class="border-t border-zinc-800/60 py-6 px-6 text-center text-xs text-zinc-500">
+        &copy; 2026 bibmeme Team. Все права защищены. Хостинг: GitHub Pages.
     </footer>
 
-    <!-- Модальное окно Oxel -->
-    <div id="oxel-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-[#18181b] border border-zinc-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative text-zinc-100 flex flex-col max-h-[85vh]">
-            
-            <!-- Кнопка закрытия -->
-            <button onclick="closeOxelModal()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold p-1 transition-colors">✕</button>
+    <!-- ========================================== -->
+    <!-- ИИ-АССИСТЕНТ OXEL (КНОПКА И МОДАЛЬНОЕ ОКНО) -->
+    <!-- ========================================== -->
 
-            <!-- ЭКРАН 1: Приветствие -->
-            <div id="oxel-intro-screen" class="text-center py-4 flex flex-col items-center">
-                <div class="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center text-3xl mb-4 border border-blue-500/30">
-                    🤖
-                </div>
-                <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Представляем наш ИИ "Oxel"</h3>
-                <p class="text-zinc-400 text-sm leading-relaxed mb-6">
-                    Он вам будет помогать входить, пообщаться и помогать всё о чем угодно.
-                </p>
-                <button onclick="startOxelChat()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg active:scale-95">
-                    Начать
-                </button>
+    <!-- Фиксированная плавающая кнопка вызова Oxel -->
+    <button id="oxel-toggle-btn" onclick="toggleOxelChat()" class="fixed bottom-5 right-5 z-50 bg-blue-600 hover:bg-blue-500 text-white p-3.5 rounded-full shadow-lg shadow-blue-600/40 transition-all transform active:scale-95 flex items-center gap-2 border border-blue-400/30 cursor-pointer">
+        <span class="text-lg">🤖</span>
+        <span class="font-semibold text-sm pr-1">Помощь (Oxel)</span>
+    </button>
+
+    <!-- Модальное окно чата Oxel -->
+    <div id="oxel-modal" class="fixed bottom-20 right-5 z-50 w-80 sm:w-96 bg-[#18181b] border border-zinc-800 rounded-2xl shadow-2xl hidden flex-col overflow-hidden transition-all">
+        <!-- Шапка чата -->
+        <div class="bg-zinc-900 p-4 border-b border-zinc-800 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <span class="font-bold text-white text-sm">Oxel AI Assistant</span>
             </div>
+            <button onclick="toggleOxelChat()" class="text-zinc-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+        </div>
 
-            <!-- ЭКРАН 2: Чат -->
-            <div id="oxel-chat-screen" class="hidden flex flex-col h-[450px]">
-                <div class="border-b border-zinc-800 pb-3 mb-3 flex items-center gap-3">
-                    <div class="w-9 h-9 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center text-lg border border-blue-500/30">🤖</div>
-                    <div>
-                        <h4 class="font-bold text-white text-sm">Oxel ИИ</h4>
-                        <p class="text-xs text-green-400 flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Онлайн
-                        </p>
-                    </div>
-                </div>
-
-                <!-- История сообщений -->
-                <div id="oxel-messages" class="flex-1 overflow-y-auto space-y-3 pr-1 text-sm scrollbar-thin">
-                    <div class="bg-zinc-800/80 p-3 rounded-2xl rounded-tl-none text-zinc-200 max-w-[85%] border border-zinc-700/50 leading-relaxed">
-                        Привет! Я Oxel 👋 Чем я могу тебе помочь сегодня?
-                    </div>
-                </div>
-
-                <!-- Поле ввода -->
-                <div class="mt-3 flex gap-2 pt-2 border-t border-zinc-800">
-                    <input type="text" id="oxel-input" onkeypress="if(event.key === 'Enter') sendOxelMessage()" placeholder="Напишите сообщение..." class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
-                    <button onclick="sendOxelMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all active:scale-95">
-                        Отправить
-                    </button>
-                </div>
+        <!-- Область сообщений -->
+        <div id="oxel-messages" class="p-4 h-72 overflow-y-auto space-y-3 text-xs flex flex-col">
+            <div class="bg-zinc-800/80 p-3 rounded-2xl rounded-tl-none text-zinc-200 border border-zinc-700/50 leading-relaxed max-w-[85%]">
+                Привет! Я <b>Oxel</b> — официальный ИИ-ассистент bibmeme. Чем могу помочь? (Спросите про верификацию, галочки, компании или вход).
             </div>
+        </div>
 
+        <!-- Поле ввода -->
+        <div class="p-3 border-t border-zinc-800 bg-zinc-900 flex gap-2">
+            <input type="text" id="oxel-input" placeholder="Задайте вопрос..." onkeypress="if(event.key==='Enter') sendOxelMessage()" class="w-full bg-zinc-800 text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500 border border-zinc-700">
+            <button onclick="sendOxelMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer">Отправить</button>
         </div>
     </div>
 
-    <!-- Скрипт логики Oxel -->
+    <!-- Скрипты управления -->
     <script>
-        function openOxelIntro() {
-            document.getElementById('oxel-modal').classList.remove('hidden');
-            document.getElementById('oxel-intro-screen').classList.remove('hidden');
-            document.getElementById('oxel-chat-screen').classList.add('hidden');
+        // Функция симуляции входа через Google
+        function loginWithGoogle() {
+            alert("Инициирована авторизация через Google. Добро пожаловать в bibmeme!");
         }
 
-        function closeOxelModal() {
-            document.getElementById('oxel-modal').classList.add('hidden');
+        // Переключение видимости окна Oxel
+        function toggleOxelChat() {
+            const modal = document.getElementById('oxel-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
         }
 
-        function startOxelChat() {
-            document.getElementById('oxel-intro-screen').classList.add('hidden');
-            document.getElementById('oxel-chat-screen').classList.remove('hidden');
-            document.getElementById('oxel-input').focus();
-        }
-
+        // Умные ответы ИИ Oxel
         function sendOxelMessage() {
             const input = document.getElementById('oxel-input');
             const text = input.value.trim();
@@ -130,14 +127,26 @@
             input.value = '';
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // Ответ Oxel
+            // Ответ ИИ Oxel с задержкой (симуляция раздумий)
             setTimeout(() => {
                 const oxelMsg = document.createElement('div');
                 oxelMsg.className = 'bg-zinc-800/80 p-3 rounded-2xl rounded-tl-none text-zinc-200 max-w-[85%] border border-zinc-700/50 leading-relaxed';
-                oxelMsg.textContent = `[Oxel]: Принял твой запрос "${text}". Совсем скоро я смогу отвечать на любые вопросы напрямую!`;
+                
+                const lowerText = text.toLowerCase();
+                
+                if (lowerText.includes('галочк') || lowerText.includes('верификац')) {
+                    oxelMsg.textContent = "В bibmeme есть 2 вида галочек: ⚪ Белая (личный аккаунт от 5 000 подписчиков) и 🔵 Синяя (для личных от 25 000 или для Компаний от 3 000 подписчиков). Покупка галочек строго запрещена (бан при повторении)!";
+                } else if (lowerText.includes('компани') || lowerText.includes('бренд') || lowerText.includes('организац')) {
+                    oxelMsg.textContent = "Компании могут получить только 🔵 Синюю галочку. Требуется от 3 000 подписчиков, указание сайта и проверка прав. Проверка занимает до 14 дней.";
+                } else if (lowerText.includes('вход') || lowerText.includes('войти') || lowerText.includes('логин') || lowerText.includes('google')) {
+                    oxelMsg.textContent = "Для входа в систему используйте кнопку «Войти через Google» в правом верхнем углу сайта.";
+                } else {
+                    oxelMsg.textContent = "[Oxel AI]: Запрос принят. Команда bibmeme продолжает оптимизацию платформы!";
+                }
+
                 messagesContainer.appendChild(oxelMsg);
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-            }, 500);
+            }, 400);
         }
     </script>
 </body>
