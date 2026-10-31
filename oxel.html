@@ -3,148 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oxel — Помощник Bibmeme</title>
+    <title>Oxel AI — Помощь</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Шрифт Inter (как в bibmeme) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Подгоняем шрифты и стили под общую тему bibmeme */
         body {
-            background: #121212;
-            color: #ffffff;
-            font-family: sans-serif;
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            background-color: #09090b;
+            color: #f4f4f5;
         }
-
-        h2 {
-            margin-top: 0;
-            font-size: 18px;
-            color: #bb86fc;
-            text-align: center;
-            border-bottom: 1px solid #2c2c2c;
-            padding-bottom: 10px;
+        /* Кастомный скроллбар для чата */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
         }
-
-        #oxel-chat-box {
-            flex: 1;
-            background: #1e1e1e;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 10px;
-            overflow-y: auto;
-            margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
         }
-
-        .message {
-            padding: 8px 12px;
-            border-radius: 6px;
-            max-width: 80%;
-            font-size: 14px;
-            line-height: 1.4;
-        }
-
-        .message.user {
-            background: #6200ee;
-            color: #fff;
-            align-self: flex-end;
-        }
-
-        .message.oxel {
-            background: #2c2c2c;
-            color: #fff;
-            align-self: flex-start;
-            border: 1px solid #444;
-        }
-
-        .input-area {
-            display: flex;
-            gap: 8px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 10px;
-            background: #2c2c2c;
-            border: 1px solid #444;
-            color: #fff;
-            border-radius: 6px;
-            outline: none;
-            font-family: sans-serif;
-        }
-
-        input[type="text"]:focus {
-            border-color: #bb86fc;
-        }
-
-        button {
-            padding: 10px 16px;
-            background: #6200ee;
-            color: #fff;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-family: sans-serif;
-        }
-
-        button:hover {
-            background: #7c4dff;
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #27272a;
+            border-radius: 10px;
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between items-center p-4">
 
-    <h2>🤖 Помощник Oxel</h2>
+    <!-- Заголовок страницы -->
+    <header class="w-full max-w-2xl text-center py-8">
+        <h1 class="text-3xl font-bold text-white tracking-tight mb-2">Центр поддержки</h1>
+        <p class="text-zinc-400 text-sm">Если у вас возникли вопросы, наш ИИ всегда на связи</p>
+    </header>
 
-    <!-- Окно чата -->
-    <div id="oxel-chat-box">
-        <div class="message oxel">Привет! Я Oxel, твой личный помощник в мире Bibmeme. Чем помочь?</div>
+    <!-- Подвал с серой кнопкой Помощь -->
+    <footer class="w-full max-w-2xl text-center py-6 border-t border-zinc-800/80 mt-auto">
+        <button onclick="openOxelIntro()" class="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white font-medium px-6 py-2.5 rounded-xl text-sm transition-all duration-200 shadow-md active:scale-95 border border-zinc-700/50">
+            💬 Помощь (Oxel ИИ)
+        </button>
+    </footer>
+
+    <!-- Модальное окно Oxel -->
+    <div id="oxel-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#18181b] border border-zinc-800 w-full max-w-md rounded-2xl p-6 shadow-2xl relative text-zinc-100 flex flex-col max-h-[85vh]">
+            
+            <!-- Кнопка закрытия -->
+            <button onclick="closeOxelModal()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-xl font-bold p-1 transition-colors">✕</button>
+
+            <!-- ЭКРАН 1: Приветствие -->
+            <div id="oxel-intro-screen" class="text-center py-4 flex flex-col items-center">
+                <div class="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-2xl flex items-center justify-center text-3xl mb-4 border border-blue-500/30">
+                    🤖
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-3 tracking-tight">Представляем наш ИИ "Oxel"</h3>
+                <p class="text-zinc-400 text-sm leading-relaxed mb-6">
+                    Он вам будет помогать входить, пообщаться и помогать всё о чем угодно.
+                </p>
+                <button onclick="startOxelChat()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg active:scale-95">
+                    Начать
+                </button>
+            </div>
+
+            <!-- ЭКРАН 2: Чат -->
+            <div id="oxel-chat-screen" class="hidden flex flex-col h-[450px]">
+                <div class="border-b border-zinc-800 pb-3 mb-3 flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-600/20 text-blue-400 rounded-xl flex items-center justify-center text-lg border border-blue-500/30">🤖</div>
+                    <div>
+                        <h4 class="font-bold text-white text-sm">Oxel ИИ</h4>
+                        <p class="text-xs text-green-400 flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Онлайн
+                        </p>
+                    </div>
+                </div>
+
+                <!-- История сообщений -->
+                <div id="oxel-messages" class="flex-1 overflow-y-auto space-y-3 pr-1 text-sm scrollbar-thin">
+                    <div class="bg-zinc-800/80 p-3 rounded-2xl rounded-tl-none text-zinc-200 max-w-[85%] border border-zinc-700/50 leading-relaxed">
+                        Привет! Я Oxel 👋 Чем я могу тебе помочь сегодня?
+                    </div>
+                </div>
+
+                <!-- Поле ввода -->
+                <div class="mt-3 flex gap-2 pt-2 border-t border-zinc-800">
+                    <input type="text" id="oxel-input" onkeypress="if(event.key === 'Enter') sendOxelMessage()" placeholder="Напишите сообщение..." class="flex-1 bg-zinc-900 border border-zinc-700/80 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors">
+                    <button onclick="sendOxelMessage()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl font-medium text-sm transition-all active:scale-95">
+                        Отправить
+                    </button>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <!-- Поле ввода -->
-    <div class="input-area">
-        <input type="text" id="oxel-input" placeholder="Напиши сообщение Oxel..." onkeydown="checkEnter(event)">
-        <button onclick="sendToOxel()">Отправить</button>
-    </div>
-
+    <!-- Скрипт логики Oxel -->
     <script>
-        function sendToOxel() {
-            const input = document.getElementById('oxel-input');
-            const chatBox = document.getElementById('oxel-chat-box');
-            const text = input.value.trim();
+        function openOxelIntro() {
+            document.getElementById('oxel-modal').classList.remove('hidden');
+            document.getElementById('oxel-intro-screen').classList.remove('hidden');
+            document.getElementById('oxel-chat-screen').classList.add('hidden');
+        }
 
+        function closeOxelModal() {
+            document.getElementById('oxel-modal').classList.add('hidden');
+        }
+
+        function startOxelChat() {
+            document.getElementById('oxel-intro-screen').classList.add('hidden');
+            document.getElementById('oxel-chat-screen').classList.remove('hidden');
+            document.getElementById('oxel-input').focus();
+        }
+
+        function sendOxelMessage() {
+            const input = document.getElementById('oxel-input');
+            const text = input.value.trim();
             if (!text) return;
+
+            const messagesContainer = document.getElementById('oxel-messages');
 
             // Сообщение пользователя
             const userMsg = document.createElement('div');
-            userMsg.className = 'message user';
-            userMsg.innerText = text;
-            chatBox.appendChild(userMsg);
+            userMsg.className = 'bg-blue-600 text-white p-3 rounded-2xl rounded-tr-none ml-auto max-w-[85%] font-normal leading-relaxed';
+            userMsg.textContent = text;
+            messagesContainer.appendChild(userMsg);
 
             input.value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-            // Ответ помощника (пока простой шаблонный, потом можно прикрутить ИИ)
+            // Ответ Oxel
             setTimeout(() => {
                 const oxelMsg = document.createElement('div');
-                oxelMsg.className = 'message oxel';
-                oxelMsg.innerText = "Я зафиксировал твой запрос: «" + text + "». Скоро научусь отвечать умнее!";
-                chatBox.appendChild(oxelMsg);
-                chatBox.scrollTop = chatBox.scrollHeight;
+                oxelMsg.className = 'bg-zinc-800/80 p-3 rounded-2xl rounded-tl-none text-zinc-200 max-w-[85%] border border-zinc-700/50 leading-relaxed';
+                oxelMsg.textContent = `[Oxel]: Принял твой запрос "${text}". Совсем скоро я смогу отвечать на любые вопросы напрямую!`;
+                messagesContainer.appendChild(oxelMsg);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }, 500);
         }
-
-        function checkEnter(e) {
-            if (e.key === 'Enter') {
-                sendToOxel();
-            }
-        }
     </script>
-
 </body>
 </html>
