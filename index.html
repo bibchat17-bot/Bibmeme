@@ -65,6 +65,27 @@
         <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl">Профиль</button>
     </div>
 
+    <!-- Модальное окно Поиска -->
+    <div id="searchModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h2 class="text-lg font-bold">Поиск</h2>
+                <button onclick="closeSearchModal()" class="text-gray-400 hover:text-white text-sm font-bold">✕ Закрыть</button>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="searchInput" placeholder="Поиск (горячее, посты, профили)..." class="flex-1 bg-[#121212] border border-white/20 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-white">
+                <button onclick="performSearch()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition">Найти</button>
+            </div>
+
+            <div id="searchCorrectionBox" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-2.5 text-xs text-amber-300"></div>
+
+            <div id="searchResultsList" class="flex flex-col gap-2.5 max-h-64 overflow-y-auto">
+                <p class="text-xs text-gray-400 text-center py-4">Введите запрос для поиска...</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Модальное окно Настроек -->
     <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
@@ -73,7 +94,6 @@
                 <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-white text-sm font-bold">✕ Закрыть</button>
             </div>
 
-            <!-- Раздел: Защита и конфиденциальность -->
             <div class="flex flex-col gap-2">
                 <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Защита и конфиденциальность</h3>
                 <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex items-center justify-between">
@@ -88,14 +108,11 @@
                 </div>
             </div>
 
-            <!-- Раздел: Аккаунт -->
             <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
                 <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Аккаунт</h3>
                 <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex flex-col gap-2.5">
                     <span class="text-[11px] text-gray-400 font-bold">Пароль:</span>
-                    <div id="settingsPasswordSection" class="flex flex-col gap-2">
-                        <!-- Динамические кнопки пароля -->
-                    </div>
+                    <div id="settingsPasswordSection" class="flex flex-col gap-2"></div>
                 </div>
 
                 <div class="flex flex-col gap-2 mt-1">
@@ -157,7 +174,7 @@
                 </label>
                 <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
                     <input type="checkbox" id="checkConfirm" onchange="toggleDeleteButton()" class="mt-0.5 rounded accent-red-500">
-                    <span>Я соглашаюсь на удаления аккаунта и данных</span>
+                    <span>I соглашаюсь на удаления аккаунта и данных</span>
                 </label>
             </div>
 
@@ -177,15 +194,15 @@
             <p id="modalPassError" class="text-red-400 text-xs hidden"></p>
             <div class="flex gap-2 pt-1">
                 <button onclick="saveManagedPassword()" class="flex-1 bg-white text-black font-bold py-2.5 rounded-xl text-xs transition">Сохранить</button>
-                <button onclick="closePasswordManageModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
+                <button onclick="closePasswordManageModal()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
             </div>
         </div>
-    </div>
+                    </div>
 
         <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
@@ -524,7 +541,124 @@
             switchTab('profile');
         };
 
-                    window.switchTab = function(tabName) {
+        // Логика умного поиска и опечаток
+        window.openSearchModal = function() {
+            document.getElementById('searchModal').classList.remove('hidden');
+            document.getElementById('searchInput').value = "";
+            document.getElementById('searchResultsList').innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Введите запрос для поиска...</p>`;
+            document.getElementById('searchCorrectionBox').classList.add('hidden');
+        };
+
+        window.closeSearchModal = function() {
+            document.getElementById('searchModal').classList.add('hidden');
+        };
+
+        function checkTyposAndSuggest(queryText) {
+            const dictionary = ["горячее", "мемы", "посты", "профили", "админ", "преподросток", "подросток", "взрослый", "bibmeme"];
+            let words = queryText.toLowerCase().trim().split(/\s+/);
+            let correctedWords = words.map(word => {
+                let found = dictionary.find(d => {
+                    let diff = Math.abs(d.length - word.length);
+                    let matches = 0;
+                    for(let char of word) { if(d.includes(char)) matches++; }
+                    return diff <= 2 && matches >= word.length - 1 && word !== d;
+                });
+                return found ? found : word;
+            });
+            
+            let correctedStr = correctedWords.join(" ");
+            if (correctedStr !== queryText.toLowerCase() && correctedWords.some(w => dictionary.includes(w))) {
+                return correctedStr;
+            }
+            return null;
+        }
+
+                 window.performSearch = async function(overrideQuery = null) {
+            const input = document.getElementById('searchInput');
+            let queryText = overrideQuery !== null ? overrideQuery : input.value.trim().toLowerCase();
+            const resultsList = document.getElementById('searchResultsList');
+            const correctionBox = document.getElementById('searchCorrectionBox');
+
+            if (!queryText) {
+                resultsList.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Введите текст для поиска</p>`;
+                correctionBox.classList.add('hidden');
+                return;
+            }
+
+            let suggestion = checkTyposAndSuggest(queryText);
+            if (suggestion && overrideQuery === null) {
+                correctionBox.innerHTML = `Возможно, вы имели в виду: <span onclick="performSearch('${suggestion}')" class="underline font-bold cursor-pointer text-white">${suggestion}</span>? (нажмите для поиска)`;
+                correctionBox.classList.remove('hidden');
+            } else {
+                correctionBox.classList.add('hidden');
+            }
+
+            resultsList.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Ищем в Горячем, Постах и Профилях...</p>`;
+
+            try {
+                const postsSnap = await getDocs(collection(db, "posts"));
+                const usersSnap = await getDocs(collection(db, "users"));
+
+                let html = "";
+                let foundCount = 0;
+
+                if (queryText.includes("горячее") || queryText.includes("тренды")) {
+                    html += `<div class="text-[11px] font-bold text-indigo-400 pb-1 border-b border-white/10">🔥 Горячее:</div>`;
+                    postsSnap.forEach(docSnap => {
+                        let p = docSnap.data();
+                        if ((p.score && p.score > 30) || (p.likes && p.likes.length > 0)) {
+                            foundCount++;
+                            html += `<div class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-200"><strong>${p.authorName}:</strong> ${p.text || 'Мем с фото'}</div>`;
+                        }
+                    });
+                }
+
+                html += `<div class="text-[11px] font-bold text-indigo-400 pb-1 border-b border-white/10 mt-2">📝 Посты:</div>`;
+                postsSnap.forEach(docSnap => {
+                    let p = docSnap.data();
+                    if (p.text && p.text.toLowerCase().includes(queryText)) {
+                        foundCount++;
+                        html += `<div class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-200"><strong>${p.authorName}:</strong> ${p.text}</div>`;
+                    }
+                });
+
+                html += `<div class="text-[11px] font-bold text-indigo-400 pb-1 border-b border-white/10 mt-2">👤 Профили:</div>`;
+                usersSnap.forEach(docSnap => {
+                    let u = docSnap.data();
+                    let name = (u.displayName || "").toLowerCase();
+                    if (name.includes(queryText)) {
+                        foundCount++;
+                        let isClosed = u.isPrivate;
+                        html += `
+                            <div class="bg-[#121212] p-2.5 rounded-xl border border-white/10 flex items-center justify-between text-xs">
+                                <div class="flex items-center gap-2">
+                                    <img src="${u.photoURL || 'https://via.placeholder.com/30'}" class="w-8 h-8 rounded-full object-cover">
+                                    <div>
+                                        <div class="font-bold text-white flex items-center gap-1">
+                                            ${u.displayName} ${isClosed ? '🔒' : ''}
+                                        </div>
+                                        <span class="text-[10px] text-gray-400">${u.ageCategory || 'Участник'}</span>
+                                    </div>
+                                </div>
+                                ${isClosed ? '<span class="text-[10px] text-red-400 font-bold">Закрыт</span>' : '<span class="text-[10px] text-green-400 font-bold">Открыт</span>'}
+                            </div>
+                        `;
+                    }
+                });
+
+                if (foundCount === 0) {
+                    resultsList.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Ничего не найдено по запросу "${queryText}"</p>`;
+                } else {
+                    resultsList.innerHTML = html;
+                }
+
+            } catch (e) {
+                console.error("Ошибка поиска:", e);
+                resultsList.innerHTML = `<p class="text-xs text-red-400 text-center py-4">Ошибка при выполнении поиска</p>`;
+            }
+        };
+
+        window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
 
@@ -536,7 +670,14 @@
             const topHeader = document.getElementById('top-header');
 
             if (tabName === 'profile') {
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>`;
+                topHeader.innerHTML = `
+                    <div class="flex items-center justify-between w-full px-2">
+                        <h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>
+                        <button onclick="openSearchModal()" class="bg-white/10 hover:bg-white/20 text-white p-2 rounded-xl text-sm transition flex items-center justify-center cursor-pointer" title="Поиск">
+                            🔍
+                        </button>
+                    </div>
+                `;
                 
                 let formattedCreatedAt = "Не указана";
                 if (currentUserData && currentUserData.createdAt) {
@@ -561,14 +702,19 @@
                     else if (userAge >= 18) userStatus = "Взрослый";
                 }
 
+                const isPrivateAcc = currentUserData?.isPrivate || false;
+
                 container.innerHTML = `
                     <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
                         <div class="flex justify-between items-center">
                             <div class="flex items-center gap-3">
                                 <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-14 h-14 rounded-full border border-white/20 object-cover">
                                 <div>
-                                    <h2 class="text-base font-bold">${currentUser.displayName}</h2>
-                                    <p class="text-[11px] text-gray-400">${currentUser.email}</p>
+                                    <h2 class="text-base font-bold flex items-center gap-1.5">
+                                        ${currentUser.displayName} 
+                                        ${isPrivateAcc ? '<span title="Закрытый профиль">🔒</span>' : ''}
+                                    </h2>
+                                    <p class="text-[11px] text-gray-400">${isPrivateAcc ? 'Скрыто (Закрытый профиль)' : currentUser.email}</p>
                                 </div>
                             </div>
                             <button onclick="openSettingsModal()" class="bg-white/10 hover:bg-white/20 text-white font-bold p-2.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
@@ -576,6 +722,14 @@
                             </button>
                         </div>
                         <div class="mt-0.5">${SIGNS[getUserRole()]}</div>
+
+                        ${isPrivateAcc ? `
+                            <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-center">
+                                <p class="text-xs text-amber-300 font-bold leading-relaxed">
+                                    Это закрытый профиль, Вы не сможете увидеть её почты, комментарии и мемы
+                                </p>
+                            </div>
+                        ` : ''}
 
                         <div class="flex flex-col gap-2 pt-2 border-t border-white/10 text-xs">
                             <h3 class="font-bold text-indigo-400">Информация о профиле:</h3>
@@ -602,7 +756,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-gray-400">Приватность:</span>
-                                    <span class="font-bold text-amber-300">${currentUserData?.isPrivate ? 'Закрытый профиль 🔒' : 'Открытый профиль 🌍'}</span>
+                                    <span class="font-bold text-amber-300">${isPrivateAcc ? 'Закрытый профиль 🔒' : 'Открытый профиль 🌍'}</span>
                                 </div>
                             </div>
                         </div>
@@ -626,7 +780,6 @@
             }
         };
 
-        // Логика модального окна настроек
         window.openSettingsModal = function() {
             const toggle = document.getElementById('privateAccountToggle');
             if (toggle) {
@@ -785,7 +938,7 @@
 
             statusMsg.classList.remove('hidden');
 
-            let imageUrl = "";
+                        let imageUrl = "";
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 imageUrl = await new Promise((resolve) => {
@@ -877,7 +1030,7 @@
                             ${post.text ? `<p class="text-xs text-gray-200 leading-relaxed">${post.text}</p>` : ''}
                             ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover border border-white/10">` : ''}
 
-                                                        <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
+                            <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
                                 <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500 font-bold' : ''}">
                                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                     <span>${likesCount}</span>
