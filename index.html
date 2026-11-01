@@ -142,20 +142,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно отсутствия интернета в bibmeme -->
-    <div id="bibmemeNetworkModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 text-center shadow-2xl">
-            <h2 class="text-base font-bold text-red-400">Нету подключения к интернету</h2>
-            <p class="text-xs text-gray-300 leading-relaxed">
-                Проверьте подключения в настройки, или повторите попытку, если это произошло по ошибке.
-            </p>
-            <div class="flex gap-2 pt-2">
-                <button onclick="openBibmemeSettings()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Настройки</button>
-                <button onclick="retryBibmemeConnection()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Перезагрузить</button>
-            </div>
-        </div>
-    </div>
-
         <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -194,26 +180,6 @@
             owner: `<span class="inline-flex items-center gap-1 bg-red-600/30 text-red-400 border border-red-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">📰 СМИ / Владелец</span>`,
             admin: `<span class="inline-flex items-center gap-1 bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-[10px] px-2 py-0.5 rounded-full font-bold">🛡️ Админ</span>`,
             user: `<span class="inline-flex items-center gap-1 bg-gray-800 text-gray-300 border border-gray-700 text-[10px] px-2 py-0.5 rounded-full font-medium">👤 Участник</span>`
-        };
-
-        // Автоматический мониторинг интернета в bibmeme
-        window.addEventListener('offline', function() {
-            const netModal = document.getElementById('bibmemeNetworkModal');
-            if (netModal) netModal.classList.remove('hidden');
-        });
-
-        window.openBibmemeSettings = function() {
-            alert("Перейдите в настройки Wi-Fi или сотовой связи вашего устройства.");
-        };
-
-        window.retryBibmemeConnection = function() {
-            if (navigator.onLine) {
-                const netModal = document.getElementById('bibmemeNetworkModal');
-                if (netModal) netModal.classList.add('hidden');
-                location.reload();
-            } else {
-                alert("Интернет по-прежнему отсутствует. Проверьте подключение в настройках.");
-            }
         };
 
         function validatePasswordRules(password) {
@@ -508,7 +474,7 @@
             switchTab('profile');
         };
 
-                    window.switchTab = function(tabName) {
+        window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
 
@@ -542,7 +508,7 @@
                             `}
                         </div>
 
-                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                                                <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
                             <button onclick="handleSignOut()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
                             <button onclick="openDeleteAccountModal()" class="w-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold py-2.5 rounded-xl text-xs hover:bg-red-600/30 transition">Удалить аккаунт</button>
                         </div>
@@ -852,7 +818,7 @@
             input.value = "";
         };
 
-                window.deleteComment = async function(postId, commentIndex) {
+        window.deleteComment = async function(postId, commentIndex) {
             if (confirm("Вы точно хотите удалить комментарий?")) {
                 const postRef = doc(db, "posts", postId);
                 const postSnap = await getDoc(postRef);
