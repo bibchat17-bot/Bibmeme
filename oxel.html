@@ -59,22 +59,8 @@
         </button>
     </div>
 
-    <!-- Модальное окно ошибки сети -->
-    <div id="networkErrorModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 text-center">
-            <h2 class="text-base font-bold text-red-400">Нету подключения к интернету</h2>
-            <p class="text-xs text-gray-300 leading-relaxed">
-                Проверьте подключения в настройки, или повторите попытку, если это произошло по ошибке.
-            </p>
-            <div class="flex gap-2 pt-2">
-                <button onclick="openNetworkSettings()" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Настройки</button>
-                <button onclick="retryConnection()" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Перезагрузить</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Сохраненные ответы, которые работают даже без интернета
+        // Сохраненные ответы, работающие даже без интернета
         const offlineAnswers = {
             "почему у меня google авторизация не отображается?": 
                 "Это может быть по причине:\n1. У вас включен ВПН. Выключите его. Если всё равно не прогружается ничего, то проблема в интернетах — проверьте подключение к интернету.\nА если у вас роутер работает с ВПНом, подключитесь тогда к другой сети или по мобильному интернету.",
@@ -98,7 +84,6 @@
 
             if (!text) return;
 
-            // Вывод сообщения пользователя
             const userMsg = document.createElement('div');
             userMsg.className = 'bg-indigo-600/30 border border-indigo-500/40 rounded-2xl p-3 text-xs text-white self-end text-right max-w-[85%]';
             userMsg.textContent = text;
@@ -110,7 +95,6 @@
             const queryLower = text.toLowerCase();
 
             setTimeout(() => {
-                // Если вопрос есть в базе заготовленных (работает без интернета) — отвечаем
                 if (offlineAnswers[queryLower]) {
                     const aiMsg = document.createElement('div');
                     aiMsg.className = 'bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md max-w-[85%] whitespace-pre-line';
@@ -118,54 +102,22 @@
                     chat.appendChild(aiMsg);
                     chat.scrollTop = chat.scrollHeight;
                 } else {
-                    // Для любых других вопросов: если интернета нет ИЛИ браузер думает иначе, но пользователь написал произвольный вопрос — выдаем ошибку
-                    if (!navigator.onLine) {
-                        showNoInternetError(chat);
+                    if (typeof navigator.onLine !== 'undefined' && !navigator.onLine) {
+                        const aiMsg = document.createElement('div');
+                        aiMsg.className = 'bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-xs leading-relaxed text-red-300 shadow-md max-w-[85%]';
+                        aiMsg.innerHTML = `<span class="font-bold text-red-400">🤖 Oxel AI:</span><br>Нету подключения к интернету. Проверьте подключения в настройки, или повторите попытку, если это произошло по ошибке.`;
+                        chat.appendChild(aiMsg);
+                        chat.scrollTop = chat.scrollHeight;
                     } else {
-                        // Дополнительная проверка связи (пингуем фавиконку Google или GitHub для надежности)
-                        fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' })
-                            .then(() => {
-                                // Интернет реально есть
-                                const aiMsg = document.createElement('div');
-                                aiMsg.className = 'bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md max-w-[85%]';
-                                aiMsg.innerHTML = `<span class="font-bold text-indigo-400">🤖 Oxel AI:</span><br>Я пока не знаю ответа на этот вопрос, но обязательно научусь! Используйте частые вопросы выше.`;
-                                chat.appendChild(aiMsg);
-                                chat.scrollTop = chat.scrollHeight;
-                            })
-                            .catch(() => {
-                                // Интернет по факту отвалился
-                                showNoInternetError(chat);
-                            });
+                        const aiMsg = document.createElement('div');
+                        aiMsg.className = 'bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md max-w-[85%]';
+                        aiMsg.innerHTML = `<span class="font-bold text-indigo-400">🤖 Oxel AI:</span><br>Я пока не знаю ответа на этот вопрос, но обязательно научусь! Используйте частые вопросы выше.`;
+                        chat.appendChild(aiMsg);
+                        chat.scrollTop = chat.scrollHeight;
                     }
                 }
             }, 400);
         }
-
-        function showNoInternetError(chat) {
-            const aiMsg = document.createElement('div');
-            aiMsg.className = 'bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-xs leading-relaxed text-red-300 shadow-md max-w-[85%]';
-            aiMsg.innerHTML = `<span class="font-bold text-red-400">🤖 Oxel AI:</span><br>Нету подключения к интернету. Проверьте подключения в настройки, или повторите попытку, если это произошло по ошибке.`;
-            chat.appendChild(aiMsg);
-            chat.scrollTop = chat.scrollHeight;
-
-            // Показываем модальное окно с кнопками Настройки / Перезагрузить
-            document.getElementById('networkErrorModal').classList.remove('hidden');
-        }
-
-        window.openNetworkSettings = function() {
-            // Переход в настройки сети устройства
-            alert("Перейдите в настройки Wi-Fi или сотовой связи вашего устройства.");
-        };
-
-        window.retryConnection = function() {
-            // Кнопка "Перезагрузить"
-            if (navigator.onLine) {
-                document.getElementById('networkErrorModal').classList.add('hidden');
-                alert("Интернет обнаружен! Ошибка устранена.");
-            } else {
-                alert("Интернет по-прежнему отсутствует. Проверьте подключение в настройках.");
-            }
-        };
 
         document.getElementById('userInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
