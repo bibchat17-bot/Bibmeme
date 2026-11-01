@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -59,7 +59,7 @@
         </button>
     </div>
 
-    <!-- Модальное окно ошибки сети (если нет интернета) -->
+    <!-- Модальное окно ошибки сети -->
     <div id="networkErrorModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 text-center">
             <h2 class="text-base font-bold text-red-400">Нету подключения к интернету</h2>
@@ -74,7 +74,7 @@
     </div>
 
     <script>
-        // Сохраненные в облаке/памяти ответы, работающие даже без интернета
+        // Сохраненные ответы, которые работают даже без интернета
         const offlineAnswers = {
             "почему у меня google авторизация не отображается?": 
                 "Это может быть по причине:\n1. У вас включен ВПН. Выключите его. Если всё равно не прогружается ничего, то проблема в интернетах — проверьте подключение к интернету.\nА если у вас роутер работает с ВПНом, подключитесь тогда к другой сети или по мобильному интернету.",
@@ -98,7 +98,7 @@
 
             if (!text) return;
 
-            // Вывод сообщения пользователя в чат
+            // Вывод сообщения пользователя
             const userMsg = document.createElement('div');
             userMsg.className = 'bg-indigo-600/30 border border-indigo-500/40 rounded-2xl p-3 text-xs text-white self-end text-right max-w-[85%]';
             userMsg.textContent = text;
@@ -109,56 +109,61 @@
 
             const queryLower = text.toLowerCase();
 
-            // Проверяем, есть ли готовый локальный ответ (работает даже без интернета)
-            if (offlineAnswers[queryLower]) {
-                setTimeout(() => {
+            setTimeout(() => {
+                // Если вопрос есть в базе заготовленных (работает без интернета) — отвечаем
+                if (offlineAnswers[queryLower]) {
                     const aiMsg = document.createElement('div');
                     aiMsg.className = 'bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md max-w-[85%] whitespace-pre-line';
                     aiMsg.innerHTML = `<span class="font-bold text-indigo-400">🤖 Oxel AI:</span>\n${offlineAnswers[queryLower]}`;
                     chat.appendChild(aiMsg);
                     chat.scrollTop = chat.scrollHeight;
-                }, 400);
-            } else {
-                // Если вопрос другой — проверяем наличие интернета у пользователя
-                setTimeout(() => {
+                } else {
+                    // Для любых других вопросов: если интернета нет ИЛИ браузер думает иначе, но пользователь написал произвольный вопрос — выдаем ошибку
                     if (!navigator.onLine) {
-                        // Если интернет физически отсутствует
-                        const aiMsg = document.createElement('div');
-                        aiMsg.className = 'bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-xs leading-relaxed text-red-300 shadow-md max-w-[85%]';
-                        aiMsg.innerHTML = `<span class="font-bold text-red-400">🤖 Oxel AI:</span><br>Нету подключения к интернету, проверьте соединение.`;
-                        chat.appendChild(aiMsg);
-                        chat.scrollTop = chat.scrollHeight;
-
-                        // Показываем всплывающее окно ошибки
-                        document.getElementById('networkErrorModal').classList.remove('hidden');
+                        showNoInternetError(chat);
                     } else {
-                        // Интернет есть, но вопрос неизвестен
-                        const aiMsg = document.createElement('div');
-                        aiMsg.className = 'bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md max-w-[85%]';
-                        aiMsg.innerHTML = `<span class="font-bold text-indigo-400">🤖 Oxel AI:</span><br>Я пока не знаю ответа на этот вопрос, но обязательно научусь! Используйте частые вопросы выше.`;
-                        chat.appendChild(aiMsg);
-                        chat.scrollTop = chat.scrollHeight;
+                        // Дополнительная проверка связи (пингуем фавиконку Google или GitHub для надежности)
+                        fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' })
+                            .then(() => {
+                                // Интернет реально есть
+                                const aiMsg = document.createElement('div');
+                                aiMsg.className = 'bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md max-w-[85%]';
+                                aiMsg.innerHTML = `<span class="font-bold text-indigo-400">🤖 Oxel AI:</span><br>Я пока не знаю ответа на этот вопрос, но обязательно научусь! Используйте частые вопросы выше.`;
+                                chat.appendChild(aiMsg);
+                                chat.scrollTop = chat.scrollHeight;
+                            })
+                            .catch(() => {
+                                // Интернет по факту отвалился
+                                showNoInternetError(chat);
+                            });
                     }
-                }, 400);
-            }
+                }
+            }, 400);
+        }
+
+        function showNoInternetError(chat) {
+            const aiMsg = document.createElement('div');
+            aiMsg.className = 'bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-xs leading-relaxed text-red-300 shadow-md max-w-[85%]';
+            aiMsg.innerHTML = `<span class="font-bold text-red-400">🤖 Oxel AI:</span><br>Нету подключения к интернету. Проверьте подключения в настройки, или повторите попытку, если это произошло по ошибке.`;
+            chat.appendChild(aiMsg);
+            chat.scrollTop = chat.scrollHeight;
+
+            // Показываем модальное окно с кнопками Настройки / Перезагрузить
+            document.getElementById('networkErrorModal').classList.remove('hidden');
         }
 
         window.openNetworkSettings = function() {
-            // Пытаемся открыть настройки сети устройства (если поддерживается браузером)
-            if (navigator.connection) {
-                alert("Перейдите в настройки Wi-Fi или сотовой связи вашего устройства.");
-            } else {
-                alert("Откройте настройки сети на вашем смартфоне или компьютере.");
-            }
+            // Переход в настройки сети устройства
+            alert("Перейдите в настройки Wi-Fi или сотовой связи вашего устройства.");
         };
 
         window.retryConnection = function() {
-            // Кнопка "Перезагрузить" (если интернет есть, закрывает ошибку; если нет — сообщает об ошибке)
+            // Кнопка "Перезагрузить"
             if (navigator.onLine) {
                 document.getElementById('networkErrorModal').classList.add('hidden');
                 alert("Интернет обнаружен! Ошибка устранена.");
             } else {
-                alert("Интернет по-прежнему отсутствует. Проверьте подключение.");
+                alert("Интернет по-прежнему отсутствует. Проверьте подключение в настройках.");
             }
         };
 
