@@ -48,6 +48,11 @@
                 Войти через Google
             </button>
             
+            <!-- Кнопка Помощь со ссылкой на oxel.html -->
+            <a href="oxel.html" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl text-xs text-center transition border border-white/10 block">
+                💬 Помощь (Oxel AI)
+            </a>
+
             <p id="accountLimitError" class="text-red-400 text-xs text-center font-medium hidden"></p>
         </div>
     </div>
@@ -89,7 +94,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно удаления аккаунта с предупреждением и галочками -->
+    <!-- Модальное окно удаления аккаунта с галочками -->
     <div id="deleteAccountModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-bold text-red-400">Удаление аккаунта</h2>
@@ -161,8 +166,9 @@
         let activeTab = 'profile';
         let unsubscribePosts = null;
 
-        const OWNER_UIDS = []; 
-        const ADMIN_UIDS = []; 
+        // Ваши настроенные UID владельца и администратора
+        const OWNER_UIDS = ["q4GyUEltIrS9KaSMoGYdbE4dkK13"]; 
+        const ADMIN_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"]; 
 
         function getUserRole(uid = currentUser?.uid) {
             if (!uid) return "user";
@@ -554,7 +560,6 @@
 
             if (!validatePasswordRules(newPass)) {
                 err.textContent = "Пароль не соответствует требованиям!";
-                err.classList.add('hidden'); // исправлено отображение ошибки
                 err.classList.remove('hidden');
                 return;
             }
@@ -588,7 +593,6 @@
             document.getElementById('deleteAccountModal').classList.add('hidden');
         };
 
-        // Логика активации кнопки удаления при выборе обеих галочек
         window.toggleDeleteButton = function() {
             const check1 = document.getElementById('checkBackup').checked;
             const check2 = document.getElementById('checkConfirm').checked;
