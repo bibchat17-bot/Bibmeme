@@ -415,10 +415,20 @@
                 return;
             }
 
+            // Определяем категорию (статус) в зависимости от возраста
+            let ageCategory = "Участник";
+            if (age >= 9 && age <= 12) {
+                ageCategory = "Преподросток";
+            } else if (age >= 13 && age <= 17) {
+                ageCategory = "Подросток";
+            } else if (age >= 18) {
+                ageCategory = "Взрослый";
+            }
+
             tempBirthdayData = {
                 fullBirthday: `${day}.${month}.${year}`,
                 age,
-                ageCategory: age >= 18 ? "18+" : "Подросток"
+                ageCategory: ageCategory
             };
 
             showPasswordCreationPrompt();
@@ -473,8 +483,7 @@
             if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
             switchTab('profile');
         };
-
-                window.switchTab = function(tabName) {
+        window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
 
@@ -487,6 +496,22 @@
 
             if (tabName === 'profile') {
                 topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>`;
+                
+                let formattedCreatedAt = "Не указана";
+                if (currentUserData && currentUserData.createdAt) {
+                    const createdDate = new Date(currentUserData.createdAt);
+                    if (!isNaN(createdDate)) {
+                        const day = String(createdDate.getDate()).padStart(2, '0');
+                        const month = String(createdDate.getMonth() + 1).padStart(2, '0');
+                        const year = createdDate.getFullYear();
+                        const hours = String(createdDate.getHours()).padStart(2, '0');
+                        const minutes = String(createdDate.getMinutes()).padStart(2, '0');
+                        formattedCreatedAt = `${day}.${month}.${year} в ${hours}:${minutes}`;
+                    } else {
+                        formattedCreatedAt = currentUserData.createdAt;
+                    }
+                }
+
                 container.innerHTML = `
                     <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
                         <div class="flex items-center gap-4">
@@ -495,6 +520,33 @@
                                 <h2 class="text-lg font-bold">${currentUser.displayName}</h2>
                                 <p class="text-xs text-gray-400">${currentUser.email}</p>
                                 <div class="mt-1.5">${SIGNS[getUserRole()]}</div>
+                            </div>
+                        </div>
+
+                        <!-- Новые данные профиля -->
+                        <div class="flex flex-col gap-2 pt-3 border-t border-white/10 text-xs">
+                            <h3 class="font-bold text-indigo-400">Информация о профиле:</h3>
+                            <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex flex-col gap-2">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Имя (никнейм):</span>
+                                    <span class="font-bold text-white">${currentUserData?.displayName || currentUser.displayName || 'Не указано'}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Дата рождения:</span>
+                                    <span class="font-bold text-white">${currentUserData?.fullBirthday || 'Не указана'}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Возраст:</span>
+                                    <span class="font-bold text-white">${currentUserData?.age ? currentUserData.age + ' лет' : 'Не указан'}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Статус:</span>
+                                    <span class="font-bold text-indigo-300">${currentUserData?.ageCategory || 'Участник'}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Создание аккаунта:</span>
+                                    <span class="font-medium text-gray-300">${formattedCreatedAt}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -754,7 +806,7 @@
                                 </button>
                             </div>
 
-                            <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
+                                                        <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
                                 <div id="comments-list-${postId}" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
                                     ${(post.comments || []).map((c, idx) => `
                                         <div class="bg-[#121212] p-2 rounded-lg text-[11px] flex justify-between items-start gap-2">
@@ -818,7 +870,7 @@
             input.value = "";
         };
 
-                window.deleteComment = async function(postId, commentIndex) {
+        window.deleteComment = async function(postId, commentIndex) {
             if (confirm("Вы точно хотите удалить комментарий?")) {
                 const postRef = doc(db, "posts", postId);
                 const postSnap = await getDoc(postRef);
