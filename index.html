@@ -65,6 +65,47 @@
         <button onclick="switchTab('profile')" id="nav-profile" class="flex-1 py-2 text-center font-bold text-xs text-white bg-white/10 transition rounded-xl">Профиль</button>
     </div>
 
+    <!-- Модальное окно Настроек -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h2 class="text-lg font-bold">Настройки</h2>
+                <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-white text-sm font-bold">✕ Закрыть</button>
+            </div>
+
+            <!-- Раздел: Защита и конфиденциальность -->
+            <div class="flex flex-col gap-2">
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Защита и конфиденциальность</h3>
+                <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex items-center justify-between">
+                    <div class="flex flex-col pr-2">
+                        <span class="text-xs font-bold text-white">Сделать профиль закрытым</span>
+                        <span class="text-[10px] text-gray-400">Включение приватности аккаунта</span>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="privateAccountToggle" onchange="togglePrivateAccount(this)" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Раздел: Аккаунт -->
+            <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Аккаунт</h3>
+                <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex flex-col gap-2.5">
+                    <span class="text-[11px] text-gray-400 font-bold">Пароль:</span>
+                    <div id="settingsPasswordSection" class="flex flex-col gap-2">
+                        <!-- Динамические кнопки пароля -->
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2 mt-1">
+                    <button onclick="openDeleteAccountModalFromSettings()" class="w-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold py-2.5 rounded-xl text-xs hover:bg-red-600/30 transition">Удаление аккаунта</button>
+                    <button onclick="handleSignOut()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выход с аккаунта</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Модальное окно создания поста -->
     <div id="createPostModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
@@ -103,7 +144,6 @@
                 <p class="font-bold text-red-400">Пока вы не ушли, прочитайте, это очень важно:</p>
                 <p>Вы собираетесь удалить аккаунт в <strong>bibmeme</strong> со всеми данными, что касается постов, комментариев, переписки и т.д.</p>
                 <p>Эти данные и аккаунт безвозвратно вернуть невозможно, но вы сможете скачать и загрузить данные вовремя.</p>
-                <p>Если вы все-таки решили удалить аккаунт, то нажав на «Удалить аккаунт», вы принимаете меры удаления.</p>
             </div>
 
             <div class="flex flex-col gap-2 py-1">
@@ -415,7 +455,6 @@
                 return;
             }
 
-            // Четкое разделение статусов
             let ageCategory = "Участник";
             if (age >= 9 && age <= 12) {
                 ageCategory = "Преподросток";
@@ -468,7 +507,8 @@
                 ...tempBirthdayData, 
                 hasPassword: withPassword, 
                 password: password, 
-                createdAt: new Date().toISOString() 
+                createdAt: new Date().toISOString(),
+                isPrivate: false
             };
 
             try {
@@ -513,7 +553,6 @@
                     }
                 }
 
-                // Автоматический расчет статуса под возраст
                 let userStatus = currentUserData?.ageCategory || "Участник";
                 if (currentUserData?.age) {
                     const userAge = currentUserData.age;
@@ -524,17 +563,21 @@
 
                 container.innerHTML = `
                     <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
-                        <div class="flex items-center gap-4">
-                            <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-full border border-white/20 object-cover">
-                            <div>
-                                <h2 class="text-lg font-bold">${currentUser.displayName}</h2>
-                                <p class="text-xs text-gray-400">${currentUser.email}</p>
-                                <div class="mt-1.5">${SIGNS[getUserRole()]}</div>
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-14 h-14 rounded-full border border-white/20 object-cover">
+                                <div>
+                                    <h2 class="text-base font-bold">${currentUser.displayName}</h2>
+                                    <p class="text-[11px] text-gray-400">${currentUser.email}</p>
+                                </div>
                             </div>
+                            <button onclick="openSettingsModal()" class="bg-white/10 hover:bg-white/20 text-white font-bold p-2.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer">
+                                ⚙️ Настройки
+                            </button>
                         </div>
+                        <div class="mt-0.5">${SIGNS[getUserRole()]}</div>
 
-                        <!-- Подробные данные профиля -->
-                        <div class="flex flex-col gap-2 pt-3 border-t border-white/10 text-xs">
+                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10 text-xs">
                             <h3 class="font-bold text-indigo-400">Информация о профиле:</h3>
                             <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex flex-col gap-2">
                                 <div class="flex justify-between">
@@ -557,22 +600,11 @@
                                     <span class="text-gray-400">Создание аккаунта:</span>
                                     <span class="font-medium text-gray-300">${formattedCreatedAt}</span>
                                 </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-400">Приватность:</span>
+                                    <span class="font-bold text-amber-300">${currentUserData?.isPrivate ? 'Закрытый профиль 🔒' : 'Открытый профиль 🌍'}</span>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
-                            <h3 class="text-xs font-bold text-gray-400">Безопасность и пароль:</h3>
-                            ${currentUserData && currentUserData.hasPassword ? `
-                                <button onclick="openPasswordManageModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Изменить пароль</button>
-                                <button onclick="removeAccountPassword()" class="w-full bg-amber-600/20 text-amber-400 font-bold py-2.5 rounded-xl text-xs transition">Удалить пароль</button>
-                            ` : `
-                                <button onclick="openPasswordManageModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Добавить пароль</button>
-                            `}
-                        </div>
-
-                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
-                            <button onclick="handleSignOut()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
-                            <button onclick="openDeleteAccountModal()" class="w-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold py-2.5 rounded-xl text-xs hover:bg-red-600/30 transition">Удалить аккаунт</button>
                         </div>
                     </div>
                 `;
@@ -592,6 +624,50 @@
                 topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
                 container.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-purple-300">Панель администратора активна</div>`;
             }
+        };
+
+        // Логика модального окна настроек
+        window.openSettingsModal = function() {
+            const toggle = document.getElementById('privateAccountToggle');
+            if (toggle) {
+                toggle.checked = currentUserData?.isPrivate || false;
+            }
+
+            const passSection = document.getElementById('settingsPasswordSection');
+            if (passSection) {
+                if (currentUserData && currentUserData.hasPassword) {
+                    passSection.innerHTML = `
+                        <button onclick="closeSettingsModal(); openPasswordManageModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">1. Изменить пароль</button>
+                        <button onclick="removeAccountPassword(); closeSettingsModal();" class="w-full bg-amber-600/20 text-amber-400 font-bold py-2 rounded-xl text-xs transition">2. Удалить пароль</button>
+                    `;
+                } else {
+                    passSection.innerHTML = `
+                        <button onclick="closeSettingsModal(); openPasswordManageModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs transition">1. Добавить пароль</button>
+                    `;
+                }
+            }
+            document.getElementById('settingsModal').classList.remove('hidden');
+        };
+
+        window.closeSettingsModal = function() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        };
+
+        window.togglePrivateAccount = async function(checkbox) {
+            const isPrivate = checkbox.checked;
+            currentUserData.isPrivate = isPrivate;
+            try {
+                await setDoc(doc(db, "users", currentUser.uid), currentUserData, { merge: true });
+                alert(isPrivate ? "Профиль переведен в закрытый режим." : "Профиль снова открытый!");
+                switchTab('profile');
+            } catch (e) {
+                console.error("Ошибка сохранения приватности:", e);
+            }
+        };
+
+        window.openDeleteAccountModalFromSettings = function() {
+            closeSettingsModal();
+            openDeleteAccountModal();
         };
 
         window.handleSignOut = async function() {
@@ -801,7 +877,7 @@
                             ${post.text ? `<p class="text-xs text-gray-200 leading-relaxed">${post.text}</p>` : ''}
                             ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover border border-white/10">` : ''}
 
-                            <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
+                                                        <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
                                 <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500 font-bold' : ''}">
                                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                                     <span>${likesCount}</span>
@@ -816,7 +892,7 @@
                                 </button>
                             </div>
 
-                                                        <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
+                            <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
                                 <div id="comments-list-${postId}" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
                                     ${(post.comments || []).map((c, idx) => `
                                         <div class="bg-[#121212] p-2 rounded-lg text-[11px] flex justify-between items-start gap-2">
