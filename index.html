@@ -89,17 +89,35 @@
         </div>
     </div>
 
-    <!-- Модальное окно удаления аккаунта -->
+    <!-- Модальное окно удаления аккаунта с предупреждением и галочками -->
     <div id="deleteAccountModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
+        <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-bold text-red-400">Удаление аккаунта</h2>
-            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-xs text-gray-200 leading-relaxed">
-                <p class="font-bold text-red-400 mb-1">Пока вы не ушли, прочитайте, это очень важно!</p>
-                <p>Вы собираетесь удалить аккаунт в <strong>Bibmeme</strong> со всеми данными.</p>
+            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-[11px] text-gray-200 leading-relaxed flex flex-col gap-2">
+                <p class="font-bold text-red-400">Пока вы не ушли, прочитайте, это очень важно:</p>
+                <p>Вы собираетесь удалить аккаунт в <strong>bibmeme</strong> со всеми данными, что касается постов, комментариев, переписки и т.д.</p>
+                <p>Эти данные и аккаунт безвозвратно вернуть невозможно, но вы сможете скачать и загрузить данные вовремя.</p>
+                <p>Если вы все-таки решили удалить аккаунт, то нажав на «Удалить аккаунт», вы принимаете меры удаления.</p>
             </div>
-            <div class="flex flex-col gap-2 pt-1">
+
+            <div class="flex flex-col gap-2 py-1">
                 <button onclick="downloadUserDataBackup()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Загрузить данные</button>
-                <button onclick="confirmAccountDeletion()" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Удалить аккаунт</button>
+            </div>
+
+            <!-- Чекбоксы подтверждения -->
+            <div class="flex flex-col gap-2 border-t border-white/10 pt-3">
+                <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                    <input type="checkbox" id="checkBackup" onchange="toggleDeleteButton()" class="mt-0.5 rounded accent-red-500">
+                    <span>Я скачал все данные и загрузил</span>
+                </label>
+                <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                    <input type="checkbox" id="checkConfirm" onchange="toggleDeleteButton()" class="mt-0.5 rounded accent-red-500">
+                    <span>Я соглашаюсь на удаления аккаунта и данных</span>
+                </label>
+            </div>
+
+            <div class="flex flex-col gap-2 pt-1">
+                <button id="btnConfirmDelete" onclick="confirmAccountDeletion()" disabled class="w-full bg-red-600/50 text-white/50 font-bold py-2.5 rounded-xl text-xs transition cursor-not-allowed">Удалить аккаунт</button>
                 <button onclick="closeDeleteAccountModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
             </div>
         </div>
@@ -451,7 +469,7 @@
             switchTab('profile');
         };
 
-                // Функции навигации, ленты и профиля
+                    // Функции навигации, ленты и профиля
         window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
@@ -536,6 +554,7 @@
 
             if (!validatePasswordRules(newPass)) {
                 err.textContent = "Пароль не соответствует требованиям!";
+                err.classList.add('hidden'); // исправлено отображение ошибки
                 err.classList.remove('hidden');
                 return;
             }
@@ -559,11 +578,29 @@
         };
 
         window.openDeleteAccountModal = function() {
+            document.getElementById('checkBackup').checked = false;
+            document.getElementById('checkConfirm').checked = false;
+            toggleDeleteButton();
             document.getElementById('deleteAccountModal').classList.remove('hidden');
         };
 
         window.closeDeleteAccountModal = function() {
             document.getElementById('deleteAccountModal').classList.add('hidden');
+        };
+
+        // Логика активации кнопки удаления при выборе обеих галочек
+        window.toggleDeleteButton = function() {
+            const check1 = document.getElementById('checkBackup').checked;
+            const check2 = document.getElementById('checkConfirm').checked;
+            const btn = document.getElementById('btnConfirmDelete');
+
+            if (check1 && check2) {
+                btn.disabled = false;
+                btn.className = "w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer";
+            } else {
+                btn.disabled = true;
+                btn.className = "w-full bg-red-600/50 text-white/50 font-bold py-2.5 rounded-xl text-xs transition cursor-not-allowed";
+            }
         };
 
         window.downloadUserDataBackup = function() {
@@ -651,7 +688,6 @@
             }
         };
 
-        // Загрузка постов из облака со всех аккаунтов в реальном времени
         function loadRealtimeFeed() {
             const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
             unsubscribePosts = onSnapshot(q, (snapshot) => {
@@ -683,7 +719,6 @@
                                     <div class="flex flex-col">
                                         <div class="flex items-center gap-1.5 flex-wrap">
                                             <h4 class="text-xs font-bold text-white">${post.authorName || 'Участник'}</h4>
-                                            <span class="text-blue-400 text-xs font-bold" title="Верифицирован">✓</span>
                                             ${SIGNS[authorRole]}
                                         </div>
                                         <div class="flex items-center gap-1.5 mt-0.5">
@@ -704,12 +739,15 @@
 
                             <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
                                 <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500 font-bold' : ''}">
-                                    <span>❤️ ${likesCount}</span>
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                    <span>${likesCount}</span>
                                 </button>
                                 <button onclick="toggleComments('${postId}')" class="flex items-center gap-1.5 hover:text-white transition">
-                                    <span>💬 ${commentsCount}</span>
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                                    <span>${commentsCount}</span>
                                 </button>
                                 <button onclick="sharePost('${encodeURIComponent(post.text || 'Мем из bibmeme')}')" class="flex items-center gap-1.5 hover:text-white transition">
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
                                     <span>Поделиться</span>
                                 </button>
                             </div>
@@ -726,7 +764,7 @@
                                                 <p class="text-gray-200 mt-0.5">${c.text}</p>
                                             </div>
                                             ${c.uid === currentUser.uid ? `
-                                                <button onclick="deleteComment('${postId}', ${idx})" class="text-gray-500 hover:text-red-400 transition">✕</button>
+                                                <button onclick="deleteComment('${postId}', ${idx})" class="text-gray-500 hover:text-red-400 transition" title="Удалить комментарий">✕</button>
                                             ` : ''}
                                         </div>
                                     `).join('') || '<p class="text-[10px] text-gray-500">Нет комментариев</p>'}
@@ -778,21 +816,23 @@
             input.value = "";
         };
 
-        window.deleteComment = async function(postId, commentIndex) {
-            const postRef = doc(db, "posts", postId);
-            const postSnap = await getDoc(postRef);
-            if (postSnap.exists()) {
-                const comments = postSnap.data().comments || [];
-                if (comments[commentIndex]) {
-                    await updateDoc(postRef, {
-                        comments: arrayRemove(comments[commentIndex])
-                    });
+                window.deleteComment = async function(postId, commentIndex) {
+            if (confirm("Вы точно хотите удалить комментарий?")) {
+                const postRef = doc(db, "posts", postId);
+                const postSnap = await getDoc(postRef);
+                if (postSnap.exists()) {
+                    const comments = postSnap.data().comments || [];
+                    if (comments[commentIndex]) {
+                        await updateDoc(postRef, {
+                            comments: arrayRemove(comments[commentIndex])
+                        });
+                    }
                 }
             }
         };
 
         window.deletePost = async function(postId) {
-            if (confirm("Удалить этот пост?")) {
+            if (confirm("Вы точно хотите удалить пост?")) {
                 try {
                     await deleteDoc(doc(db, "posts", postId));
                 } catch (e) {
