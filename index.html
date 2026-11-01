@@ -35,24 +35,24 @@
     <div id="app-container" class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3">
         
         <!-- Стартовый экран -->
-        <div id="welcome-screen" class="w-full flex flex-col gap-3">
-            <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-4 text-center shadow-lg w-full flex items-center justify-center gap-3">
-                <span class="relative flex h-3 w-3">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-orange-500"></span>
-                </span>
-                <span class="text-lg font-bold text-white tracking-wide">Облачное хранилище активно</span>
+        <div id="welcome-screen" class="w-full flex flex-col gap-4">
+            
+            <!-- Блок знакомства с ИИ-ассистентом Oxel -->
+            <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-3 text-left">
+                <h2 class="text-base font-bold text-white">Знакомьтесь с ии-ассистентом Oxel</h2>
+                <p class="text-xs text-gray-300 leading-relaxed">
+                    Он будет вам помогать с вопросами, отвечать на них и помогать всем. Попробуйте сейчас!
+                </p>
+                <a href="oxel.html" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs text-center transition shadow-md block mt-1">
+                    Помощь (Oxel)
+                </a>
             </div>
 
+            <!-- Кнопка входа через Google -->
             <button id="googleAuthBtn" onclick="loginWithGoogle()" style="width: 100%; background: white; color: black; font-weight: bold; padding: 12px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 Войти через Google
             </button>
             
-            <!-- Кнопка Помощь со ссылкой на oxel.html -->
-            <a href="oxel.html" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-3 rounded-xl text-xs text-center transition border border-white/10 block">
-                💬 Помощь (Oxel AI)
-            </a>
-
             <p id="accountLimitError" class="text-red-400 text-xs text-center font-medium hidden"></p>
         </div>
     </div>
@@ -94,7 +94,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно удаления аккаунта с галочками -->
+    <!-- Модальное окно удаления аккаунта -->
     <div id="deleteAccountModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
             <h2 class="text-lg font-bold text-red-400">Удаление аккаунта</h2>
@@ -109,7 +109,6 @@
                 <button onclick="downloadUserDataBackup()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Загрузить данные</button>
             </div>
 
-            <!-- Чекбоксы подтверждения -->
             <div class="flex flex-col gap-2 border-t border-white/10 pt-3">
                 <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
                     <input type="checkbox" id="checkBackup" onchange="toggleDeleteButton()" class="mt-0.5 rounded accent-red-500">
@@ -166,7 +165,7 @@
         let activeTab = 'profile';
         let unsubscribePosts = null;
 
-        // Ваши настроенные UID владельца и администратора
+        // Настроенные UID владельца и админа
         const OWNER_UIDS = ["q4GyUEltIrS9KaSMoGYdbE4dkK13"]; 
         const ADMIN_UIDS = ["X03NzVf3xPQLajxDwV1xNIf4nU42"]; 
 
@@ -475,8 +474,7 @@
             switchTab('profile');
         };
 
-                    // Функции навигации, ленты и профиля
-        window.switchTab = function(tabName) {
+                    window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
 
