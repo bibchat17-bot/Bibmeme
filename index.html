@@ -52,7 +52,7 @@
         </div>
     </div>
 
-    <!-- Нижняя панель навигации (Без вкладки "Сервера" для обычных участников) -->
+    <!-- Нижняя панель навигации -->
     <div id="bottom-nav" class="hidden w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-1.5 flex justify-around items-center shadow-lg mt-auto">
         <button onclick="switchTab('feed')" id="nav-feed" class="flex-1 py-2 text-center font-bold text-xs text-gray-400 hover:text-white transition rounded-xl">Лента</button>
         <button onclick="switchTab('adminServer')" id="nav-adminServer" class="hidden flex-1 py-2 text-center font-bold text-xs text-purple-400 hover:text-purple-300 transition rounded-xl">Сервер</button>
@@ -309,7 +309,6 @@
             location.reload();
         };
 
-        // Экран входа с надписью "С возвращением, {name}!"
         function showPasswordLoginPrompt() {
             document.getElementById('bottom-nav').classList.add('hidden');
             const userName = (currentUserData && currentUserData.displayName) || currentUser?.displayName || "друг";
@@ -325,7 +324,6 @@
             `;
         }
 
-        // Исправленная проверка пароля с гарантированным переходом на главный экран
         window.verifyLoginPassword = function() {
             const passInput = document.getElementById('loginPassword').value.trim();
             const correctPass = String(currentUserData?.password || "").trim();
@@ -334,9 +332,7 @@
                 sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
                 
                 const bottomNav = document.getElementById('bottom-nav');
-                if (bottomNav) {
-                    bottomNav.classList.remove('hidden');
-                }
+                if (bottomNav) bottomNav.classList.remove('hidden');
 
                 const role = getUserRole();
                 if (role === 'owner' || role === 'admin') {
@@ -344,12 +340,6 @@
                     if (adminNav) adminNav.classList.remove('hidden');
                 }
 
-                // Принудительно очищаем форму пароля перед открытием главного экрана
-                const appContainer = document.getElementById('app-container');
-                if (appContainer) {
-                    appContainer.innerHTML = '';
-                }
-                
                 switchTab('profile');
             } else {
                 const err = document.getElementById('loginErrorMsg');
@@ -460,8 +450,8 @@
             if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
             switchTab('profile');
         };
-        </script>
-    <script type="module">
+
+                // Функции навигации, ленты и профиля
         window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
@@ -510,7 +500,7 @@
                         Создайте свой первый пост!
                     </button>
                     <div id="postsList" class="flex flex-col gap-3 w-full">
-                        <p class="text-xs text-center text-gray-400">Загрузка ленты из облака...</p>
+                        <p class="text-xs text-center text-gray-400">Загрузка постов из облака...</p>
                     </div>
                 `;
                 loadRealtimeFeed();
@@ -661,6 +651,7 @@
             }
         };
 
+        // Загрузка постов из облака со всех аккаунтов в реальном времени
         function loadRealtimeFeed() {
             const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
             unsubscribePosts = onSnapshot(q, (snapshot) => {
@@ -688,15 +679,15 @@
                         <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 shadow-lg w-full flex flex-col gap-3">
                             <div class="flex items-start justify-between">
                                 <div class="flex items-center gap-3">
-                                    <img src="${post.authorPhoto}" class="w-10 h-10 rounded-full object-cover border border-white/20">
+                                    <img src="${post.authorPhoto || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full object-cover border border-white/20">
                                     <div class="flex flex-col">
                                         <div class="flex items-center gap-1.5 flex-wrap">
-                                            <h4 class="text-xs font-bold text-white">${post.authorName}</h4>
+                                            <h4 class="text-xs font-bold text-white">${post.authorName || 'Участник'}</h4>
                                             <span class="text-blue-400 text-xs font-bold" title="Верифицирован">✓</span>
                                             ${SIGNS[authorRole]}
                                         </div>
                                         <div class="flex items-center gap-1.5 mt-0.5">
-                                            <span class="inline-flex items-center gap-1 text-[10px] text-gray-400">${post.timeString}</span>
+                                            <span class="inline-flex items-center gap-1 text-[10px] text-gray-400">${post.timeString || ''}</span>
                                             ${post.ageLimit && post.ageLimit !== 'none' ? `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-md font-bold">${post.ageLimit}</span>` : ''}
                                         </div>
                                     </div>
@@ -821,5 +812,3 @@
     </script>
 </body>
 </html>
-
-    
