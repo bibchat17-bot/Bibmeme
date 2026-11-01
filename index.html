@@ -325,6 +325,7 @@
             `;
         }
 
+        // Исправленная проверка пароля с гарантированным переходом на главный экран
         window.verifyLoginPassword = function() {
             const passInput = document.getElementById('loginPassword').value.trim();
             const correctPass = String(currentUserData?.password || "").trim();
@@ -333,12 +334,20 @@
                 sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
                 
                 const bottomNav = document.getElementById('bottom-nav');
-                if (bottomNav) bottomNav.classList.remove('hidden');
+                if (bottomNav) {
+                    bottomNav.classList.remove('hidden');
+                }
 
                 const role = getUserRole();
                 if (role === 'owner' || role === 'admin') {
                     const adminNav = document.getElementById('nav-adminServer');
                     if (adminNav) adminNav.classList.remove('hidden');
+                }
+
+                // Принудительно очищаем форму пароля перед открытием главного экрана
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) {
+                    appContainer.innerHTML = '';
                 }
                 
                 switchTab('profile');
@@ -452,7 +461,7 @@
             switchTab('profile');
         };
         </script>
-        <script type="module">
+    <script type="module">
         window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
@@ -813,4 +822,4 @@
 </body>
 </html>
 
-        
+    
