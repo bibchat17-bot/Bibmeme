@@ -118,7 +118,8 @@
             </div>
         </div>
     </div>
-    <script type="module">
+
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -227,7 +228,6 @@
                     currentUserData = userSnap.data();
                     if (checkSleepLock(currentUserData.age)) return;
 
-                    // Проверяем наличие пароля
                     if (currentUserData.hasPassword === true && currentUserData.password && currentUserData.password.trim() !== "" && !sessionStorage.getItem(`auth_verified_${currentUser.uid}`)) {
                         showPasswordLoginPrompt();
                     } else {
@@ -312,12 +312,13 @@
         // Экран входа с надписью "С возвращением, {name}!"
         function showPasswordLoginPrompt() {
             document.getElementById('bottom-nav').classList.add('hidden');
-            const userName = currentUser.displayName || "друг";
+            const userName = (currentUserData && currentUserData.displayName) || currentUser?.displayName || "друг";
+            
             document.getElementById('app-container').innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col gap-3">
-                    <h2 class="text-lg font-bold text-white">С возвращением, ${userName}!</h2>
+                    <h2 class="text-xl font-bold text-white">С возвращением, ${userName}!</h2>
                     <p class="text-xs text-gray-400">Введите пароль аккаунта:</p>
-                    <input type="password" id="loginPassword" placeholder="Пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm">
+                    <input type="password" id="loginPassword" placeholder="Пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-white">
                     <button onclick="verifyLoginPassword()" class="w-full bg-white text-black font-bold py-3.5 rounded-xl text-base hover:bg-gray-200 transition">Войти</button>
                     <p id="loginErrorMsg" class="text-red-400 text-xs font-medium hidden"></p>
                 </div>
@@ -326,13 +327,20 @@
 
         window.verifyLoginPassword = function() {
             const passInput = document.getElementById('loginPassword').value.trim();
-            const correctPass = String(currentUserData.password || "").trim();
+            const correctPass = String(currentUserData?.password || "").trim();
 
             if (passInput === correctPass) {
                 sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
-                document.getElementById('bottom-nav').classList.remove('hidden');
+                
+                const bottomNav = document.getElementById('bottom-nav');
+                if (bottomNav) bottomNav.classList.remove('hidden');
+
                 const role = getUserRole();
-                if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
+                if (role === 'owner' || role === 'admin') {
+                    const adminNav = document.getElementById('nav-adminServer');
+                    if (adminNav) adminNav.classList.remove('hidden');
+                }
+                
                 switchTab('profile');
             } else {
                 const err = document.getElementById('loginErrorMsg');
@@ -443,8 +451,7 @@
             if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
             switchTab('profile');
         };
-                            </script>
-
+        </script>
         <script type="module">
         window.switchTab = function(tabName) {
             activeTab = tabName;
@@ -806,4 +813,4 @@
 </body>
 </html>
 
-    
+        
