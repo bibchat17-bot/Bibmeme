@@ -474,7 +474,7 @@
             switchTab('profile');
         };
 
-        window.switchTab = function(tabName) {
+                window.switchTab = function(tabName) {
             activeTab = tabName;
             if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
 
@@ -508,7 +508,7 @@
                             `}
                         </div>
 
-                                                <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
                             <button onclick="handleSignOut()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выйти из аккаунта</button>
                             <button onclick="openDeleteAccountModal()" class="w-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold py-2.5 rounded-xl text-xs hover:bg-red-600/30 transition">Удалить аккаунт</button>
                         </div>
@@ -818,7 +818,7 @@
             input.value = "";
         };
 
-        window.deleteComment = async function(postId, commentIndex) {
+                window.deleteComment = async function(postId, commentIndex) {
             if (confirm("Вы точно хотите удалить комментарий?")) {
                 const postRef = doc(db, "posts", postId);
                 const postSnap = await getDoc(postRef);
