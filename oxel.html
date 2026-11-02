@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Oxel AI — Помощник bibmeme</title>
+    <title>Oxel — Помощник bibmeme</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -18,112 +18,113 @@
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body class="bg-[#121212] text-white min-h-screen flex flex-col justify-between p-4 select-none max-w-sm mx-auto">
+<body class="bg-[#121212] text-white min-h-screen flex flex-col justify-between p-4 select-none pt-8 overflow-x-hidden">
 
-    <!-- Верхняя панель с кнопкой возврата -->
-    <div class="flex items-center justify-between w-full mb-3 border-b border-white/10 pb-3">
-        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition flex items-center gap-1">
-            ← Назад в bibmeme
+    <!-- Верхняя шапка -->
+    <div class="flex items-center justify-between w-full max-w-sm mx-auto mb-4 border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-2xl bg-blue-600 flex items-center justify-center font-bold text-base shadow-lg">🤖</div>
+            <div>
+                <h1 class="text-base font-extrabold tracking-tight">Oxel</h1>
+                <span class="text-[10px] text-green-400 font-bold">● Помощник онлайн</span>
+            </div>
+        </div>
+        <a href="index.html" class="bg-white/10 hover:bg-white/20 text-white font-bold px-3 py-1.5 rounded-xl text-xs transition">
+            ← На главную
         </a>
-        <h1 class="text-lg font-bold text-indigo-400">Oxel AI</h1>
     </div>
 
-    <!-- Область чата -->
-    <div id="chatMessages" class="flex-1 flex flex-col gap-3 overflow-y-auto mb-3 p-1 hide-scrollbar" style="max-height: 60vh;">
-        <!-- Приветственное сообщение -->
-        <div class="bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md">
-            <span class="font-bold text-indigo-400">🤖 Oxel AI:</span><br>
-            Привет! Я ваш умный ассистент Oxel. Выберите готовый вопрос ниже или напишите свой!
+    <!-- Основной контейнер чата / информации -->
+    <div class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3 flex-1 pb-4">
+        
+        <!-- Приветственная карточка Oxel -->
+        <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 shadow-lg flex flex-col gap-2.5">
+            <div class="flex items-center gap-2">
+                <span class="text-lg">👋</span>
+                <h2 class="text-sm font-bold text-white">Знакомьтесь с Oxel</h2>
+            </div>
+            <p class="text-xs text-gray-300 leading-relaxed">
+                Привет! Я <strong>Oxel</strong> — твой личный помощник в социальной сети <strong>bibmeme</strong>. Я знаю всё о правилах, ленте, профилях, возрастных ограничениях и защите аккаунта. Задай мне любой вопрос или выбери тему ниже!
+            </p>
+        </div>
+
+        <!-- Быстрые вопросы (подсказки) -->
+        <div class="flex flex-col gap-1.5">
+            <span class="text-[11px] font-bold text-indigo-400 px-1">Частые вопросы:</span>
+            <div class="grid grid-cols-1 gap-1.5">
+                <button onclick="askOxel('Как создать свой мем или пост?')" class="bg-[#1e1e1e] hover:bg-white/5 border border-white/10 p-2.5 rounded-xl text-xs text-left text-gray-200 transition">
+                    💡 Как создать свой мем или пост?
+                </button>
+                <button onclick="askOxel('Зачем нужен закрытый профиль?')" class="bg-[#1e1e1e] hover:bg-white/5 border border-white/10 p-2.5 rounded-xl text-xs text-left text-gray-200 transition">
+                    🔒 Зачем нужен закрытый профиль?
+                </button>
+                <button onclick="askOxel('Как работают возрастные ограничения и режим сна?')" class="bg-[#1e1e1e] hover:bg-white/5 border border-white/10 p-2.5 rounded-xl text-xs text-left text-gray-200 transition">
+                    🌙 Как работает режим сна?
+                </button>
+            </div>
+        </div>
+
+        <!-- Окно диалога с Oxel -->
+        <div id="oxelChatBox" class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-3.5 flex flex-col gap-2.5 flex-1 min-h-[160px] max-h-[220px] overflow-y-auto">
+            <div class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-300">
+                <strong class="text-blue-400">Oxel:</strong> Чем я могу помочь тебе сегодня? Спроси меня о чем угодно по поводу bibmeme!
+            </div>
         </div>
     </div>
 
-    <!-- Блок подсказок (быстрые вопросы) -->
-    <div class="flex flex-col gap-1.5 mb-3">
-        <p class="text-[10px] text-gray-400 font-bold px-1">Частые вопросы:</p>
-        <button onclick="askPreset('Почему у меня Google авторизация не отображается?')" class="bg-[#1e1e1e] hover:bg-[#252525] border border-white/10 text-left text-xs text-gray-200 p-2.5 rounded-xl transition">
-            ❓ Почему у меня Google авторизация не отображается?
-        </button>
-        <button onclick="askPreset('Что делать если забыл пароль от bibmeme?')" class="bg-[#1e1e1e] hover:bg-[#252525] border border-white/10 text-left text-xs text-gray-200 p-2.5 rounded-xl transition">
-            ❓ Что делать если забыл пароль от bibmeme?
-        </button>
-        <button onclick="askPreset('Что делать если я не могу выйти из аккаунта')" class="bg-[#1e1e1e] hover:bg-[#252525] border border-white/10 text-left text-xs text-gray-200 p-2.5 rounded-xl transition">
-            ❓ Что делать если я не могу выйти из аккаунта
-        </button>
-    </div>
-
-    <!-- Форма ввода вопроса -->
-    <div class="flex gap-2 w-full pt-2 border-t border-white/10">
-        <input type="text" id="userInput" placeholder="Напишите вопрос..." class="flex-1 bg-[#1e1e1e] border border-white/20 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-indigo-500">
-        <button onclick="sendMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-3 rounded-xl text-xs transition shadow-md">
-            Отправить
+    <!-- Панель ввода сообщения для Oxel -->
+    <div class="w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-2 flex gap-2 shadow-lg mt-auto">
+        <input type="text" id="oxelInput" placeholder="Спросить Oxel..." class="flex-1 bg-[#121212] border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-white">
+        <button onclick="sendOxelMessage()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+            Спросить
         </button>
     </div>
 
     <script>
-        // Сохраненные ответы, работающие даже без интернета
-        const offlineAnswers = {
-            "почему у меня google авторизация не отображается?": 
-                "Это может быть по причине:\n1. У вас включен ВПН. Выключите его. Если всё равно не прогружается ничего, то проблема в интернетах — проверьте подключение к интернету.\nА если у вас роутер работает с ВПНом, подключитесь тогда к другой сети или по мобильному интернету.",
-            
-            "что делать если забыл пароль от bibmeme?": 
-                "Кажется, вы забыли пароль от bibmeme.\nВот пошаговый вариант, что с этим делать:\n1. Посмотреть пароль в Google Manager (если сохраняли вовремя). Вы должны войти в свой аккаунт и посмотреть сохраненный пароль от bibmeme.",
-            
-            "что делать если я не могу выйти из аккаунта": 
-                "Это может быть причиной бага или интернета:\n1. Перезагрузите страницу (возможно, проблема в баге).\n2. Если не помогает перезагрузка, то проверьте подключение к интернету."
+        window.askOxel = function(question) {
+            document.getElementById('oxelInput').value = question;
+            sendOxelMessage();
         };
 
-        window.askPreset = function(questionText) {
-            document.getElementById('userInput').value = questionText;
-            sendMessage();
-        };
-
-        function sendMessage() {
-            const input = document.getElementById('userInput');
-            const chat = document.getElementById('chatMessages');
+        window.sendOxelMessage = function() {
+            const input = document.getElementById('oxelInput');
+            const chatBox = document.getElementById('oxelChatBox');
             const text = input.value.trim();
 
             if (!text) return;
 
-            const userMsg = document.createElement('div');
-            userMsg.className = 'bg-indigo-600/30 border border-indigo-500/40 rounded-2xl p-3 text-xs text-white self-end text-right max-w-[85%]';
-            userMsg.textContent = text;
-            chat.appendChild(userMsg);
+            // Добавляем сообщение пользователя
+            chatBox.innerHTML += `
+                <div class="bg-blue-600/20 border border-blue-500/30 p-2.5 rounded-xl text-xs text-white text-right ml-4">
+                    <strong>Вы:</strong> ${text}
+                </div>
+            `;
+            input.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
 
-            input.value = '';
-            chat.scrollTop = chat.scrollHeight;
-
-            const queryLower = text.toLowerCase();
-
+            // Ответ от Oxel с имитацией умной логики
             setTimeout(() => {
-                if (offlineAnswers[queryLower]) {
-                    const aiMsg = document.createElement('div');
-                    aiMsg.className = 'bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md max-w-[85%] whitespace-pre-line';
-                    aiMsg.innerHTML = `<span class="font-bold text-indigo-400">🤖 Oxel AI:</span>\n${offlineAnswers[queryLower]}`;
-                    chat.appendChild(aiMsg);
-                    chat.scrollTop = chat.scrollHeight;
-                } else {
-                    if (typeof navigator.onLine !== 'undefined' && !navigator.onLine) {
-                        const aiMsg = document.createElement('div');
-                        aiMsg.className = 'bg-[#1e1e1e] border border-red-500/30 rounded-2xl p-4 text-xs leading-relaxed text-red-300 shadow-md max-w-[85%]';
-                        aiMsg.innerHTML = `<span class="font-bold text-red-400">🤖 Oxel AI:</span><br>Нету подключения к интернету. Проверьте подключения в настройки, или повторите попытку, если это произошло по ошибке.`;
-                        chat.appendChild(aiMsg);
-                        chat.scrollTop = chat.scrollHeight;
-                    } else {
-                        const aiMsg = document.createElement('div');
-                        aiMsg.className = 'bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-4 text-xs leading-relaxed text-gray-200 shadow-md max-w-[85%]';
-                        aiMsg.innerHTML = `<span class="font-bold text-indigo-400">🤖 Oxel AI:</span><br>Я пока не знаю ответа на этот вопрос, но обязательно научусь! Используйте частые вопросы выше.`;
-                        chat.appendChild(aiMsg);
-                        chat.scrollTop = chat.scrollHeight;
-                    }
-                }
-            }, 400);
-        }
+                let reply = "Я внимательно изучил твой вопрос. В bibmeme всё сделано для удобства: используй Ленту, настраивай приватность в профиле и создавай крутые посты!";
+                const lower = text.toLowerCase();
 
-        document.getElementById('userInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
+                if (lower.includes("пост") || lower.includes("мем") || lower.includes("создать")) {
+                    reply = "Чтобы создать пост, зайди во вкладку «Лента» в главном приложении и нажми синюю кнопку «Создайте свой первый пост!». Можешь добавить текст, фото и выбрать возрастное ограничение.";
+                } else if (lower.includes("закрыт") || lower.includes("приват") || lower.includes("профиль")) {
+                    reply = "Закрытый (приватный) профиль защищает твои публикации. Чужие пользователи не смогут увидеть твои посты в ленте или через поиск, а увидят предупреждающую плашку.";
+                } else if (lower.includes("сон") || lower.includes("спать") || lower.includes("возраст")) {
+                    reply = "Режим сна автоматически активируется для несовершеннолетних участников в зависимости от возраста (например, в 22:00 или 23:00), чтобы ты вовремя ложился спать!";
+                } else if (lower.includes("пароль") || lower.includes("безопасн")) {
+                    reply = "Ты можешь защитить свой аккаунт надежным паролем через Настройки в своем Профиле. Пароль должен содержать от 6 символов, цифры, заглавную букву и символ подчёркивания (_).";
+                }
+
+                chatBox.innerHTML += `
+                    <div class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-300 mr-4">
+                        <strong class="text-blue-400">Oxel:</strong> ${reply}
+                    </div>
+                `;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 600);
+        };
     </script>
 </body>
 </html>
