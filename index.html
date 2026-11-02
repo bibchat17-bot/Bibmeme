@@ -34,7 +34,7 @@
     <!-- Основной контейнер экрана -->
     <div id="app-container" class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3">
         
-        <!-- Стартовый экран (только вход и серый помощник снизу) -->
+        <!-- Стартовый экран -->
         <div id="welcome-screen" class="w-full flex flex-col gap-4 text-center py-6">
             <button id="googleAuthBtn" onclick="loginWithGoogle()" style="width: 100%; background: white; color: black; font-weight: bold; padding: 12px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 Войти через Google
@@ -594,7 +594,7 @@
                 return;
             }
 
-                     let suggestion = checkTyposAndSuggest(queryText);
+                    let suggestion = checkTyposAndSuggest(queryText);
         if (suggestion && overrideQuery === null) {
             correctionBox.innerHTML = `Возможно, вы имели в виду: <span onclick="performSearch('${suggestion}')" class="underline font-bold cursor-pointer text-white">${suggestion}</span>? (нажмите для поиска)`;
             correctionBox.classList.remove('hidden');
@@ -608,6 +608,14 @@
             const postsSnap = await getDocs(collection(db, "posts"));
             const usersSnap = await getDocs(collection(db, "users"));
 
+            let privateUids = new Set();
+            usersSnap.forEach(docSnap => {
+                let u = docSnap.data();
+                if (u.isPrivate && u.uid !== currentUser?.uid) {
+                    privateUids.add(u.uid);
+                }
+            });
+
             let html = "";
             let foundCount = 0;
 
@@ -615,6 +623,9 @@
             postsSnap.forEach(docSnap => {
                 let p = docSnap.data();
                 let postId = docSnap.id;
+                
+                if (privateUids.has(p.uid)) return;
+
                 if (p.text && p.text.toLowerCase().includes(queryText)) {
                     foundCount++;
                     html += `
@@ -806,7 +817,7 @@
         document.getElementById('detailViewModal').classList.add('hidden');
     };
 
-    window.switchTab = function(tabName) {
+    window.switchTab = async function(tabName) {
         activeTab = tabName;
         if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
 
@@ -851,6 +862,26 @@
             }
 
             const isPrivateAcc = currentUserData?.isPrivate || false;
+
+            let myPostsHtml = '<p class="text-xs text-gray-400 text-center py-2">У вас пока нет публикаций</p>';
+            try {
+                const postsSnap = await getDocs(collection(db, "posts"));
+                let myList = [];
+                postsSnap.forEach(docSnap => {
+                    let p = docSnap.data();
+                    if (p.uid === currentUser.uid) myList.push({ ...p, id: docSnap.id });
+                });
+
+                if (myList.length > 0) {
+                    myPostsHtml = myList.map(p => `
+                        <div onclick="jumpToFeedPost('${p.id}')" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs cursor-pointer hover:border-indigo-500 transition">
+                            ${p.text ? `<p class="text-gray-200 mb-1">${p.text}</p>` : ''}
+                            ${p.image ? `<img src="${p.image}" class="rounded-lg max-h-32 w-full object-cover">` : ''}
+                            <span class="text-[9px] text-indigo-400 mt-1 block">Открыть в ленте ➔</span>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) {}
 
             container.innerHTML = `
                 <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
@@ -900,6 +931,13 @@
                             </div>
                         </div>
                     </div>
+
+                                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10 text-xs">
+                        <h3 class="font-bold text-indigo-400">Ваши публикации:</h3>
+                        <div class="flex flex-col gap-2 max-h-48 overflow-y-auto">
+                            ${myPostsHtml}
+                        </div>
+                    </div>
                 </div>
             `;
         } else if (tabName === 'feed') {
@@ -939,7 +977,7 @@
             toggle.checked = currentUserData?.isPrivate || false;
         }
 
-                document.getElementById('secPrivacy').classList.add('hidden');
+        document.getElementById('secPrivacy').classList.add('hidden');
         document.getElementById('secAccount').classList.add('hidden');
         document.getElementById('arrow-secPrivacy').style.transform = "rotate(0deg)";
         document.getElementById('arrow-secAccount').style.transform = "rotate(0deg)";
@@ -1175,6 +1213,10 @@
                     if (authorSnap.exists()) authorData = authorSnap.data();
                 } catch(e) {}
 
+                if (authorData.isPrivate && authorData.uid !== currentUser.uid) {
+                    continue;
+                }
+
                 let authorJson = encodeURIComponent(JSON.stringify(authorData));
 
                 html += `
@@ -1282,7 +1324,7 @@
         input.value = "";
     };
 
-    window.deleteComment = async function(postId, commentIndex) {
+        window.deleteComment = async function(postId, commentIndex) {
         if (confirm("Вы точно хотите удалить комментарий?")) {
             const postRef = doc(db, "posts", postId);
             const postSnap = await getDoc(postRef);
