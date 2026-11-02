@@ -34,28 +34,13 @@
     <!-- Основной контейнер экрана -->
     <div id="app-container" class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3">
         
-        <!-- Стартовый экран -->
-        <div id="welcome-screen" class="w-full flex flex-col gap-4 text-center">
-            
-            <div class="flex flex-col gap-2 py-4">
-                <h2 class="text-xl font-extrabold text-white tracking-tight">Знакомьтесь с ии-ассистентом Oxel</h2>
-                <p class="text-xs text-gray-300 leading-relaxed px-2">
-                    Он будет вам помогать с вопросами, отвечать на них и помогать всем. Попробуйте сейчас!
-                </p>
-            </div>
-
-            <!-- Кнопка входа через Google -->
+        <!-- Стартовый экран (только вход и серый помощник снизу) -->
+        <div id="welcome-screen" class="w-full flex flex-col gap-4 text-center py-6">
             <button id="googleAuthBtn" onclick="loginWithGoogle()" style="width: 100%; background: white; color: black; font-weight: bold; padding: 12px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
                 Войти через Google
             </button>
             
-            <!-- Кнопка Помощь (Oxel) -->
-            <a href="oxel.html" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-2xl text-xs text-center transition shadow-lg flex items-center justify-center gap-2">
-                🤖 Помощь (Oxel)
-            </a>
-
-            <!-- Серый текст Помощник снизу -->
-            <a href="oxel.html" class="text-xs text-gray-500 hover:text-gray-300 transition text-center mt-1 block">
+            <a href="oxel.html" class="text-xs text-gray-500 hover:text-gray-300 transition text-center mt-2 block">
                 Помощник
             </a>
 
@@ -91,7 +76,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно Настроек с аккордеоном (выпадающие пункты) -->
+    <!-- Модальное окно Настроек -->
     <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -99,7 +84,6 @@
                 <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-white text-sm font-bold">✕ Закрыть</button>
             </div>
 
-            <!-- Пункт 1: Защита и конфиденциальность (Аккордеон) -->
             <div class="flex flex-col border border-white/10 rounded-xl overflow-hidden bg-[#121212]">
                 <button onclick="toggleSettingsSection('secPrivacy')" class="w-full p-3 text-left font-bold text-xs text-indigo-400 flex justify-between items-center hover:bg-white/5 transition">
                     <span>Защита и конфиденциальность</span>
@@ -119,7 +103,6 @@
                 </div>
             </div>
 
-            <!-- Пункт 2: Аккаунт (Аккордеон) -->
             <div class="flex flex-col border border-white/10 rounded-xl overflow-hidden bg-[#121212]">
                 <button onclick="toggleSettingsSection('secAccount')" class="w-full p-3 text-left font-bold text-xs text-indigo-400 flex justify-between items-center hover:bg-white/5 transition">
                     <span>Аккаунт</span>
@@ -139,7 +122,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно детализации профиля или поста из поиска -->
+    <!-- Модальное окно деталей -->
     <div id="detailViewModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -568,7 +551,6 @@
             switchTab('profile');
         };
 
-        // Логика умного поиска и опечаток
         window.openSearchModal = function() {
             document.getElementById('searchModal').classList.remove('hidden');
             document.getElementById('searchInput').value = "";
@@ -612,673 +594,727 @@
                 return;
             }
 
-                        let suggestion = checkTyposAndSuggest(queryText);
-            if (suggestion && overrideQuery === null) {
-                correctionBox.innerHTML = `Возможно, вы имели в виду: <span onclick="performSearch('${suggestion}')" class="underline font-bold cursor-pointer text-white">${suggestion}</span>? (нажмите для поиска)`;
-                correctionBox.classList.remove('hidden');
+                     let suggestion = checkTyposAndSuggest(queryText);
+        if (suggestion && overrideQuery === null) {
+            correctionBox.innerHTML = `Возможно, вы имели в виду: <span onclick="performSearch('${suggestion}')" class="underline font-bold cursor-pointer text-white">${suggestion}</span>? (нажмите для поиска)`;
+            correctionBox.classList.remove('hidden');
+        } else {
+            correctionBox.classList.add('hidden');
+        }
+
+        resultsList.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Ищем в Горячем, Постах и Профилях...</p>`;
+
+        try {
+            const postsSnap = await getDocs(collection(db, "posts"));
+            const usersSnap = await getDocs(collection(db, "users"));
+
+            let html = "";
+            let foundCount = 0;
+
+            html += `<div class="text-[11px] font-bold text-indigo-400 pb-1 border-b border-white/10 mt-1">📝 Посты:</div>`;
+            postsSnap.forEach(docSnap => {
+                let p = docSnap.data();
+                let postId = docSnap.id;
+                if (p.text && p.text.toLowerCase().includes(queryText)) {
+                    foundCount++;
+                    html += `
+                        <div onclick="viewPostDetail('${postId}')" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-200 cursor-pointer hover:border-indigo-500 transition">
+                            <strong>${p.authorName}:</strong> ${p.text}
+                        </div>
+                    `;
+                }
+            });
+
+            html += `<div class="text-[11px] font-bold text-indigo-400 pb-1 border-b border-white/10 mt-2">👤 Профили:</div>`;
+            usersSnap.forEach(docSnap => {
+                let u = docSnap.data();
+                let name = (u.displayName || "").toLowerCase();
+                if (name.includes(queryText)) {
+                    foundCount++;
+                    let isClosed = u.isPrivate;
+                    let userJson = encodeURIComponent(JSON.stringify(u));
+
+                    let displayStatus = "Участник";
+                    if (u.age) {
+                        if (u.age >= 9 && u.age <= 12) displayStatus = "Преподросток";
+                        else if (u.age >= 13 && u.age <= 17) displayStatus = "Подросток";
+                        else if (u.age >= 18) displayStatus = "Взрослый";
+                    } else if (u.ageCategory) {
+                        displayStatus = u.ageCategory;
+                    }
+
+                    html += `
+                        <div onclick="viewUserProfile('${userJson}')" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 flex items-center justify-between text-xs cursor-pointer hover:border-indigo-500 transition">
+                            <div class="flex items-center gap-2">
+                                <img src="${u.photoURL || 'https://via.placeholder.com/30'}" class="w-8 h-8 rounded-full object-cover">
+                                <div>
+                                    <div class="font-bold text-white flex items-center gap-1">
+                                        ${u.displayName} ${isClosed ? '🔒' : ''}
+                                    </div>
+                                    <span class="text-[10px] text-gray-400">${displayStatus}</span>
+                                </div>
+                            </div>
+                            ${isClosed ? '<span class="text-[10px] text-red-400 font-bold">Закрыт 🔒</span>' : '<span class="text-[10px] text-green-400 font-bold">Открыт 🌍</span>'}
+                        </div>
+                    `;
+                }
+            });
+
+            if (foundCount === 0) {
+                resultsList.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Ничего не найдено по запросу "${queryText}"</p>`;
             } else {
-                correctionBox.classList.add('hidden');
+                resultsList.innerHTML = html;
             }
 
-            resultsList.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Ищем в Горячем, Постах и Профилях...</p>`;
+        } catch (e) {
+            console.error("Ошибка поиска:", e);
+            resultsList.innerHTML = `<p class="text-xs text-red-400 text-center py-4">Ошибка при выполнении поиска</p>`;
+        }
+    };
 
+    window.viewUserProfile = async function(encodedUser) {
+        const user = JSON.parse(decodeURIComponent(encodedUser));
+        closeSearchModal();
+
+        document.getElementById('detailModalTitle').textContent = "Профиль пользователя";
+        const content = document.getElementById('detailModalContent');
+        
+        if (currentUser && user.uid === currentUser.uid) {
+            closeDetailViewModal();
+            switchTab('profile');
+            return;
+        }
+
+        let isClosed = user.isPrivate;
+
+        if (isClosed) {
+            content.innerHTML = `
+                <div class="flex flex-col items-center gap-3 text-center py-4">
+                    <img src="${user.photoURL || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-full border border-white/20 object-cover">
+                    <div class="flex items-center gap-1.5 font-bold text-base">
+                        ${user.displayName} <span>🔒</span>
+                    </div>
+                    <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mt-2">
+                        <p class="text-xs text-amber-300 font-bold leading-relaxed">
+                            Это закрытый профиль, Вы не сможете увидеть её почты, комментарии и мемы
+                        </p>
+                    </div>
+                </div>
+            `;
+        } else {
+            let formattedCreatedAt = "Не указана";
+            if (user.createdAt) {
+                const d = new Date(user.createdAt);
+                if (!isNaN(d)) {
+                    formattedCreatedAt = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+                }
+            }
+
+            let userPostsHtml = '<p class="text-xs text-gray-400">Нет публикаций</p>';
             try {
                 const postsSnap = await getDocs(collection(db, "posts"));
-                const usersSnap = await getDocs(collection(db, "users"));
-
-                let html = "";
-                let foundCount = 0;
-
-                // 1. Посты
-                html += `<div class="text-[11px] font-bold text-indigo-400 pb-1 border-b border-white/10 mt-1">📝 Посты:</div>`;
+                let pList = [];
                 postsSnap.forEach(docSnap => {
                     let p = docSnap.data();
-                    let postId = docSnap.id;
-                    if (p.text && p.text.toLowerCase().includes(queryText)) {
-                        foundCount++;
-                        html += `
-                            <div onclick="viewPostDetail('${postId}')" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-200 cursor-pointer hover:border-indigo-500 transition">
-                                <strong>${p.authorName}:</strong> ${p.text}
-                            </div>
-                        `;
-                    }
+                    let pId = docSnap.id;
+                    if (p.uid === user.uid) pList.push({ ...p, id: pId });
                 });
 
-                // 2. Профили
-                html += `<div class="text-[11px] font-bold text-indigo-400 pb-1 border-b border-white/10 mt-2">👤 Профили:</div>`;
-                usersSnap.forEach(docSnap => {
-                    let u = docSnap.data();
-                    let name = (u.displayName || "").toLowerCase();
-                    if (name.includes(queryText)) {
-                        foundCount++;
-                        let isClosed = u.isPrivate;
-                        let userJson = encodeURIComponent(JSON.stringify(u));
-                        html += `
-                            <div onclick="viewUserProfile('${userJson}')" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 flex items-center justify-between text-xs cursor-pointer hover:border-indigo-500 transition">
-                                <div class="flex items-center gap-2">
-                                    <img src="${u.photoURL || 'https://via.placeholder.com/30'}" class="w-8 h-8 rounded-full object-cover">
-                                    <div>
-                                        <div class="font-bold text-white flex items-center gap-1">
-                                            ${u.displayName} ${isClosed ? '🔒' : ''}
-                                        </div>
-                                        <span class="text-[10px] text-gray-400">${u.ageCategory || 'Участник'}</span>
-                                    </div>
-                                </div>
-                                ${isClosed ? '<span class="text-[10px] text-red-400 font-bold">Закрыт 🔒</span>' : '<span class="text-[10px] text-green-400 font-bold">Открыт 🌍</span>'}
-                            </div>
-                        `;
-                    }
-                });
-
-                if (foundCount === 0) {
-                    resultsList.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Ничего не найдено по запросу "${queryText}"</p>`;
-                } else {
-                    resultsList.innerHTML = html;
+                if (pList.length > 0) {
+                    userPostsHtml = pList.map(p => `
+                        <div onclick="jumpToFeedPost('${p.id}')" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs cursor-pointer hover:border-indigo-500 transition">
+                            ${p.text ? `<p class="text-gray-200 mb-1">${p.text}</p>` : ''}
+                            ${p.image ? `<img src="${p.image}" class="rounded-lg max-h-40 w-full object-cover">` : ''}
+                            <span class="text-[9px] text-indigo-400 mt-1 block">Нажмите, чтобы открыть пост в ленте ➔</span>
+                        </div>
+                    `).join('');
                 }
+            } catch (err) {}
 
-            } catch (e) {
-                console.error("Ошибка поиска:", e);
-                resultsList.innerHTML = `<p class="text-xs text-red-400 text-center py-4">Ошибка при выполнении поиска</p>`;
+            content.innerHTML = `
+                <div class="flex items-center gap-3 border-b border-white/10 pb-3">
+                    <img src="${user.photoURL || 'https://via.placeholder.com/60'}" class="w-12 h-12 rounded-full object-cover border border-white/20">
+                    <div>
+                        <h3 class="font-bold text-sm text-white">${user.displayName}</h3>
+                        <p class="text-[10px] text-gray-400">Создание аккаунта: ${formattedCreatedAt}</p>
+                    </div>
+                </div>
+                <div class="flex flex-col gap-2 pt-1">
+                    <span class="text-xs font-bold text-indigo-400">Публикация пользователя:</span>
+                    ${userPostsHtml}
+                </div>
+            `;
+        }
+
+        document.getElementById('detailViewModal').classList.remove('hidden');
+    };
+
+    window.jumpToFeedPost = function(postId) {
+        closeDetailViewModal();
+        switchTab('feed');
+        setTimeout(() => {
+            const targetPost = document.getElementById(`post-card-${postId}`);
+            if (targetPost) {
+                targetPost.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetPost.classList.add('ring-2', 'ring-indigo-500');
+                setTimeout(() => targetPost.classList.remove('ring-2', 'ring-indigo-500'), 2000);
             }
-        };
+        }, 300);
+    };
 
-        window.viewUserProfile = async function(encodedUser) {
-            const user = JSON.parse(decodeURIComponent(encodedUser));
-            closeSearchModal();
+    window.viewPostDetail = async function(postId) {
+        closeSearchModal();
+        try {
+            const docRef = doc(db, "posts", postId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                let p = docSnap.data();
+                document.getElementById('detailModalTitle').textContent = "Мем / Пост";
+                
+                const isLiked = p.likes && p.likes.includes(currentUser.uid);
+                const likesCount = p.likes ? p.likes.length : 0;
+                const commentsCount = p.comments ? p.comments.length : 0;
 
-            document.getElementById('detailModalTitle').textContent = "Профиль пользователя";
-            const content = document.getElementById('detailModalContent');
-            let isClosed = user.isPrivate;
-
-            if (isClosed) {
-                content.innerHTML = `
-                    <div class="flex flex-col items-center gap-3 text-center py-4">
-                        <img src="${user.photoURL || 'https://via.placeholder.com/80'}" class="w-16 h-16 rounded-full border border-white/20 object-cover">
-                        <div class="flex items-center gap-1.5 font-bold text-base">
-                            ${user.displayName} <span>🔒</span>
-                        </div>
-                        <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mt-2">
-                            <p class="text-xs text-amber-300 font-bold leading-relaxed">
-                                Это закрытый профиль, Вы не сможете увидеть её почты, комментарии и мемы
-                            </p>
-                        </div>
-                    </div>
-                `;
-            } else {
-                let formattedCreatedAt = "Не указана";
-                if (user.createdAt) {
-                    const d = new Date(user.createdAt);
-                    if (!isNaN(d)) {
-                        formattedCreatedAt = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
-                    }
-                }
-
-                let userPostsHtml = '<p class="text-xs text-gray-400">Нет публикаций</p>';
-                try {
-                    const postsSnap = await getDocs(collection(db, "posts"));
-                    let pList = [];
-                    postsSnap.forEach(docSnap => {
-                        let p = docSnap.data();
-                        if (p.uid === user.uid) pList.push(p);
-                    });
-
-                    if (pList.length > 0) {
-                        userPostsHtml = pList.map(p => `
-                            <div class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs">
-                                ${p.text ? `<p class="text-gray-200 mb-1">${p.text}</p>` : ''}
-                                ${p.image ? `<img src="${p.image}" class="rounded-lg max-h-40 w-full object-cover">` : ''}
-                            </div>
-                        `).join('');
-                    }
-                } catch (err) {}
-
-                content.innerHTML = `
-                    <div class="flex items-center gap-3 border-b border-white/10 pb-3">
-                        <img src="${user.photoURL || 'https://via.placeholder.com/60'}" class="w-12 h-12 rounded-full object-cover border border-white/20">
-                        <div>
-                            <h3 class="font-bold text-sm text-white">${user.displayName}</h3>
-                            <p class="text-[10px] text-gray-400">Создание аккаунта: ${formattedCreatedAt}</p>
-                        </div>
-                    </div>
-                    <div class="flex flex-col gap-2 pt-1">
-                        <span class="text-xs font-bold text-indigo-400">Публикация пользователя:</span>
-                        ${userPostsHtml}
-                    </div>
-                `;
-            }
-
-            document.getElementById('detailViewModal').classList.remove('hidden');
-        };
-
-        window.viewPostDetail = async function(postId) {
-            closeSearchModal();
-            try {
-                const docRef = doc(db, "posts", postId);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    let p = docSnap.data();
-                    document.getElementById('detailModalTitle').textContent = "Мем / Пост";
-                    document.getElementById('detailModalContent').innerHTML = `
+                document.getElementById('detailModalContent').innerHTML = `
+                    <div class="bg-[#121212] p-4 rounded-xl border border-white/10 flex flex-col gap-3">
                         <div class="flex items-center gap-2.5 border-b border-white/10 pb-2">
                             <img src="${p.authorPhoto || 'https://via.placeholder.com/30'}" class="w-8 h-8 rounded-full object-cover">
-                            <span class="text-xs font-bold text-white">${p.authorName}</span>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">${p.authorName}</h4>
+                                <span class="text-[9px] text-gray-400">${p.timeString || ''}</span>
+                            </div>
                         </div>
-                        ${p.text ? `<p class="text-xs text-gray-200">${p.text}</p>` : ''}
-                        ${p.image ? `<img src="${p.image}" class="rounded-xl max-h-60 w-full object-cover">` : ''}
-                    `;
-                    document.getElementById('detailViewModal').classList.remove('hidden');
-                }
-            } catch (e) {
-                alert("Не удалось загрузить пост");
-            }
-        };
-
-        window.closeDetailViewModal = function() {
-            document.getElementById('detailViewModal').classList.add('hidden');
-        };
-
-        window.switchTab = function(tabName) {
-            activeTab = tabName;
-            if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
-
-            document.querySelectorAll('#bottom-nav button').forEach(btn => btn.classList.remove('bg-white/10', 'text-white'));
-            const activeBtn = document.getElementById(`nav-${tabName}`);
-            if (activeBtn) activeBtn.classList.add('bg-white/10', 'text-white');
-
-            const container = document.getElementById('app-container');
-            const topHeader = document.getElementById('top-header');
-
-            if (tabName === 'profile') {
-                topHeader.innerHTML = `
-                    <div class="flex items-center justify-between w-full px-2">
-                        <h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>
-                        <button onclick="openSearchModal()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer" title="Поиск">
-                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                        ${p.text ? `<p class="text-xs text-gray-200 leading-relaxed">${p.text}</p>` : ''}
+                        ${p.image ? `<img src="${p.image}" class="rounded-xl max-h-72 w-full object-cover border border-white/10">` : ''}
+                        <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
+                            <span>❤️ ${likesCount}</span>
+                            <span>💬 ${commentsCount}</span>
+                        </div>
+                        <button onclick="jumpToFeedPost('${postId}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs transition">
+                            Открыть этот пост в Ленте
                         </button>
                     </div>
                 `;
-                
-                let formattedCreatedAt = "Не указана";
-                if (currentUserData && currentUserData.createdAt) {
-                    const createdDate = new Date(currentUserData.createdAt);
-                    if (!isNaN(createdDate)) {
-                        const day = String(createdDate.getDate()).padStart(2, '0');
-                        const month = String(createdDate.getMonth() + 1).padStart(2, '0');
-                        const year = createdDate.getFullYear();
-                        const hours = String(createdDate.getHours()).padStart(2, '0');
-                        const minutes = String(createdDate.getMinutes()).padStart(2, '0');
-                        formattedCreatedAt = `${day}.${month}.${year} в ${hours}:${minutes}`;
-                    } else {
-                        formattedCreatedAt = currentUserData.createdAt;
-                    }
-                }
+                document.getElementById('detailViewModal').classList.remove('hidden');
+            }
+        } catch (e) {
+            alert("Не удалось загрузить пост");
+        }
+    };
 
-                let userStatus = currentUserData?.ageCategory || "Участник";
-                if (currentUserData?.age) {
-                    const userAge = currentUserData.age;
-                    if (userAge >= 9 && userAge <= 12) userStatus = "Преподросток";
-                    else if (userAge >= 13 && userAge <= 17) userStatus = "Подросток";
-                    else if (userAge >= 18) userStatus = "Взрослый";
-                }
+    window.closeDetailViewModal = function() {
+        document.getElementById('detailViewModal').classList.add('hidden');
+    };
 
-                const isPrivateAcc = currentUserData?.isPrivate || false;
+    window.switchTab = function(tabName) {
+        activeTab = tabName;
+        if (unsubscribePosts) { unsubscribePosts(); unsubscribePosts = null; }
 
-                container.innerHTML = `
-                    <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-3">
-                                <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-14 h-14 rounded-full border border-white/20 object-cover">
-                                <div>
-                                    <h2 class="text-base font-bold flex items-center gap-1.5">
-                                        ${currentUser.displayName} 
-                                        ${isPrivateAcc ? '<span title="Закрытый профиль">🔒</span>' : ''}
-                                    </h2>
-                                    <p class="text-[11px] text-gray-400">${isPrivateAcc ? 'Скрыто (Закрытый профиль)' : currentUser.email}</p>
-                                </div>
-                            </div>
-                            <button onclick="openSettingsModal()" class="bg-white/10 hover:bg-white/20 text-white font-bold p-2.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer" title="Настройки">
-                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.47l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.47l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-                            </button>
-                        </div>
-                        <div class="mt-0.5">${SIGNS[getUserRole()]}</div>
+        document.querySelectorAll('#bottom-nav button').forEach(btn => btn.classList.remove('bg-white/10', 'text-white'));
+        const activeBtn = document.getElementById(`nav-${tabName}`);
+        if (activeBtn) activeBtn.classList.add('bg-white/10', 'text-white');
 
-                        ${isPrivateAcc ? `
-                            <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 text-center">
-                                <p class="text-xs text-amber-300 font-bold leading-relaxed">
-                                    Это закрытый профиль, Вы не сможете увидеть её почты, комментарии и мемы
-                                </p>
-                            </div>
-                        ` : ''}
+        const container = document.getElementById('app-container');
+        const topHeader = document.getElementById('top-header');
 
-                        <div class="flex flex-col gap-2 pt-2 border-t border-white/10 text-xs">
-                            <h3 class="font-bold text-indigo-400">Информация о профиле:</h3>
-                            <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex flex-col gap-2">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Имя (никнейм):</span>
-                                    <span class="font-bold text-white">${currentUserData?.displayName || currentUser.displayName || 'Не указано'}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Дата рождения:</span>
-                                    <span class="font-bold text-white">${currentUserData?.fullBirthday || 'Не указана'}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Возраст:</span>
-                                    <span class="font-bold text-white">${currentUserData?.age ? currentUserData.age + ' лет' : 'Не указан'}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Статус:</span>
-                                    <span class="font-bold text-indigo-300">${userStatus}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Создание аккаунта:</span>
-                                    <span class="font-medium text-gray-300">${formattedCreatedAt}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-400">Приватность:</span>
-                                    <span class="font-bold text-amber-300">${isPrivateAcc ? 'Закрытый профиль 🔒' : 'Открытый профиль 🌍'}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else if (tabName === 'feed') {
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Лента мемов</h1>`;
-                container.innerHTML = `
-                    <button onclick="openCreatePostModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-2xl text-sm shadow-md transition flex items-center justify-center gap-2 mb-2">
-                        <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        Создайте свой первый пост!
+        if (tabName === 'profile') {
+            topHeader.innerHTML = `
+                <div class="flex items-center justify-between w-full px-2">
+                    <h1 class="text-2xl font-extrabold tracking-tight">Профиль</h1>
+                    <button onclick="openSearchModal()" class="bg-white/10 hover:bg-white/20 text-white p-2.5 rounded-xl transition flex items-center justify-center cursor-pointer" title="Поиск">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
                     </button>
-                    <div id="postsList" class="flex flex-col gap-3 w-full">
-                        <p class="text-xs text-center text-gray-400">Загрузка постов из облака...</p>
-                    </div>
-                `;
-                loadRealtimeFeed();
-            } else if (tabName === 'adminServer') {
-                topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
-                container.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-purple-300">Панель администратора активна</div>`;
-            }
-        };
-
-        window.toggleSettingsSection = function(sectionId) {
-            const section = document.getElementById(sectionId);
-            const arrow = document.getElementById(`arrow-${sectionId}`);
-            if (section) {
-                section.classList.toggle('hidden');
-                if (section.classList.contains('hidden')) {
-                    arrow.style.transform = "rotate(0deg)";
+                </div>
+            `;
+            
+            let formattedCreatedAt = "Не указана";
+            if (currentUserData && currentUserData.createdAt) {
+                const createdDate = new Date(currentUserData.createdAt);
+                if (!isNaN(createdDate)) {
+                    const day = String(createdDate.getDate()).padStart(2, '0');
+                    const month = String(createdDate.getMonth() + 1).padStart(2, '0');
+                    const year = createdDate.getFullYear();
+                    const hours = String(createdDate.getHours()).padStart(2, '0');
+                    const minutes = String(createdDate.getMinutes()).padStart(2, '0');
+                    formattedCreatedAt = `${day}.${month}.${year} в ${hours}:${minutes}`;
                 } else {
-                    arrow.style.transform = "rotate(180deg)";
+                    formattedCreatedAt = currentUserData.createdAt;
                 }
             }
-        };
 
-        window.openSettingsModal = function() {
-            const toggle = document.getElementById('privateAccountToggle');
-            if (toggle) {
-                toggle.checked = currentUserData?.isPrivate || false;
+            let userStatus = currentUserData?.ageCategory || "Участник";
+            if (currentUserData?.age) {
+                const userAge = currentUserData.age;
+                if (userAge >= 9 && userAge <= 12) userStatus = "Преподросток";
+                else if (userAge >= 13 && userAge <= 17) userStatus = "Подросток";
+                else if (userAge >= 18) userStatus = "Взрослый";
             }
 
-            document.getElementById('secPrivacy').classList.add('hidden');
-            document.getElementById('secAccount').classList.add('hidden');
-            document.getElementById('arrow-secPrivacy').style.transform = "rotate(0deg)";
-            document.getElementById('arrow-secAccount').style.transform = "rotate(0deg)";
+            const isPrivateAcc = currentUserData?.isPrivate || false;
 
-                        const passSection = document.getElementById('settingsPasswordSection');
-            if (passSection) {
-                if (currentUserData && currentUserData.hasPassword) {
-                    passSection.innerHTML = `
-                        <button onclick="closeSettingsModal(); openPasswordManageModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">1. Изменить пароль</button>
-                        <button onclick="removeAccountPassword(); closeSettingsModal();" class="w-full bg-amber-600/20 text-amber-400 font-bold py-2 rounded-xl text-xs transition">2. Удалить пароль</button>
-                    `;
-                } else {
-                    passSection.innerHTML = `
-                        <button onclick="closeSettingsModal(); openPasswordManageModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs transition">1. Добавить пароль</button>
-                    `;
-                }
-            }
-            document.getElementById('settingsModal').classList.remove('hidden');
-        };
-
-        window.closeSettingsModal = function() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        };
-
-        window.togglePrivateAccount = async function(checkbox) {
-            const isPrivate = checkbox.checked;
-            currentUserData.isPrivate = isPrivate;
-            try {
-                await setDoc(doc(db, "users", currentUser.uid), currentUserData, { merge: true });
-                alert(isPrivate ? "Профиль переведен в закрытый режим." : "Профиль снова открытый!");
-                switchTab('profile');
-            } catch (e) {
-                console.error("Ошибка сохранения приватности:", e);
-            }
-        };
-
-        window.openDeleteAccountModalFromSettings = function() {
-            closeSettingsModal();
-            openDeleteAccountModal();
-        };
-
-        window.handleSignOut = async function() {
-            try {
-                sessionStorage.clear();
-                await signOut(auth);
-                location.reload();
-            } catch (e) {
-                location.reload();
-            }
-        };
-
-        window.openPasswordManageModal = function() {
-            document.getElementById('passwordManageModal').classList.remove('hidden');
-        };
-
-        window.closePasswordManageModal = function() {
-            document.getElementById('passwordManageModal').classList.add('hidden');
-            document.getElementById('modalPassError').classList.add('hidden');
-            document.getElementById('modalNewPassword').value = "";
-        };
-
-        window.saveManagedPassword = async function() {
-            const newPass = document.getElementById('modalNewPassword').value.trim();
-            const err = document.getElementById('modalPassError');
-
-            if (!validatePasswordRules(newPass)) {
-                err.textContent = "Пароль не соответствует требованиям!";
-                err.classList.remove('hidden');
-                return;
-            }
-
-            currentUserData.hasPassword = true;
-            currentUserData.password = newPass;
-
-            await setDoc(doc(db, "users", currentUser.uid), currentUserData);
-            sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
-            closePasswordManageModal();
-            switchTab('profile');
-        };
-
-        window.removeAccountPassword = async function() {
-            if (confirm("Вы уверены, что хотите удалить пароль аккаунта?")) {
-                currentUserData.hasPassword = false;
-                currentUserData.password = "";
-                await setDoc(doc(db, "users", currentUser.uid), currentUserData);
-                switchTab('profile');
-            }
-        };
-
-        window.openDeleteAccountModal = function() {
-            document.getElementById('checkBackup').checked = false;
-            document.getElementById('checkConfirm').checked = false;
-            toggleDeleteButton();
-            document.getElementById('deleteAccountModal').classList.remove('hidden');
-        };
-
-        window.closeDeleteAccountModal = function() {
-            document.getElementById('deleteAccountModal').classList.add('hidden');
-        };
-
-        window.toggleDeleteButton = function() {
-            const check1 = document.getElementById('checkBackup').checked;
-            const check2 = document.getElementById('checkConfirm').checked;
-            const btn = document.getElementById('btnConfirmDelete');
-
-            if (check1 && check2) {
-                btn.disabled = false;
-                btn.className = "w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer";
-            } else {
-                btn.disabled = true;
-                btn.className = "w-full bg-red-600/50 text-white/50 font-bold py-2.5 rounded-xl text-xs transition cursor-not-allowed";
-            }
-        };
-
-        window.downloadUserDataBackup = function() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentUserData, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `bibmeme_backup_${currentUser.uid}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        };
-
-        window.confirmAccountDeletion = async function() {
-            try {
-                await deleteDoc(doc(db, "users", currentUser.uid));
-                await signOut(auth);
-                alert("Ваш аккаунт и данные успешно удалены.");
-                location.reload();
-            } catch (e) {
-                alert("Ошибка при удалении аккаунта: " + e.message);
-            }
-        };
-
-        window.openCreatePostModal = function() {
-            document.getElementById('createPostModal').classList.remove('hidden');
-        };
-
-        window.closeCreatePostModal = function() {
-            document.getElementById('createPostModal').classList.add('hidden');
-        };
-
-        window.publishPost = async function() {
-            const text = document.getElementById('postText').value.trim();
-            const fileInput = document.getElementById('postImageInput');
-            const ageLimit = document.getElementById('postAgeLimit').value;
-            const statusMsg = document.getElementById('postStatusMsg');
-
-            if (!text && fileInput.files.length === 0) {
-                alert("Добавьте текст или фото для поста!");
-                return;
-            }
-
-            statusMsg.classList.remove('hidden');
-
-            let imageUrl = "";
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                imageUrl = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(file);
-                });
-            }
-
-            let algorithmScore = 10;
-            if (imageUrl) algorithmScore += 50;
-            if (text.length > 20) algorithmScore += 20;
-
-            const now = new Date();
-            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} (${now.getDate()}.${now.getMonth()+1})`;
-
-            const newPost = {
-                uid: currentUser.uid,
-                authorName: currentUser.displayName,
-                authorPhoto: currentUser.photoURL || 'https://via.placeholder.com/40',
-                text: text,
-                image: imageUrl,
-                ageLimit: ageLimit,
-                createdAt: now.getTime(),
-                timeString: timeString,
-                likes: [],
-                comments: [],
-                score: algorithmScore
-            };
-
-            try {
-                await addDoc(collection(db, "posts"), newPost);
-                document.getElementById('postText').value = "";
-                fileInput.value = "";
-                statusMsg.classList.add('hidden');
-                closeCreatePostModal();
-            } catch (e) {
-                console.error("Ошибка публикации:", e);
-                statusMsg.textContent = "Ошибка публикации!";
-            }
-        };
-
-        function loadRealtimeFeed() {
-            const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
-            unsubscribePosts = onSnapshot(q, (snapshot) => {
-                const postsList = document.getElementById('postsList');
-                if (!postsList) return;
-
-                if (snapshot.empty) {
-                    postsList.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-gray-400">Пока нет постов. Будьте первыми!</div>`;
-                    return;
-                }
-
-                let html = "";
-                snapshot.forEach((docSnap) => {
-                    const post = docSnap.data();
-                    const postId = docSnap.id;
-                    const isLiked = post.likes && post.likes.includes(currentUser.uid);
-                    const likesCount = post.likes ? post.likes.length : 0;
-                    const commentsCount = post.comments ? post.comments.length : 0;
-
-                    let authorRole = getUserRole(post.uid);
-
-                    if (post.ageLimit === '18+' && currentUserData.age < 18) return;
-
-                    html += `
-                        <div class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 shadow-lg w-full flex flex-col gap-3">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-center gap-3">
-                                    <img src="${post.authorPhoto || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full object-cover border border-white/20">
-                                    <div class="flex flex-col">
-                                        <div class="flex items-center gap-1.5 flex-wrap">
-                                            <h4 class="text-xs font-bold text-white">${post.authorName || 'Участник'}</h4>
-                                            ${SIGNS[authorRole]}
-                                        </div>
-                                        <div class="flex items-center gap-1.5 mt-0.5">
-                                            <span class="inline-flex items-center gap-1 text-[10px] text-gray-400">${post.timeString || ''}</span>
-                                            ${post.ageLimit && post.ageLimit !== 'none' ? `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-md font-bold">${post.ageLimit}</span>` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                                ${post.uid === currentUser.uid ? `
-                                    <button onclick="deletePost('${postId}')" class="text-gray-500 hover:text-red-400 transition p-1" title="Удалить пост">
-                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                                    </button>
-                                ` : ''}
-                            </div>
-
-                            ${post.text ? `<p class="text-xs text-gray-200 leading-relaxed">${post.text}</p>` : ''}
-                            ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover border border-white/10">` : ''}
-
-                            <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
-                                <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500 font-bold' : ''}">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                                    <span>${likesCount}</span>
-                                </button>
-                                <button onclick="toggleComments('${postId}')" class="flex items-center gap-1.5 hover:text-white transition">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-                                    <span>${commentsCount}</span>
-                                </button>
-                                <button onclick="sharePost('${encodeURIComponent(post.text || 'Мем из bibmeme')}')" class="flex items-center gap-1.5 hover:text-white transition">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
-                                    <span>Поделиться</span>
-                                </button>
-                            </div>
-
-                            <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
-                                <div id="comments-list-${postId}" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
-                                    ${(post.comments || []).map((c, idx) => `
-                                        <div class="bg-[#121212] p-2 rounded-lg text-[11px] flex justify-between items-start gap-2">
-                                            <div>
-                                                <div class="flex items-center gap-1.5">
-                                                    <strong class="text-indigo-400">${c.author}</strong>
-                                                    <span class="text-[9px] text-gray-500">${c.timeString || ''}</span>
-                                                </div>
-                                                <p class="text-gray-200 mt-0.5">${c.text}</p>
-                                            </div>
-                                            ${c.uid === currentUser.uid ? `
-                                                <button onclick="deleteComment('${postId}', ${idx})" class="text-gray-500 hover:text-red-400 transition" title="Удалить комментарий">✕</button>
-                                            ` : ''}
-                                        </div>
-                                    `).join('') || '<p class="text-[10px] text-gray-500">Нет комментариев</p>'}
-                                </div>
-                                <div class="flex gap-2 mt-1">
-                                    <input type="text" id="comment-input-${postId}" placeholder="Написать коммент..." class="flex-1 bg-[#121212] border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white">
-                                    <button onclick="addComment('${postId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">Отправить</button>
-                                </div>
+            container.innerHTML = `
+                <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 shadow-lg w-full flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <img src="${currentUser.photoURL || 'https://via.placeholder.com/80'}" class="w-14 h-14 rounded-full border border-white/20 object-cover">
+                            <div>
+                                <h2 class="text-base font-bold flex items-center gap-1.5">
+                                    ${currentUser.displayName} 
+                                    ${isPrivateAcc ? '<span title="Закрытый профиль">🔒</span>' : ''}
+                                </h2>
+                                <p class="text-[11px] text-gray-400">${currentUser.email}</p>
                             </div>
                         </div>
-                    `;
-                });
-                postsList.innerHTML = html;
+                        <button onclick="openSettingsModal()" class="bg-white/10 hover:bg-white/20 text-white font-bold p-2.5 rounded-xl text-xs transition flex items-center gap-1.5 cursor-pointer" title="Настройки">
+                            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.47l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.47l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                        </button>
+                    </div>
+                    <div class="mt-0.5">${SIGNS[getUserRole()]}</div>
+
+                    <div class="flex flex-col gap-2 pt-2 border-t border-white/10 text-xs">
+                        <h3 class="font-bold text-indigo-400">Информация о профиле:</h3>
+                        <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex flex-col gap-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Имя (никнейм):</span>
+                                <span class="font-bold text-white">${currentUserData?.displayName || currentUser.displayName || 'Не указано'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Дата рождения:</span>
+                                <span class="font-bold text-white">${currentUserData?.fullBirthday || 'Не указана'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Возраст:</span>
+                                <span class="font-bold text-white">${currentUserData?.age ? currentUserData.age + ' лет' : 'Не указан'}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Статус:</span>
+                                <span class="font-bold text-indigo-300">${userStatus}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Создание аккаунта:</span>
+                                <span class="font-medium text-gray-300">${formattedCreatedAt}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-400">Приватность:</span>
+                                <span class="font-bold text-amber-300">${isPrivateAcc ? 'Закрытый профиль 🔒' : 'Открытый профиль 🌍'}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (tabName === 'feed') {
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight">Лента мемов</h1>`;
+            container.innerHTML = `
+                <button onclick="openCreatePostModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-2xl text-sm shadow-md transition flex items-center justify-center gap-2 mb-2">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                    Создайте свой первый пост!
+                </button>
+                <div id="postsList" class="flex flex-col gap-3 w-full">
+                    <p class="text-xs text-center text-gray-400">Загрузка постов из облака...</p>
+                </div>
+            `;
+            loadRealtimeFeed();
+        } else if (tabName === 'adminServer') {
+            topHeader.innerHTML = `<h1 class="text-2xl font-extrabold tracking-tight text-purple-400">Управление Сервером</h1>`;
+            container.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-purple-300">Панель администратора активна</div>`;
+        }
+    };
+
+    window.toggleSettingsSection = function(sectionId) {
+        const section = document.getElementById(sectionId);
+        const arrow = document.getElementById(`arrow-${sectionId}`);
+        if (section) {
+            section.classList.toggle('hidden');
+            if (section.classList.contains('hidden')) {
+                arrow.style.transform = "rotate(0deg)";
+            } else {
+                arrow.style.transform = "rotate(180deg)";
+            }
+        }
+    };
+
+    window.openSettingsModal = function() {
+        const toggle = document.getElementById('privateAccountToggle');
+        if (toggle) {
+            toggle.checked = currentUserData?.isPrivate || false;
+        }
+
+                document.getElementById('secPrivacy').classList.add('hidden');
+        document.getElementById('secAccount').classList.add('hidden');
+        document.getElementById('arrow-secPrivacy').style.transform = "rotate(0deg)";
+        document.getElementById('arrow-secAccount').style.transform = "rotate(0deg)";
+
+        const passSection = document.getElementById('settingsPasswordSection');
+        if (passSection) {
+            if (currentUserData && currentUserData.hasPassword) {
+                passSection.innerHTML = `
+                    <button onclick="closeSettingsModal(); openPasswordManageModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">1. Изменить пароль</button>
+                    <button onclick="removeAccountPassword(); closeSettingsModal();" class="w-full bg-amber-600/20 text-amber-400 font-bold py-2 rounded-xl text-xs transition">2. Удалить пароль</button>
+                `;
+            } else {
+                passSection.innerHTML = `
+                    <button onclick="closeSettingsModal(); openPasswordManageModal()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs transition">1. Добавить пароль</button>
+                `;
+            }
+        }
+        document.getElementById('settingsModal').classList.remove('hidden');
+    };
+
+    window.closeSettingsModal = function() {
+        document.getElementById('settingsModal').classList.add('hidden');
+    };
+
+    window.togglePrivateAccount = async function(checkbox) {
+        const isPrivate = checkbox.checked;
+        currentUserData.isPrivate = isPrivate;
+        try {
+            await setDoc(doc(db, "users", currentUser.uid), currentUserData, { merge: true });
+            alert(isPrivate ? "Профиль переведен в закрытый режим." : "Профиль снова открытый!");
+            switchTab('profile');
+        } catch (e) {
+            console.error("Ошибка сохранения приватности:", e);
+        }
+    };
+
+    window.openDeleteAccountModalFromSettings = function() {
+        closeSettingsModal();
+        openDeleteAccountModal();
+    };
+
+    window.handleSignOut = async function() {
+        try {
+            sessionStorage.clear();
+            await signOut(auth);
+            location.reload();
+        } catch (e) {
+            location.reload();
+        }
+    };
+
+    window.openPasswordManageModal = function() {
+        document.getElementById('passwordManageModal').classList.remove('hidden');
+    };
+
+    window.closePasswordManageModal = function() {
+        document.getElementById('passwordManageModal').classList.add('hidden');
+        document.getElementById('modalPassError').classList.add('hidden');
+        document.getElementById('modalNewPassword').value = "";
+    };
+
+    window.saveManagedPassword = async function() {
+        const newPass = document.getElementById('modalNewPassword').value.trim();
+        const err = document.getElementById('modalPassError');
+
+        if (!validatePasswordRules(newPass)) {
+            err.textContent = "Пароль не соответствует требованиям!";
+            err.classList.remove('hidden');
+            return;
+        }
+
+        currentUserData.hasPassword = true;
+        currentUserData.password = newPass;
+
+        await setDoc(doc(db, "users", currentUser.uid), currentUserData);
+        sessionStorage.setItem(`auth_verified_${currentUser.uid}`, "true");
+        closePasswordManageModal();
+        switchTab('profile');
+    };
+
+    window.removeAccountPassword = async function() {
+        if (confirm("Вы уверены, что хотите удалить пароль аккаунта?")) {
+            currentUserData.hasPassword = false;
+            currentUserData.password = "";
+            await setDoc(doc(db, "users", currentUser.uid), currentUserData);
+            switchTab('profile');
+        }
+    };
+
+    window.openDeleteAccountModal = function() {
+        document.getElementById('checkBackup').checked = false;
+        document.getElementById('checkConfirm').checked = false;
+        toggleDeleteButton();
+        document.getElementById('deleteAccountModal').classList.remove('hidden');
+    };
+
+    window.closeDeleteAccountModal = function() {
+        document.getElementById('deleteAccountModal').classList.add('hidden');
+    };
+
+    window.toggleDeleteButton = function() {
+        const check1 = document.getElementById('checkBackup').checked;
+        const check2 = document.getElementById('checkConfirm').checked;
+        const btn = document.getElementById('btnConfirmDelete');
+
+        if (check1 && check2) {
+            btn.disabled = false;
+            btn.className = "w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-xl text-xs transition cursor-pointer";
+        } else {
+            btn.disabled = true;
+            btn.className = "w-full bg-red-600/50 text-white/50 font-bold py-2.5 rounded-xl text-xs transition cursor-not-allowed";
+        }
+    };
+
+    window.downloadUserDataBackup = function() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(currentUserData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `bibmeme_backup_${currentUser.uid}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    };
+
+    window.confirmAccountDeletion = async function() {
+        try {
+            await deleteDoc(doc(db, "users", currentUser.uid));
+            await signOut(auth);
+            alert("Ваш аккаунт и данные успешно удалены.");
+            location.reload();
+        } catch (e) {
+            alert("Ошибка при удалении аккаунта: " + e.message);
+        }
+    };
+
+    window.openCreatePostModal = function() {
+        document.getElementById('createPostModal').classList.remove('hidden');
+    };
+
+    window.closeCreatePostModal = function() {
+        document.getElementById('createPostModal').classList.add('hidden');
+    };
+
+    window.publishPost = async function() {
+        const text = document.getElementById('postText').value.trim();
+        const fileInput = document.getElementById('postImageInput');
+        const ageLimit = document.getElementById('postAgeLimit').value;
+        const statusMsg = document.getElementById('postStatusMsg');
+
+        if (!text && fileInput.files.length === 0) {
+            alert("Добавьте текст или фото для поста!");
+            return;
+        }
+
+        statusMsg.classList.remove('hidden');
+
+        let imageUrl = "";
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            imageUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
             });
         }
 
-        window.toggleLike = async function(postId, isLiked) {
-            const postRef = doc(db, "posts", postId);
-            await updateDoc(postRef, {
-                likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
-            });
+        let algorithmScore = 10;
+        if (imageUrl) algorithmScore += 50;
+        if (text.length > 20) algorithmScore += 20;
+
+        const now = new Date();
+        const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} (${now.getDate()}.${now.getMonth()+1})`;
+
+        const newPost = {
+            uid: currentUser.uid,
+            authorName: currentUser.displayName,
+            authorPhoto: currentUser.photoURL || 'https://via.placeholder.com/40',
+            text: text,
+            image: imageUrl,
+            ageLimit: ageLimit,
+            createdAt: now.getTime(),
+            timeString: timeString,
+            likes: [],
+            comments: [],
+            score: algorithmScore
         };
 
-        window.toggleComments = function(postId) {
-            const section = document.getElementById(`comments-section-${postId}`);
-            if (section) section.classList.toggle('hidden');
-        };
+        try {
+            await addDoc(collection(db, "posts"), newPost);
+            document.getElementById('postText').value = "";
+            fileInput.value = "";
+            statusMsg.classList.add('hidden');
+            closeCreatePostModal();
+        } catch (e) {
+            console.error("Ошибка публикации:", e);
+            statusMsg.textContent = "Ошибка публикации!";
+        }
+    };
 
-        window.addComment = async function(postId) {
-            const input = document.getElementById(`comment-input-${postId}`);
-            const text = input.value.trim();
-            if (!text) return;
+    function loadRealtimeFeed() {
+        const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+        unsubscribePosts = onSnapshot(q, async (snapshot) => {
+            const postsList = document.getElementById('postsList');
+            if (!postsList) return;
 
-            const now = new Date();
-            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-            const postRef = doc(db, "posts", postId);
-            const newComment = {
-                uid: currentUser.uid,
-                author: currentUser.displayName,
-                text: text,
-                timeString: timeString,
-                createdAt: Date.now()
-            };
-
-            await updateDoc(postRef, {
-                comments: arrayUnion(newComment)
-            });
-            input.value = "";
-        };
-
-        window.deleteComment = async function(postId, commentIndex) {
-            if (confirm("Вы точно хотите удалить комментарий?")) {
-                const postRef = doc(db, "posts", postId);
-                const postSnap = await getDoc(postRef);
-                if (postSnap.exists()) {
-                    const comments = postSnap.data().comments || [];
-                    if (comments[commentIndex]) {
-                        await updateDoc(postRef, {
-                            comments: arrayRemove(comments[commentIndex])
-                        });
-                    }
-                }
+            if (snapshot.empty) {
+                postsList.innerHTML = `<div class="bg-[#1e1e1e] p-6 text-center rounded-2xl text-xs text-gray-400">Пока нет постов. Будьте первыми!</div>`;
+                return;
             }
-        };
 
-        window.deletePost = async function(postId) {
-            if (confirm("Вы точно хотите удалить пост?")) {
+            let html = "";
+            for (const docSnap of snapshot.docs) {
+                const post = docSnap.data();
+                const postId = docSnap.id;
+                const isLiked = post.likes && post.likes.includes(currentUser.uid);
+                const likesCount = post.likes ? post.likes.length : 0;
+                const commentsCount = post.comments ? post.comments.length : 0;
+
+                let authorRole = getUserRole(post.uid);
+
+                if (post.ageLimit === '18+' && currentUserData.age < 18) continue;
+
+                let authorData = {
+                    uid: post.uid,
+                    displayName: post.authorName,
+                    photoURL: post.authorPhoto,
+                    createdAt: post.createdAt,
+                    isPrivate: false
+                };
+
                 try {
-                    await deleteDoc(doc(db, "posts", postId));
-                } catch (e) {
-                    alert("Ошибка при удалении поста!");
-                }
+                    const authorSnap = await getDoc(doc(db, "users", post.uid));
+                    if (authorSnap.exists()) authorData = authorSnap.data();
+                } catch(e) {}
+
+                let authorJson = encodeURIComponent(JSON.stringify(authorData));
+
+                html += `
+                    <div id="post-card-${postId}" class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 shadow-lg w-full flex flex-col gap-3 transition-all duration-300">
+                        <div class="flex items-start justify-between">
+                            <div onclick="viewUserProfile('${authorJson}')" class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition">
+                                <img src="${post.authorPhoto || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full object-cover border border-white/20">
+                                <div class="flex flex-col">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <h4 class="text-xs font-bold text-white hover:underline">${post.authorName || 'Участник'}</h4>
+                                        ${SIGNS[authorRole]}
+                                    </div>
+                                    <div class="flex items-center gap-1.5 mt-0.5">
+                                        <span class="inline-flex items-center gap-1 text-[10px] text-gray-400">${post.timeString || ''}</span>
+                                        ${post.ageLimit && post.ageLimit !== 'none' ? `<span class="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] px-1.5 py-0.2 rounded-md font-bold">${post.ageLimit}</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                            ${post.uid === currentUser.uid ? `
+                                <button onclick="deletePost('${postId}')" class="text-gray-500 hover:text-red-400 transition p-1" title="Удалить пост">
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        ${post.text ? `<p class="text-xs text-gray-200 leading-relaxed">${post.text}</p>` : ''}
+                        ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover border border-white/10">` : ''}
+
+                        <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
+                            <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1.5 hover:text-red-500 transition ${isLiked ? 'text-red-500 font-bold' : ''}">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                <span>${likesCount}</span>
+                            </button>
+                            <button onclick="toggleComments('${postId}')" class="flex items-center gap-1.5 hover:text-white transition">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+                                <span>${commentsCount}</span>
+                            </button>
+                            <button onclick="sharePost('${encodeURIComponent(post.text || 'Мем из bibmeme')}')" class="flex items-center gap-1.5 hover:text-white transition">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                                <span>Поделиться</span>
+                            </button>
+                        </div>
+
+                        <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
+                            <div id="comments-list-${postId}" class="flex flex-col gap-1.5 max-h-36 overflow-y-auto">
+                                ${(post.comments || []).map((c, idx) => `
+                                    <div class="bg-[#121212] p-2 rounded-lg text-[11px] flex justify-between items-start gap-2">
+                                        <div>
+                                            <div class="flex items-center gap-1.5">
+                                                <strong class="text-indigo-400">${c.author}</strong>
+                                                <span class="text-[9px] text-gray-500">${c.timeString || ''}</span>
+                                            </div>
+                                            <p class="text-gray-200 mt-0.5">${c.text}</p>
+                                        </div>
+                                        ${c.uid === currentUser.uid ? `
+                                            <button onclick="deleteComment('${postId}', ${idx})" class="text-gray-500 hover:text-red-400 transition" title="Удалить комментарий">✕</button>
+                                        ` : ''}
+                                    </div>
+                                `).join('') || '<p class="text-[10px] text-gray-500">Нет комментариев</p>'}
+                            </div>
+                            <div class="flex gap-2 mt-1">
+                                <input type="text" id="comment-input-${postId}" placeholder="Написать коммент..." class="flex-1 bg-[#121212] border border-white/20 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                                <button onclick="addComment('${postId}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition">Отправить</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
             }
+            postsList.innerHTML = html;
+        });
+    }
+
+    window.toggleLike = async function(postId, isLiked) {
+        const postRef = doc(db, "posts", postId);
+        await updateDoc(postRef, {
+            likes: isLiked ? arrayRemove(currentUser.uid) : arrayUnion(currentUser.uid)
+        });
+    };
+
+    window.toggleComments = function(postId) {
+        const section = document.getElementById(`comments-section-${postId}`);
+        if (section) section.classList.toggle('hidden');
+    };
+
+    window.addComment = async function(postId) {
+        const input = document.getElementById(`comment-input-${postId}`);
+        const text = input.value.trim();
+        if (!text) return;
+
+        const now = new Date();
+        const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+        const postRef = doc(db, "posts", postId);
+        const newComment = {
+            uid: currentUser.uid,
+            author: currentUser.displayName,
+            text: text,
+            timeString: timeString,
+            createdAt: Date.now()
         };
 
-        window.sharePost = function(text) {
-            if (navigator.share) {
-                navigator.share({ title: 'Bibmeme', text: decodeURIComponent(text), url: window.location.href });
-            } else {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Ссылка скопирована!");
+        await updateDoc(postRef, {
+            comments: arrayUnion(newComment)
+        });
+        input.value = "";
+    };
+
+    window.deleteComment = async function(postId, commentIndex) {
+        if (confirm("Вы точно хотите удалить комментарий?")) {
+            const postRef = doc(db, "posts", postId);
+            const postSnap = await getDoc(postRef);
+            if (postSnap.exists()) {
+                const comments = postSnap.data().comments || [];
+                if (comments[commentIndex]) {
+                    await updateDoc(postRef, {
+                        comments: arrayRemove(comments[commentIndex])
+                    });
+                }
             }
-        };
-    </script>
+        }
+    };
+
+    window.deletePost = async function(postId) {
+        if (confirm("Вы точно хотите удалить пост?")) {
+            try {
+                await deleteDoc(doc(db, "posts", postId));
+            } catch (e) {
+                alert("Ошибка при удалении поста!");
+            }
+        }
+    };
+
+    window.sharePost = function(text) {
+        if (navigator.share) {
+            navigator.share({ title: 'Bibmeme', text: decodeURIComponent(text), url: window.location.href });
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Ссылка скопирована!");
+        }
+    };
+</script>
 </body>
 </html>
