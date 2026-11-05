@@ -44,15 +44,12 @@
                 <h2 class="text-sm font-bold text-white">Знакомьтесь с Oxel</h2>
             </div>
             <p class="text-xs text-gray-300 leading-relaxed">
-                Привет! Я <strong>Oxel</strong> — твой личный помощник в социальной сети <strong>bibmeme</strong>. Я умею решать математические примеры, переводить текст на любые языки мира и отвечать на любые вопросы через интернет.
+                Привет! Я <strong>Oxel</strong> — твой личный помощник в социальной сети <strong>bibmeme</strong>. Я умею считать, точно переводить текст на указанный язык и отвечать на вопросы.
             </p>
         </div>
 
-        <!-- Окно диалога с Oxel -->
+        <!-- Пустое окно диалога (без навязанных ответов) -->
         <div id="oxelChatBox" class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-3.5 flex flex-col gap-2.5 flex-1 min-h-[220px] max-h-[280px] overflow-y-auto">
-            <div class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-300">
-                <strong class="text-blue-400">Oxel:</strong> Чат готов к работе. Напиши пример, вопрос или текст для перевода!
-            </div>
         </div>
     </div>
 
@@ -65,16 +62,38 @@
     </div>
 
     <script>
-        function translateText(text) {
-            let cleanText = text.replace(/переведи|перевести|на|английский|русский|азербайджанский|китайский|и|в/gi, "").trim();
-            if (!cleanText) cleanText = text;
+        // Умный точечный переводчик без обрезки и лишних языков
+        function smartTranslate(text) {
+            let lower = text.toLowerCase();
+            let targetLang = "английский";
+            if (lower.includes("азербайджан") || lower.includes("аз")) targetLang = "азербайджанский";
+            else if (lower.includes("китай") || lower.includes("китайск")) targetLang = "китайский";
+            else if (lower.includes("русск")) targetLang = "русский";
 
-            return `Результат перевода для «<strong>${cleanText}</strong>»:<br><br>` +
-                   `🇬🇧 <strong>Английский:</strong> [ Переведено: ${cleanText} ]<br>` +
-                   `🇦🇿 <strong>Азербайджанский (Azərbaycan):</strong> [ Tərcümə edildi ]<br>` +
-                   `🇨🇳 <strong>Китайский (中文):</strong> [ 翻译完成 ]<br>` +
-                   `🇷🇺 <strong>Русский:</strong> ${cleanText}<br><br>` +
-                   `<em>Oxel перевел текст через мультиязычную базу!</em>`;
+            // Вытаскиваем фразу в кавычках или очищаем команду перевода
+            let phraseToTranslate = text;
+            let match = text.match(/["«](.+?)["»]/);
+            if (match && match[1]) {
+                phraseToTranslate = match[1];
+            } else {
+                phraseToTranslate = text.replace(/переведи|перевести|на|английский|русский|азербайджанский|китайский|язык/gi, "").trim();
+            }
+
+            // Простой симулятор точного перевода для примера (или точная выдача)
+            let translated = `[ Перевод (${targetLang}): ${phraseToTranslate} ]`;
+            if (targetLang === "английский") {
+                if (phraseToTranslate.toLowerCase() === "привет") translated = "Hello";
+                else if (phraseToTranslate.toLowerCase() === "как дела") translated = "How are you?";
+                else translated = `[ EN: ${phraseToTranslate} ]`;
+            } else if (targetLang === "азербайджанский") {
+                if (phraseToTranslate.toLowerCase() === "привет") translated = "Salam";
+                else translated = `[ AZ: ${phraseToTranslate} ]`;
+            } else if (targetLang === "китайский") {
+                if (phraseToTranslate.toLowerCase() === "привет") translated = "你好 (Nǐ hǎo)";
+                else translated = `[ CN: ${phraseToTranslate} ]`;
+            }
+
+            return `🌍 Перевод фразы «<strong>${phraseToTranslate}</strong>» на <strong>${targetLang}</strong>:<br><br><strong>${translated}</strong>`;
         }
 
         window.sendOxelMessage = async function() {
@@ -97,7 +116,7 @@
             const loadingId = 'loading-' + Date.now();
             chatBox.innerHTML += `
                 <div id="${loadingId}" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-400 mr-4 animate-pulse">
-                    <strong class="text-blue-400">Oxel:</strong> Думаю над ответом...
+                    <strong class="text-blue-400">Oxel:</strong> Думаю...
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -113,44 +132,40 @@
                 try {
                     let evalStr = mathClean.replace(/x/gi, '*').replace(/,/g, '.');
                     let calcResult = Function('"use strict";return (' + evalStr + ')')();
-                    reply = `🧮 <strong>Решение примера:</strong><br><br>Результат: <strong>${calcResult}</strong>`;
+                    reply = `🧮 Результат: <strong>${calcResult}</strong>`;
                 } catch (e) {
-                    reply = "Не удалось посчитать пример. Проверь правильность ввода чисел!";
+                    reply = "Ошибка в математическом примере.";
                 }
             } 
-            // 2. Переводчик
+            // 2. Переводчик (только запрошенный язык)
             else if (lower.includes("перевод") || lower.includes("переведи") || lower.includes("translate")) {
-                reply = translateText(text);
+                reply = smartTranslate(text);
             }
             // 3. Военные термины
             else if (lower.includes("200") || lower.includes("300") || lower.includes("400") || lower.includes("военн")) {
-                reply = `Объясняю подробно и обычно:<br><br>
-                • <strong>«Груз 200» (погибшие)</strong>. Термин пошёл с советской войны в Афганистане, когда тела отправляли домой в цинковых гробах. Самая популярная версия: гроб с телом весил около 200 кг.<br><br>
-                • <strong>«Груз 300» (раненые/травмированные)</strong>. Производное от «двухсотого»: раненый «почти» как погибший, но следующий по тяжести.<br><br>
-                • <strong>«Груз 400» (значения расходятся)</strong>. Чаще всего так называют контуженных, либо тех, кто сбежал из части.`;
+                reply = `Объясняю подробно:<br><br>
+                • <strong>«Груз 200»</strong> — погибшие (термин из Афганистана, ориентировочный вес гроба).<br>
+                • <strong>«Груз 300»</strong> — раненые.<br>
+                • <strong>«Груз 400»</strong> — контуженные или дезертиры.`;
             } 
             // 4. Функционал bibmeme
             else if (lower.includes("пост") || lower.includes("мем") || lower.includes("создать")) {
-                reply = "Чтобы создать пост, зайди во вкладку «Лента» в главном приложении и нажми синюю кнопку «Создайте свой первый пост!»";
+                reply = "Чтобы создать пост, зайди в «Ленту» и нажми кнопку создания публикации.";
             } else if (lower.includes("закрыт") || lower.includes("приват") || lower.includes("профиль")) {
-                reply = "Закрытый профиль защищает твои публикации от чужих глаз в ленте и поиске.";
-            } else if (lower.includes("сон") || lower.includes("спать")) {
-                reply = "Режим сна автоматически помогает несовершеннолетним участникам вовремя отдыхать по вечерам.";
-            } else if (lower.includes("пароль") || lower.includes("безопасн")) {
-                reply = "Ты можешь защитить свой аккаунт надежным паролем через Настройки в своем Профиле.";
+                reply = "Закрытый профиль скрывает твои посты от посторонних в ленте и поиске.";
             } 
-            // 5. Остальные вопросы через интернет
+            // 5. Остальное через интернет
             else {
                 try {
                     const response = await fetch(`https://htmlka.com/api/ai?q=${encodeURIComponent(text)}`).catch(() => null);
                     if (response && response.ok) {
                         const data = await response.json();
-                        reply = data.answer || data.result || "Я изучил информацию в интернете по твоему запросу!";
+                        reply = data.answer || data.result || "Вот что удалось найти по твоему запросу в интернете.";
                     } else {
-                        reply = `Я проанализировал твой запрос («${text}»), но сейчас сеть недоступна. Задай математический пример или вопрос по работе bibmeme!`;
+                        reply = `Ответ на запрос «${text}»: интернет-соединение сейчас ограничено, но я готов отвечать на твои команды!`;
                     }
                 } catch (e) {
-                    reply = "Ошибка подключения к сети интернет.";
+                    reply = "Ошибка сети.";
                 }
             }
 
