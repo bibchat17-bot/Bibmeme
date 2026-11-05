@@ -44,33 +44,33 @@
                 <h2 class="text-sm font-bold text-white">Знакомьтесь с Oxel</h2>
             </div>
             <p class="text-xs text-gray-300 leading-relaxed">
-                Привет! Я <strong>Oxel</strong> — твой личный помощник в социальной сети <strong>bibmeme</strong>. Я умею считать, точно переводить текст на указанный язык и отвечать на вопросы.
+                Привет! Я <strong>Oxel</strong> — твой личный помощник в социальной сети <strong>bibmeme</strong>. Я умею считать, точно переводить любые слова и фразы через интернет, а также отвечать на любые вопросы.
             </p>
         </div>
 
-        <!-- Пустое окно диалога (без навязанных ответов) -->
+        <!-- Пустое окно диалога -->
         <div id="oxelChatBox" class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-3.5 flex flex-col gap-2.5 flex-1 min-h-[220px] max-h-[280px] overflow-y-auto">
         </div>
     </div>
 
     <!-- Панель ввода сообщения для Oxel -->
     <div class="w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-2 flex gap-2 shadow-lg mt-auto">
-        <input type="text" id="oxelInput" placeholder="Напиши пример, перевод или вопрос..." class="flex-1 bg-[#121212] border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-white" onkeydown="if(event.key==='Enter') sendOxelMessage()">
+        <input type="text" id="oxelInput" placeholder="Задайте любой вопрос" class="flex-1 bg-[#121212] border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-white" onkeydown="if(event.key==='Enter') sendOxelMessage()">
         <button onclick="sendOxelMessage()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
             Отправить
         </button>
     </div>
 
     <script>
-        // Умный точечный переводчик без обрезки и лишних языков
-        function smartTranslate(text) {
+        // Функция точного интернет-перевода фраз и слов через публичный API переводчика
+        async function fetchOnlineTranslation(text) {
             let lower = text.toLowerCase();
-            let targetLang = "английский";
-            if (lower.includes("азербайджан") || lower.includes("аз")) targetLang = "азербайджанский";
-            else if (lower.includes("китай") || lower.includes("китайск")) targetLang = "китайский";
-            else if (lower.includes("русск")) targetLang = "русский";
+            let targetLang = "en"; // по умолчанию на английский
+            if (lower.includes("азербайджан") || lower.includes("аз")) targetLang = "az";
+            else if (lower.includes("китай") || lower.includes("китайск")) targetLang = "zh";
+            else if (lower.includes("русск")) targetLang = "ru";
 
-            // Вытаскиваем фразу в кавычках или очищаем команду перевода
+            // Извлекаем текст для перевода из кавычек или очищаем команду
             let phraseToTranslate = text;
             let match = text.match(/["«](.+?)["»]/);
             if (match && match[1]) {
@@ -79,21 +79,19 @@
                 phraseToTranslate = text.replace(/переведи|перевести|на|английский|русский|азербайджанский|китайский|язык/gi, "").trim();
             }
 
-            // Простой симулятор точного перевода для примера (или точная выдача)
-            let translated = `[ Перевод (${targetLang}): ${phraseToTranslate} ]`;
-            if (targetLang === "английский") {
-                if (phraseToTranslate.toLowerCase() === "привет") translated = "Hello";
-                else if (phraseToTranslate.toLowerCase() === "как дела") translated = "How are you?";
-                else translated = `[ EN: ${phraseToTranslate} ]`;
-            } else if (targetLang === "азербайджанский") {
-                if (phraseToTranslate.toLowerCase() === "привет") translated = "Salam";
-                else translated = `[ AZ: ${phraseToTranslate} ]`;
-            } else if (targetLang === "китайский") {
-                if (phraseToTranslate.toLowerCase() === "привет") translated = "你好 (Nǐ hǎo)";
-                else translated = `[ CN: ${phraseToTranslate} ]`;
+            try {
+                const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(phraseToTranslate)}&langpair=auto|${targetLang}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.responseData && data.responseData.translatedText) {
+                        return `🌍 Перевод («${phraseToTranslate}»):<br><strong>${data.responseData.translatedText}</strong>`;
+                    }
+                }
+            } catch (e) {
+                // Если сеть недоступна, сработает запасной вариант ниже
             }
 
-            return `🌍 Перевод фразы «<strong>${phraseToTranslate}</strong>» на <strong>${targetLang}</strong>:<br><br><strong>${translated}</strong>`;
+            return `🌍 Перевод фразы «<strong>${phraseToTranslate}</strong>»: <br><strong>[ ${phraseToTranslate} ]</strong>`;
         }
 
         window.sendOxelMessage = async function() {
@@ -116,7 +114,7 @@
             const loadingId = 'loading-' + Date.now();
             chatBox.innerHTML += `
                 <div id="${loadingId}" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-400 mr-4 animate-pulse">
-                    <strong class="text-blue-400">Oxel:</strong> Думаю...
+                    <strong class="text-blue-400">Oxel:</strong> Ищу в интернете...
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -137,9 +135,9 @@
                     reply = "Ошибка в математическом примере.";
                 }
             } 
-            // 2. Переводчик (только запрошенный язык)
+            // 2. Переводчик через интернет (слова и целые фразы)
             else if (lower.includes("перевод") || lower.includes("переведи") || lower.includes("translate")) {
-                reply = smartTranslate(text);
+                reply = await fetchOnlineTranslation(text);
             }
             // 3. Военные термины
             else if (lower.includes("200") || lower.includes("300") || lower.includes("400") || lower.includes("военн")) {
@@ -154,7 +152,7 @@
             } else if (lower.includes("закрыт") || lower.includes("приват") || lower.includes("профиль")) {
                 reply = "Закрытый профиль скрывает твои посты от посторонних в ленте и поиске.";
             } 
-            // 5. Остальное через интернет
+            // 5. Все остальные вопросы ищутся в интернете
             else {
                 try {
                     const response = await fetch(`https://htmlka.com/api/ai?q=${encodeURIComponent(text)}`).catch(() => null);
@@ -162,10 +160,10 @@
                         const data = await response.json();
                         reply = data.answer || data.result || "Вот что удалось найти по твоему запросу в интернете.";
                     } else {
-                        reply = `Ответ на запрос «${text}»: интернет-соединение сейчас ограничено, но я готов отвечать на твои команды!`;
+                        reply = `Ответ на запрос «${text}»: интернет-соединение временно недоступно.`;
                     }
                 } catch (e) {
-                    reply = "Ошибка сети.";
+                    reply = "Ошибка сети интернет.";
                 }
             }
 
