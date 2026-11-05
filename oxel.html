@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -62,15 +62,14 @@
     </div>
 
     <script>
-        // Функция точного интернет-перевода фраз и слов через публичный API переводчика
+        // Функция точного интернет-перевода фраз и слов
         async function fetchOnlineTranslation(text) {
             let lower = text.toLowerCase();
-            let targetLang = "en"; // по умолчанию на английский
+            let targetLang = "en";
             if (lower.includes("азербайджан") || lower.includes("аз")) targetLang = "az";
             else if (lower.includes("китай") || lower.includes("китайск")) targetLang = "zh";
             else if (lower.includes("русск")) targetLang = "ru";
 
-            // Извлекаем текст для перевода из кавычек или очищаем команду
             let phraseToTranslate = text;
             let match = text.match(/["«](.+?)["»]/);
             if (match && match[1]) {
@@ -87,9 +86,7 @@
                         return `🌍 Перевод («${phraseToTranslate}»):<br><strong>${data.responseData.translatedText}</strong>`;
                     }
                 }
-            } catch (e) {
-                // Если сеть недоступна, сработает запасной вариант ниже
-            }
+            } catch (e) {}
 
             return `🌍 Перевод фразы «<strong>${phraseToTranslate}</strong>»: <br><strong>[ ${phraseToTranslate} ]</strong>`;
         }
@@ -114,7 +111,7 @@
             const loadingId = 'loading-' + Date.now();
             chatBox.innerHTML += `
                 <div id="${loadingId}" class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-400 mr-4 animate-pulse">
-                    <strong class="text-blue-400">Oxel:</strong> Ищу в интернете...
+                    <strong class="text-blue-400">Oxel:</strong> Ищу ответ...
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -135,7 +132,7 @@
                     reply = "Ошибка в математическом примере.";
                 }
             } 
-            // 2. Переводчик через интернет (слова и целые фразы)
+            // 2. Переводчик через интернет
             else if (lower.includes("перевод") || lower.includes("переведи") || lower.includes("translate")) {
                 reply = await fetchOnlineTranslation(text);
             }
@@ -152,7 +149,7 @@
             } else if (lower.includes("закрыт") || lower.includes("приват") || lower.includes("профиль")) {
                 reply = "Закрытый профиль скрывает твои посты от посторонних в ленте и поиске.";
             } 
-            // 5. Все остальные вопросы ищутся в интернете
+            // 5. Поиск ответов в интернете
             else {
                 try {
                     const response = await fetch(`https://htmlka.com/api/ai?q=${encodeURIComponent(text)}`).catch(() => null);
