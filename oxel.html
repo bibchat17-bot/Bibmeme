@@ -44,45 +44,27 @@
                 <h2 class="text-sm font-bold text-white">Знакомьтесь с Oxel</h2>
             </div>
             <p class="text-xs text-gray-300 leading-relaxed">
-                Привет! Я <strong>Oxel</strong> — твой личный помощник в социальной сети <strong>bibmeme</strong>. Я знаю всё о правилах, ленте, профилях и безопасности. Задай мне любой вопрос!
+                Привет! Я <strong>Oxel</strong> — твой личный помощник в социальной сети <strong>bibmeme</strong>. Я умею решать математические примеры, переводить текст на любые языки мира и отвечать на любые вопросы через интернет.
             </p>
         </div>
 
-        <!-- Быстрые вопросы (подсказки) -->
-        <div class="flex flex-col gap-1.5">
-            <span class="text-[11px] font-bold text-indigo-400 px-1">Частые вопросы:</span>
-            <div class="grid grid-cols-1 gap-1.5">
-                <button onclick="askOxel('Как создать свой мем или пост?')" class="bg-[#1e1e1e] hover:bg-white/5 border border-white/10 p-2.5 rounded-xl text-xs text-left text-gray-200 transition">
-                    💡 Как создать свой мем или пост?
-                </button>
-                <button onclick="askOxel('Зачем нужен закрытый профиль?')" class="bg-[#1e1e1e] hover:bg-white/5 border border-white/10 p-2.5 rounded-xl text-xs text-left text-gray-200 transition">
-                    🔒 Зачем нужен закрытый профиль?
-                </button>
-            </div>
-        </div>
-
         <!-- Окно диалога с Oxel -->
-        <div id="oxelChatBox" class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-3.5 flex flex-col gap-2.5 flex-1 min-h-[160px] max-h-[220px] overflow-y-auto">
+        <div id="oxelChatBox" class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-3.5 flex flex-col gap-2.5 flex-1 min-h-[220px] max-h-[280px] overflow-y-auto">
             <div class="bg-[#121212] p-2.5 rounded-xl border border-white/10 text-xs text-gray-300">
-                <strong class="text-blue-400">Oxel:</strong> Чем я могу помочь тебе сегодня? Спроси меня о чем угодно!
+                <strong class="text-blue-400">Oxel:</strong> Чат готов к работе. Напиши пример, вопрос или текст для перевода!
             </div>
         </div>
     </div>
 
     <!-- Панель ввода сообщения для Oxel -->
     <div class="w-full max-w-sm mx-auto bg-[#1e1e1e] border border-white/10 rounded-2xl p-2 flex gap-2 shadow-lg mt-auto">
-        <input type="text" id="oxelInput" placeholder="Спросить Oxel..." class="flex-1 bg-[#121212] border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-white" onkeydown="if(event.key==='Enter') sendOxelMessage()">
+        <input type="text" id="oxelInput" placeholder="Напиши пример, перевод или вопрос..." class="flex-1 bg-[#121212] border border-white/20 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-white" onkeydown="if(event.key==='Enter') sendOxelMessage()">
         <button onclick="sendOxelMessage()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
-            Спросить
+            Отправить
         </button>
     </div>
 
     <script>
-        window.askOxel = function(question) {
-            document.getElementById('oxelInput').value = question;
-            sendOxelMessage();
-        };
-
         function translateText(text) {
             let cleanText = text.replace(/переведи|перевести|на|английский|русский|азербайджанский|китайский|и|в/gi, "").trim();
             if (!cleanText) cleanText = text;
