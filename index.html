@@ -36,7 +36,8 @@
         
         <!-- Стартовый экран -->
         <div id="welcome-screen" class="w-full flex flex-col gap-4 text-center py-6">
-            <button id="googleAuthBtn" onclick="loginWithGoogle()" style="width: 100%; background: white; color: black; font-weight: bold; padding: 12px; border-radius: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;">
+            <button id="googleAuthBtn" onclick="loginWithGoogle()" class="w-full bg-white text-black font-bold p-3.5 rounded-xl text-sm hover:bg-gray-200 transition flex items-center justify-center gap-2.5 cursor-pointer shadow-md">
+                <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.95H1.2v3.15C3.16 21.32 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.25c-.25-.72-.38-1.49-.38-2.25s.13-1.53.38-2.25V6.6H1.2C.44 8.13 0 9.87 0 11.75s.44 3.62 1.2 5.15l4.08-2.65z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.16 2.68 1.2 6.6l4.08 3.15c.95-2.84 3.6-4.95 6.72-4.95z"/></svg> 
                 Войти через Google
             </button>
             
@@ -133,6 +134,82 @@
         </div>
     </div>
 
+    <!-- Модальное окно создания поста -->
+    <div id="createPostModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
+            <h2 id="txtCreatePostTitle" class="text-lg font-bold">Создать пост</h2>
+            <textarea id="postText" placeholder="Что у вас нового?" rows="3" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-white"></textarea>
+            
+            <div class="flex flex-col gap-1.5">
+                <label id="txtAttachPhoto" class="text-xs text-gray-400">Прикрепить фото (камера / галерея):</label>
+                <input type="file" id="postImageInput" accept="image/*" class="text-xs text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-white file:text-black hover:file:bg-gray-200 cursor-pointer">
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+                <label id="txtAgeLimitLabel" class="text-xs text-gray-400">Возрастное ограничение:</label>
+                <select id="postAgeLimit" class="w-full bg-[#121212] border border-white/20 rounded-xl p-2.5 text-xs text-white focus:outline-none">
+                    <option value="none" id="optNone">Оставить пустым (для всех)</option>
+                    <option value="9-12">9-12 лет</option>
+                    <option value="13-17">13-17 лет</option>
+                    <option value="18+">18+</option>
+                </select>
+            </div>
+
+            <div id="postStatusMsg" class="text-xs text-amber-400 font-medium text-center hidden">Выкладываем пост в облако...</div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="publishPost()" id="txtPublishBtn" class="flex-1 bg-white text-black font-bold py-2.5 rounded-xl text-xs hover:bg-gray-200 transition">Опубликовать</button>
+                <button onclick="closeCreatePostModal()" id="txtCancelPostBtn" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно удаления аккаунта -->
+    <div id="deleteAccountModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
+            <h2 id="txtDelAccTitle" class="text-lg font-bold text-red-400">Удаление аккаунта</h2>
+            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-[11px] text-gray-200 leading-relaxed flex flex-col gap-2">
+                <p id="txtDelWarnTitle" class="font-bold text-red-400">Пока вы не ушли, прочитайте, это очень важно:</p>
+                <p id="txtDelWarn1">Вы собираетесь удалить аккаунт со всеми данными, постами и комментариями.</p>
+                <p id="txtDelWarn2">Данные вернуть невозможно, но вы можете скачать их резервную копию.</p>
+            </div>
+
+            <div class="flex flex-col gap-2 py-1">
+                <button onclick="downloadUserDataBackup()" id="txtDownloadBackup" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Загрузить данные</button>
+            </div>
+
+            <div class="flex flex-col gap-2 border-t border-white/10 pt-3">
+                <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                    <input type="checkbox" id="checkBackup" onchange="toggleDeleteButton()" class="mt-0.5 rounded accent-red-500">
+                    <span id="txtCheck1">Я скачал все данные и загрузил</span>
+                </label>
+                <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
+                    <input type="checkbox" id="checkConfirm" onchange="toggleDeleteButton()" class="mt-0.5 rounded accent-red-500">
+                    <span id="txtCheck2">Я соглашаюсь на удаления аккаунта и данных</span>
+                </label>
+            </div>
+
+            <div class="flex flex-col gap-2 pt-1">
+                <button id="btnConfirmDelete" onclick="confirmAccountDeletion()" disabled class="w-full bg-red-600/50 text-white/50 font-bold py-2.5 rounded-xl text-xs transition cursor-not-allowed">Удалить аккаунт</button>
+                <button onclick="closeDeleteAccountModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно управления паролем -->
+    <div id="passwordManageModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
+            <h2 id="passModalTitle" class="text-lg font-bold">Управление паролем</h2>
+            <p id="txtPassRules" class="text-xs text-gray-400">Пароль: от 6 символов, мин. 2 цифры, заглавная буква и спецсимвол (_).</p>
+            <input type="password" id="modalNewPassword" placeholder="Новый пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-sm">
+            <p id="modalPassError" class="text-red-400 text-xs hidden"></p>
+            <div class="flex gap-2 pt-1">
+                <button onclick="saveManagedPassword()" id="txtSavePass" class="flex-1 bg-white text-black font-bold py-2.5 rounded-xl text-xs transition">Сохранить</button>
+                <button onclick="closePasswordManageModal()" id="txtCancelPass" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
+            </div>
+        </div>
+     </div>
+    
     <!-- Модальное окно создания поста -->
     <div id="createPostModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
         <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
