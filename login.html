@@ -10,7 +10,7 @@
 
     <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center max-w-sm w-full flex flex-col gap-4 shadow-xl">
         <h1 class="text-xl font-bold">bibmeme</h1>
-        <p id="statusText" class="text-xs text-gray-400">Подключение к Google...</p>
+        <p id="statusText" class="text-xs text-gray-400">Перенаправление на Google...</p>
         <div id="spinner" class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
     </div>
 
@@ -31,19 +31,36 @@
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Проверяем, вернулся ли пользователь после входа
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                document.getElementById('statusText').textContent = "Успешный вход! Возвращаемся...";
-                window.location.href = "index.html";
-            } else {
-                // Если редиректа еще не было — запускаем вход
-                signInWithRedirect(auth, provider);
+        async function processLogin() {
+            try {
+                // 1. Сначала проверяем, вернулись ли мы с результатами входа Google
+                const result = await getRedirectResult(auth);
+                
+                if (result && result.user) {
+                    document.getElementById('statusText').textContent = "Успешно! Возврат на главный экран...";
+                    window.location.replace("index.html");
+                    return;
+                }
+
+                // 2. Проверяем, если пользователь УЖЕ авторизован в системе
+                if (auth.currentUser) {
+                    document.getElementById('statusText').textContent = "Вы уже вошли! Переходим...";
+                    window.location.replace("index.html");
+                    return;
+                }
+
+                // 3. Если зашли в login.html в первый раз — отправляем в Google
+                document.getElementById('statusText').textContent = "Открываем выбор аккаунта Google...";
+                await signInWithRedirect(auth, provider);
+
+            } catch (error) {
+                console.error("Ошибка авторизации:", error);
+                document.getElementById('statusText').textContent = "Ошибка: " + error.message;
+                document.getElementById('spinner').classList.add('hidden');
             }
-        }).catch((error) => {
-            document.getElementById('statusText').textContent = "Ошибка входа: " + error.message;
-            document.getElementById('spinner').classList.add('hidden');
-        });
+        }
+
+        processLogin();
     </script>
 </body>
 </html>
