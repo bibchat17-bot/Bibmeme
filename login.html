@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход через Google — bibmeme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#121212] text-white min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-6 text-center max-w-sm w-full flex flex-col gap-4 shadow-xl">
+        <h1 class="text-xl font-bold">bibmeme</h1>
+        <p id="statusText" class="text-xs text-gray-400">Подключение к Google...</p>
+        <div id="spinner" class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
+            authDomain: "bibmeme-def4d.firebaseapp.com",
+            projectId: "bibmeme-def4d",
+            storageBucket: "bibmeme-def4d.firebasestorage.app",
+            messagingSenderId: "640073948297",
+            appId: "1:640073948297:web:30b65e2900685b66817a58"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Проверяем, вернулся ли пользователь после входа
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                document.getElementById('statusText').textContent = "Успешный вход! Возвращаемся...";
+                window.location.href = "index.html";
+            } else {
+                // Если редиректа еще не было — запускаем вход
+                signInWithRedirect(auth, provider);
+            }
+        }).catch((error) => {
+            document.getElementById('statusText').textContent = "Ошибка входа: " + error.message;
+            document.getElementById('spinner').classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
