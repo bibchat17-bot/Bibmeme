@@ -205,14 +205,14 @@
             <p id="modalPassError" class="text-red-400 text-xs hidden"></p>
             <div class="flex gap-2 pt-1">
                 <button onclick="saveManagedPassword()" id="txtSavePass" class="flex-1 bg-white text-black font-bold py-2.5 rounded-xl text-xs transition">Сохранить</button>
-                <button onclick="closePasswordManageModal()" id="txtCancelPass" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">Отмена</button>
+                <button onclick="closePasswordManageModal()" id="txtCancelPass" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
             </div>
         </div>
-                </div>
+    </div>
 
         <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -413,15 +413,12 @@
             return hasLength && hasDigits && hasUpper && hasSpecial;
         }
 
+        // Надежный редирект для мобильных и ПК устройств без блокировок
         window.loginWithGoogle = async function() {
             try {
-                await signInWithPopup(auth, provider);
+                await signInWithRedirect(auth, provider);
             } catch (error) {
-                try {
-                    await signInWithRedirect(auth, provider);
-                } catch (redirectErr) {
-                    alert("Не удалось войти: " + redirectErr.message);
-                }
+                alert("Не удалось войти: " + error.message);
             }
         };
         
@@ -430,6 +427,8 @@
                 currentUser = result.user;
                 handleUserAuthSuccess();
             }
+        }).catch((err) => {
+            console.error("Ошибка редиректа:", err);
         });
 
         onAuthStateChanged(auth, async (user) => {
@@ -488,7 +487,7 @@
             }
         }
 
-               <script type="module">
+                <script type="module">
         let tempRegistrationData = {};
 
         window.showUsernamePrompt = function(userName) {
@@ -1072,7 +1071,7 @@
                 comments: []
             };
 
-             await addDoc(collection(db, "posts"), newPost);
+                        await addDoc(collection(db, "posts"), newPost);
             document.getElementById('postText').value = "";
             fileInput.value = "";
             closeCreatePostModal();
