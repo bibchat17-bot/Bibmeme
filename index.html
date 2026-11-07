@@ -115,10 +115,25 @@
                         <div id="settingsPasswordSection" class="flex flex-col gap-2"></div>
                     </div>
                     <div class="flex flex-col gap-2 pt-2 border-t border-white/10">
+                        <button onclick="closeSettingsModal(); openSessionsModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-xs transition">📱 Устройства и сеансы</button>
                         <button onclick="openDeleteAccountModalFromSettings()" id="txtDeleteAccountBtn" class="w-full bg-red-600/20 border border-red-500/30 text-red-400 font-bold py-2.5 rounded-xl text-xs hover:bg-red-600/30 transition">Удаление аккаунта</button>
                         <button onclick="handleSignOut()" id="txtSignOutBtn" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-xs transition">Выход с аккаунта</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Устройства и сеансы -->
+    <div id="sessionsModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h2 class="text-lg font-bold">Устройства и сеансы</h2>
+                <button onclick="closeSessionsModal()" class="text-gray-400 hover:text-white text-sm font-bold">✕ Закрыть</button>
+            </div>
+            <p class="text-xs text-gray-400">Активные сеансы вашего аккаунта:</p>
+            <div id="sessionsList" class="flex flex-col gap-2 max-h-60 overflow-y-auto">
+                <p class="text-xs text-gray-400 text-center py-4">Загрузка сеансов...</p>
             </div>
         </div>
     </div>
@@ -208,9 +223,8 @@
                 <button onclick="closePasswordManageModal()" id="txtCancelPass" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
             </div>
         </div>
-    </div>
-
-        <script type="module">
+                                                                                  </div>
+                <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -413,7 +427,6 @@
             return hasLength && hasDigits && hasUpper && hasSpecial;
         }
 
-        // Надежный редирект для мобильных и ПК устройств без блокировок
         window.loginWithGoogle = async function() {
             try {
                 await signInWithRedirect(auth, provider);
@@ -454,9 +467,35 @@
                 accounts.push(currentUser.uid);
                 localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
             }
+            await registerUserSession();
             const welcomeScreen = document.getElementById('welcome-screen');
             if (welcomeScreen) welcomeScreen.classList.add('hidden');
             await checkUserSessionState();
+        }
+
+        // Функции для определения устройства и сеансов
+        function getDeviceName() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) {
+                let match = ua.match(/\b(SM-[A-Z0-9]+|Redmi|POCO|Xiaomi|Pixel|HUAWEI|Honor|OPPO|Vivo)[^\)]*/i);
+                return match ? `Android (${match[0].trim()})` : "Android Устройство";
+            }
+            if (/iphone|ipad|ipod/i.test(ua)) return "Apple iOS Устройство";
+            if (/windows/i.test(ua)) return "Windows ПК";
+            if (/mac/i.test(ua)) return "Mac Computer";
+            return "Веб-браузер";
+        }
+
+        async function registerUserSession() {
+            if (!currentUser) return;
+            const sessionData = {
+                uid: currentUser.uid,
+                deviceName: getDeviceName(),
+                lastActive: Date.now(),
+                userAgent: navigator.userAgent
+            };
+            const sessionRef = doc(db, "sessions", `${currentUser.uid}_${navigator.platform}`);
+            await setDoc(sessionRef, sessionData, { merge: true });
         }
 
         async function checkUserSessionState() {
@@ -469,14 +508,10 @@
 
                 if (userSnap.exists()) {
                     currentUserData = userSnap.data();
-                    if (checkSleepLock(currentUserData.age)) return;
-
                     if (currentUserData.hasPassword === true && currentUserData.password && currentUserData.password.trim() !== "" && !sessionStorage.getItem(`auth_verified_${currentUser.uid}`)) {
                         showPasswordLoginPrompt();
                     } else {
                         document.getElementById('bottom-nav').classList.remove('hidden');
-                        const role = getUserRole();
-                        if (role === 'owner' || role === 'admin') document.getElementById('nav-adminServer').classList.remove('hidden');
                         switchTab('profile');
                     }
                 } else {
@@ -487,7 +522,7 @@
             }
         }
 
-                <script type="module">
+         <script type="module">
         let tempRegistrationData = {};
 
         window.showUsernamePrompt = function(userName) {
@@ -701,72 +736,7 @@
             }
         };
 
-                    function checkSleepLock(age) {
-            if (age >= 18) return false;
-            const now = new Date();
-            const currentHour = now.getHours();
-            const currentMinute = now.getMinutes();
-            const totalCurrentMinutes = currentHour * 60 + currentMinute;
-            const dateKey = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
-            const isExtendedToday = localStorage.getItem(`sleep_ext_${currentUser.uid}_${dateKey}`) === "true";
-
-            let sleepStartMinutes = 22 * 60;
-            let extendedLimitMinutes = 23 * 60;
-            let ageLabel = "для 9-12 летних";
-
-            if (age >= 13 && age <= 15) {
-                sleepStartMinutes = 23 * 60; 
-                extendedLimitMinutes = 24 * 60; 
-                ageLabel = "для 13-15 летних";
-            } else if (age >= 16 && age <= 17) {
-                sleepStartMinutes = 24 * 60; 
-                extendedLimitMinutes = 25 * 60; 
-                ageLabel = "для 16-17 летних";
-            }
-
-            const warningStart = sleepStartMinutes - 15;
-            const sleepWarningBanner = document.getElementById('sleepWarningBanner');
-            if (totalCurrentMinutes >= warningStart && totalCurrentMinutes < sleepStartMinutes) {
-                if (sleepWarningBanner) {
-                    sleepWarningBanner.textContent = `⚠️ Скоро пора спать! В ${(sleepStartMinutes/60)%24}:00 ${ageLabel} спать.`;
-                    sleepWarningBanner.classList.remove('hidden');
-                }
-            } else if (sleepWarningBanner) {
-                sleepWarningBanner.classList.add('hidden');
-            }
-
-            if (totalCurrentMinutes >= sleepStartMinutes || currentHour < 6) {
-                if (!isExtendedToday && totalCurrentMinutes < extendedLimitMinutes) {
-                    showSleepLockScreen(ageLabel, true, (sleepStartMinutes/60)%24, (extendedLimitMinutes/60)%24);
-                    return true;
-                } else if (isExtendedToday && totalCurrentMinutes < extendedLimitMinutes) {
-                    return false; 
-                }
-                showSleepLockScreen(ageLabel, false, (sleepStartMinutes/60)%24, (extendedLimitMinutes/60)%24);
-                return true;
-            }
-            return false;
-        }
-
-        function showSleepLockScreen(ageLabel, canExtend, normalHour, extendHour) {
-            document.getElementById('bottom-nav').classList.add('hidden');
-            document.getElementById('app-container').innerHTML = `
-                <div class="bg-[#1e1e1e] border border-indigo-500/30 rounded-2xl p-6 text-center shadow-lg w-full flex flex-col items-center gap-4">
-                    <div class="text-4xl">🌙</div>
-                    <h2 class="text-lg font-bold">Время спать!</h2>
-                    <p class="text-xs text-gray-300 leading-relaxed">В ${normalHour}:00 ${ageLabel} пора спать.</p>
-                    ${canExtend ? `<button onclick="extendSleepTime()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs transition">Отложить ещё на час</button>` : '<p class="text-xs text-red-400 font-bold">Время спать!</p>'}
-                </div>
-            `;
-        }
-
-        window.extendSleepTime = function() {
-            const now = new Date();
-            localStorage.setItem(`sleep_ext_${currentUser.uid}_${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`, "true");
-            location.reload();
-        };
-
-        window.openSearchModal = function() {
+                            window.openSearchModal = function() {
             document.getElementById('searchModal').classList.remove('hidden');
             document.getElementById('searchInput').value = "";
             document.getElementById('searchResultsList').innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Введите запрос для поиска...</p>`;
@@ -775,6 +745,48 @@
 
         window.closeSearchModal = function() {
             document.getElementById('searchModal').classList.add('hidden');
+        };
+
+        window.openSessionsModal = async function() {
+            document.getElementById('sessionsModal').classList.remove('hidden');
+            const list = document.getElementById('sessionsList');
+            list.innerHTML = `<p class="text-xs text-gray-400 text-center py-2">Загрузка сеансов...</p>`;
+
+            try {
+                const snap = await getDocs(collection(db, "sessions"));
+                let html = "";
+                snap.forEach(docSnap => {
+                    let s = docSnap.data();
+                    if (s.uid === currentUser.uid) {
+                        let isCurrent = s.userAgent === navigator.userAgent;
+                        html += `
+                            <div class="bg-[#121212] p-3 rounded-xl border border-white/10 flex items-center justify-between text-xs">
+                                <div>
+                                    <div class="font-bold text-white flex items-center gap-1.5">
+                                        📱 ${s.deviceName} ${isCurrent ? '<span class="text-[9px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded-md">Текущее</span>' : ''}
+                                    </div>
+                                    <span class="text-[10px] text-gray-400">Активно в сети</span>
+                                </div>
+                                ${!isCurrent ? `<button onclick="terminateSession('${docSnap.id}')" class="text-red-400 hover:text-red-300 text-[10px] font-bold">Завершить</button>` : ''}
+                            </div>
+                        `;
+                    }
+                });
+                list.innerHTML = html || `<p class="text-xs text-gray-400 text-center py-2">Нет активных сеансов</p>`;
+            } catch (e) {
+                list.innerHTML = `<p class="text-xs text-red-400 text-center py-2">Ошибка загрузки</p>`;
+            }
+        };
+
+        window.closeSessionsModal = function() {
+            document.getElementById('sessionsModal').classList.add('hidden');
+        };
+
+        window.terminateSession = async function(sessionId) {
+            if (confirm("Завершить этот сеанс?")) {
+                await deleteDoc(doc(db, "sessions", sessionId));
+                openSessionsModal();
+            }
         };
 
         window.performSearch = async function(overrideQuery = null) {
@@ -1071,7 +1083,7 @@
                 comments: []
             };
 
-                        await addDoc(collection(db, "posts"), newPost);
+            await addDoc(collection(db, "posts"), newPost);
             document.getElementById('postText').value = "";
             fileInput.value = "";
             closeCreatePostModal();
@@ -1097,7 +1109,7 @@
 
                     if (post.ageLimit === '18+' && currentUserData.age < 18) continue;
 
-                    let authorData = { uid: post.uid, displayName: post.authorName, username: post.username, photoURL: post.authorPhoto, isPrivate: false };
+                                        let authorData = { uid: post.uid, displayName: post.authorName, username: post.username, photoURL: post.authorPhoto, isPrivate: false };
                     try {
                         const authorSnap = await getDoc(doc(db, "users", post.uid));
                         if (authorSnap.exists()) authorData = authorSnap.data();
