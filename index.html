@@ -229,15 +229,14 @@
         import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
-            authDomain: "bibmeme-def4d.firebaseapp.com",
-            projectId: "bibmeme-def4d",
-            storageBucket: "bibmeme-def4d.firebasestorage.app",
-            messagingSenderId: "640073948297",
-            appId: "1:640073948297:web:30b65e2900685b66817a58"
-        };
-
+const firebaseConfig = {
+  apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
+  authDomain: "bibmeme-def4d.firebaseapp.com",
+  projectId: "bibmeme-def4d",
+  storageBucket: "bibmeme-def4d.firebasestorage.app",
+  messagingSenderId: "640073948297",
+  appId: "1:640073948297:web:30b65e2900685b66817a58"
+};
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
