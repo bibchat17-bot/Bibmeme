@@ -34,12 +34,12 @@
     <!-- Основной контейнер экрана -->
     <div id="app-container" class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3">
         
-        <!-- Стартовый экран с переходом на login.html -->
+        <!-- Стартовый экран с кнопкой входа через Popup -->
         <div id="welcome-screen" class="w-full flex flex-col gap-4 text-center py-6">
-            <a href="login.html" id="googleAuthBtn" class="w-full bg-white text-black font-bold p-3.5 rounded-xl text-sm hover:bg-gray-200 transition flex items-center justify-center gap-2.5 cursor-pointer shadow-md no-underline">
+            <button onclick="handleGoogleLogin()" id="googleAuthBtn" class="w-full bg-white text-black font-bold p-3.5 rounded-xl text-sm hover:bg-gray-200 transition flex items-center justify-center gap-2.5 cursor-pointer shadow-md">
                 <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.95H1.2v3.15C3.16 21.32 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.25c-.25-.72-.38-1.49-.38-2.25s.13-1.53.38-2.25V6.6H1.2C.44 8.13 0 9.87 0 11.75s.44 3.62 1.2 5.15l4.08-2.65z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.16 2.68 1.2 6.6l4.08 3.15c.95-2.84 3.6-4.95 6.72-4.95z"/></svg> 
                 Войти через Google
-            </a>
+            </button>
             
             <a href="oxel.html" id="txtHelperLink" class="text-xs text-gray-500 hover:text-gray-300 transition text-center mt-2 block">
                 Помощник
@@ -227,7 +227,7 @@
 
         <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -242,11 +242,26 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
         let currentUser = null;
         let currentUserData = null;
         let activeTab = 'profile';
         let unsubscribePosts = null;
+
+        // Всплывающее окно Google без редиректов и петель
+        window.handleGoogleLogin = async function() {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                if (result && result.user) {
+                    currentUser = result.user;
+                    await handleUserAuthSuccess();
+                }
+            } catch (error) {
+                console.error("Ошибка входа:", error);
+                alert("Ошибка входа: " + error.message);
+            }
+        };
 
         const systemLang = (navigator.language || navigator.userLanguage || "en").slice(0, 2);
         const isRu = systemLang === "ru";
@@ -283,7 +298,7 @@
                 delWarn2: "Данные вернуть невозможно, но вы можете скачать их резервную копию.",
                 downloadBackup: "Загрузить данные",
                 check1: "Я скачал все данные и загрузил",
-                check2: "Я соглашаюсь на удаления аккаунта и данных",
+                check2: "I agree to delete the account and data",
                 passModalTitle: "Управление паролем",
                 passRules: "Пароль: от 6 символов, мин. 2 цифры, заглавная буква и спецсимвол (_).",
                 savePass: "Сохранить",
@@ -427,13 +442,11 @@
             return hasLength && hasDigits && hasUpper && hasSpecial;
         }
 
-        // Автоматическая проверка входа при загрузке index.html
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
                 await handleUserAuthSuccess();
             } else {
-                // Если не вошел — показываем стартовый экран
                 const welcomeScreen = document.getElementById('welcome-screen');
                 if (welcomeScreen) welcomeScreen.classList.remove('hidden');
                 document.getElementById('bottom-nav').classList.add('hidden');
