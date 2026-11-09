@@ -180,47 +180,82 @@
     </div>
 
         <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
-        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+    import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
-            authDomain: "bibmeme-def4d.firebaseapp.com",
-            projectId: "bibmeme-def4d",
-            storageBucket: "bibmeme-def4d.firebasestorage.app",
-            messagingSenderId: "640073948297",
-            appId: "1:640073948297:web:2289493c6e9ec30c817a58"
-        };
+    const firebaseConfig = {
+        apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
+        authDomain: "bibmeme-def4d.firebaseapp.com",
+        projectId: "bibmeme-def4d",
+        storageBucket: "bibmeme-def4d.firebasestorage.app",
+        messagingSenderId: "640073948297",
+        appId: "1:640073948297:web:2289493c6e9ec30c817a58"
+    };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-        let currentUser = null;
-        let currentUserData = null;
-        let activeTab = 'profile';
-        let unsubscribePosts = null;
+    let currentUser = null;
+    let currentUserData = null;
+    let activeTab = 'profile';
+    let unsubscribePosts = null;
 
-        window.startGoogleRedirect = async function() {
-            try {
-                await signInWithRedirect(auth, provider);
-            } catch (error) {
-                console.error("Ошибка редиректа:", error);
-                alert("Ошибка входа: " + error.message);
+    window.startGoogleRedirect = async function() {
+        try {
+            await signInWithRedirect(auth, provider);
+        } catch (error) {
+            console.error("Ошибка редиректа:", error);
+            alert("Ошибка входа: " + error.message);
+        }
+    };
+
+    getRedirectResult(auth).then(async (result) => {
+        if (result && result.user) {
+            currentUser = result.user;
+            await handleUserAuthSuccess();
+        }
+    }).catch((error) => {
+        console.error("Ошибка входа:", error);
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            await handleUserAuthSuccess();
+        } else {
+            currentUser = null;
+            const welcomeScreen = document.getElementById('welcome-screen');
+            if (welcomeScreen) welcomeScreen.classList.remove('hidden');
+            const bottomNav = document.getElementById('bottom-nav');
+            if (bottomNav) bottomNav.classList.add('hidden');
+        }
+    });
+
+    async function handleUserAuthSuccess() {
+        if (!currentUser) return;
+        let accounts = JSON.parse(localStorage.getItem('device_registered_accounts') || '[]');
+        if (!accounts.includes(currentUser.uid)) {
+            if (accounts.length >= 3) {
+                await signOut(auth);
+                const limitError = document.getElementById('accountLimitError');
+                if (limitError) {
+                    limitError.textContent = "На этом устройстве уже создано 3 аккаунта!";
+                    limitError.classList.remove('hidden');
+                }
+                return;
             }
-        };
-
-        getRedirectResult(auth).then((result) => {
-            if (result && result.user) {
-                currentUser = result.user;
-                handleUserAuthSuccess();
-            }
-        }).catch((error) => {
-            console.error("Ошибка входа:", error);
-        });
-        
+            accounts.push(currentUser.uid);
+            localStorage.setItem('device_registered_accounts', JSON.stringify(accounts));
+        }
+        await registerUserSession();
+        const welcomeScreen = document.getElementById('welcome-screen');
+        if (welcomeScreen) welcomeScreen.classList.add('hidden');
+        await checkUserSessionState();
+    }
+            
         const systemLang = (navigator.language || navigator.userLanguage || "en").slice(0, 2);
         const isRu = systemLang === "ru";
 
