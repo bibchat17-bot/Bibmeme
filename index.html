@@ -34,9 +34,9 @@
     <!-- Основной контейнер экрана -->
     <div id="app-container" class="w-full max-w-sm mx-auto my-auto flex flex-col gap-3">
         
-        <!-- Стартовый экран с кнопкой входа через Popup -->
+        <!-- Стартовый экран с кнопкой входа через редирект -->
         <div id="welcome-screen" class="w-full flex flex-col gap-4 text-center py-6">
-            <button onclick="handleGoogleLogin()" id="googleAuthBtn" class="w-full bg-white text-black font-bold p-3.5 rounded-xl text-sm hover:bg-gray-200 transition flex items-center justify-center gap-2.5 cursor-pointer shadow-md">
+            <button onclick="startGoogleRedirect()" id="googleAuthBtn" class="w-full bg-white text-black font-bold p-3.5 rounded-xl text-sm hover:bg-gray-200 transition flex items-center justify-center gap-2.5 cursor-pointer shadow-md">
                 <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.95H1.2v3.15C3.16 21.32 7.22 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.25c-.25-.72-.38-1.49-.38-2.25s.13-1.53.38-2.25V6.6H1.2C.44 8.13 0 9.87 0 11.75s.44 3.62 1.2 5.15l4.08-2.65z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.22 0 3.16 2.68 1.2 6.6l4.08 3.15c.95-2.84 3.6-4.95 6.72-4.95z"/></svg> 
                 Войти через Google
             </button>
@@ -179,94 +179,48 @@
         </div>
     </div>
 
-    <!-- Модальное окно удаления аккаунта -->
-    <div id="deleteAccountModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-red-500/40 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3 max-h-[90vh] overflow-y-auto">
-            <h2 id="txtDelAccTitle" class="text-lg font-bold text-red-400">Удаление аккаунта</h2>
-            <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-[11px] text-gray-200 leading-relaxed flex flex-col gap-2">
-                <p id="txtDelWarnTitle" class="font-bold text-red-400">Пока вы не ушли, прочитайте, это очень важно:</p>
-                <p id="txtDelWarn1">Вы собираетесь удалить аккаунт со всеми данными, постами и комментариями.</p>
-                <p id="txtDelWarn2">Данные вернуть невозможно, но вы можете скачать их резервную копию.</p>
-            </div>
-
-            <div class="flex flex-col gap-2 py-1">
-                <button onclick="downloadUserDataBackup()" id="txtDownloadBackup" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition">Загрузить данные</button>
-            </div>
-
-            <div class="flex flex-col gap-2 border-t border-white/10 pt-3">
-                <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
-                    <input type="checkbox" id="checkBackup" onchange="toggleDeleteButton()" class="mt-0.5 rounded accent-red-500">
-                    <span id="txtCheck1">Я скачал все данные и загрузил</span>
-                </label>
-                <label class="flex items-start gap-2 text-xs text-gray-300 cursor-pointer">
-                    <input type="checkbox" id="checkConfirm" onchange="toggleDeleteButton()" class="mt-0.5 rounded accent-red-500">
-                    <span id="txtCheck2">Я соглашаюсь на удаления аккаунта и данных</span>
-                </label>
-            </div>
-
-            <div class="flex flex-col gap-2 pt-1">
-                <button id="btnConfirmDelete" onclick="confirmAccountDeletion()" disabled class="w-full bg-red-600/50 text-white/50 font-bold py-2.5 rounded-xl text-xs transition cursor-not-allowed">Удалить аккаунт</button>
-                <button onclick="closeDeleteAccountModal()" class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно управления паролем -->
-    <div id="passwordManageModal" class="hidden fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-        <div class="bg-[#1e1e1e] border border-white/20 rounded-2xl p-5 w-full max-w-sm flex flex-col gap-3">
-            <h2 id="passModalTitle" class="text-lg font-bold">Управление паролем</h2>
-            <p id="txtPassRules" class="text-xs text-gray-400">Пароль: от 6 символов, мин. 2 цифры, заглавная буква и спецсимвол (_).</p>
-            <input type="password" id="modalNewPassword" placeholder="Новый пароль" class="w-full bg-[#121212] border border-white/20 rounded-xl p-3 text-white text-sm">
-            <p id="modalPassError" class="text-red-400 text-xs hidden"></p>
-            <div class="flex gap-2 pt-1">
-                <button onclick="saveManagedPassword()" id="txtSavePass" class="flex-1 bg-white text-black font-bold py-2.5 rounded-xl text-xs transition">Сохранить</button>
-                <button onclick="closePasswordManageModal()" id="txtCancelPass" class="flex-1 bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl text-xs transition">Отмена</button>
-            </div>
-        </div>
-    </div>
-
         <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
-    import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js";
+        import { getAuth, signInWithRedirect, GoogleAuthProvider, getRedirectResult, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, getDocs, onSnapshot, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
-        authDomain: "bibmeme-def4d.firebaseapp.com",
-        projectId: "bibmeme-def4d",
-        storageBucket: "bibmeme-def4d.firebasestorage.app",
-        messagingSenderId: "640073948297",
-        appId: "1:640073948297:web:2289493c6e9ec30c817a58"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOQW4pCX_LWkhHi_QrDUAZ-XYPyHRmI6I",
+            authDomain: "bibmeme-def4d.firebaseapp.com",
+            projectId: "bibmeme-def4d",
+            storageBucket: "bibmeme-def4d.firebasestorage.app",
+            messagingSenderId: "640073948297",
+            appId: "1:640073948297:web:2289493c6e9ec30c817a58"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const provider = new GoogleAuthProvider();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-    let currentUser = null;
-    let currentUserData = null;
-    let activeTab = 'profile';
-    let unsubscribePosts = null;
+        let currentUser = null;
+        let currentUserData = null;
+        let activeTab = 'profile';
+        let unsubscribePosts = null;
 
-    window.startGoogleRedirect = async function() {
-        try {
-            await signInWithRedirect(auth, provider);
-        } catch (error) {
-            console.error("Ошибка редиректа:", error);
-            alert("Ошибка входа: " + error.message);
-        }
-    };
+        window.startGoogleRedirect = async function() {
+            try {
+                await signInWithRedirect(auth, provider);
+            } catch (error) {
+                console.error("Ошибка редиректа:", error);
+                alert("Ошибка входа: " + error.message);
+            }
+        };
 
-    getRedirectResult(auth).then((result) => {
-        if (result && result.user) {
-            currentUser = result.user;
-            handleUserAuthSuccess();
-        }
-    }).catch((error) => {
-        console.error("Ошибка входа:", error);
-    });
-    
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) {
+                currentUser = result.user;
+                handleUserAuthSuccess();
+            }
+        }).catch((error) => {
+            console.error("Ошибка входа:", error);
+        });
+        
         const systemLang = (navigator.language || navigator.userLanguage || "en").slice(0, 2);
         const isRu = systemLang === "ru";
 
@@ -293,61 +247,6 @@
                 createPostTitle: "Создать пост",
                 attachPhoto: "Прикрепить фото (камера / галерея):",
                 ageLimitLabel: "Возрастное ограничение:",
-                optNone: "Оставить пустым (для всех)",
-                publishBtn: "Опубликовать",
-                cancelBtn: "Отмена",
-                delAccTitle: "Удаление аккаунта",
-                delWarnTitle: "Пока вы не ушли, прочитайте, это очень важно:",
-                delWarn1: "Вы собираетесь удалить аккаунт со всеми данными, постами и комментариями.",
-                delWarn2: "Данные вернуть невозможно, но вы можете скачать их резервную копию.",
-                downloadBackup: "Загрузить данные",
-                check1: "Я скачал все данные и загрузил",
-                check2: "I agree to delete the account and data",
-                passModalTitle: "Управление паролем",
-                passRules: "Пароль: от 6 символов, мин. 2 цифры, заглавная буква и спецсимвол (_).",
-                savePass: "Сохранить",
-                cancelPass: "Отмена",
-                usernamePh: "Username (никнейм)",
-                usernameTaken: "Этот Username уже занят. Варианты: ",
-                welcomeHeader: (name) => `Привет, ${name}!`,
-                birthPrompt: "Укажите дату рождения (строго с 9 лет)",
-                dayPh: "День",
-                monthPh: "Месяц",
-                yearPh: "Год",
-                continueBtn: "Продолжить",
-                accountProtectTitle: "Защита аккаунта",
-                passDesc: "Пароль (необязательно):\n• От 6 символов\n• Мин. 2 цифры\n• Заглавная буква и спецсимвол (_)",
-                passPh: "Придумайте пароль",
-                saveWithPass: "Сохранить с паролем",
-                skipPass: "Пропустить",
-                backBtn: "← Обратно",
-                confirmBtn: "Подтвердить",
-                enterPassPrompt: (name) => `С возвращением, ${name}!`,
-                enterPassPh: "Введите пароль аккаунта",
-                loginBtn: "Войти"
-            },
-            en: {
-                sub: "Next-gen social network",
-                googleBtn: "Sign in with Google",
-                helper: "Assistant",
-                feed: "Feed",
-                profile: "Profile",
-                searchTitle: "Search",
-                closeSearch: "✕ Close",
-                searchPh: "Search...",
-                searchBtn: "Search",
-                searchPrompt: "Enter search query...",
-                settingsTitle: "Settings",
-                privacySec: "Security & Privacy",
-                privateToggle: "Make profile private",
-                privateSub: "Enable account privacy",
-                accountSec: "Account",
-                passLabel: "Password:",
-                delAccBtn: "Delete Account",
-                signOutBtn: "Sign Out",
-                createPostTitle: "Create Post",
-                attachPhoto: "Attach photo (camera / gallery):",
-                ageLimitLabel: "Age restriction:",
                 optNone: "Leave empty (for everyone)",
                 publishBtn: "Publish",
                 cancelBtn: "Cancel",
@@ -527,8 +426,7 @@
             }
         }
 
-                <script type="module">
-        let tempRegistrationData = {};
+                    let tempRegistrationData = {};
 
         window.showUsernamePrompt = function(userName) {
             document.getElementById('bottom-nav').classList.add('hidden');
@@ -741,7 +639,7 @@
             }
         };
 
-                    window.openSearchModal = function() {
+        window.openSearchModal = function() {
             document.getElementById('searchModal').classList.remove('hidden');
             document.getElementById('searchInput').value = "";
             document.getElementById('searchResultsList').innerHTML = `<p class="text-xs text-gray-400 text-center py-4">Введите запрос для поиска...</p>`;
@@ -794,7 +692,7 @@
             }
         };
 
-        window.performSearch = async function(overrideQuery = null) {
+                    window.performSearch = async function(overrideQuery = null) {
             const input = document.getElementById('searchInput');
             let queryText = overrideQuery !== null ? overrideQuery : input.value.trim().toLowerCase();
             const resultsList = document.getElementById('searchResultsList');
@@ -1114,44 +1012,44 @@
 
                     if (post.ageLimit === '18+' && currentUserData.age < 18) continue;
 
-                            let authorData = { uid: post.uid, displayName: post.authorName, username: post.username, photoURL: post.authorPhoto, isPrivate: false };
-        try {
-            const authorSnap = await getDoc(doc(db, "users", post.uid));
-            if (authorSnap.exists()) authorData = authorSnap.data();
-        } catch(e) {}
+                    let authorData = { uid: post.uid, displayName: post.authorName, username: post.username, photoURL: post.authorPhoto, isPrivate: false };
+                    try {
+                        const authorSnap = await getDoc(doc(db, "users", post.uid));
+                        if (authorSnap.exists()) authorData = authorSnap.data();
+                    } catch(e) {}
 
-        if (authorData.isPrivate && authorData.uid !== currentUser.uid) continue;
-        let authorJson = encodeURIComponent(JSON.stringify(authorData));
+                    if (authorData.isPrivate && authorData.uid !== currentUser.uid) continue;
+                    let authorJson = encodeURIComponent(JSON.stringify(authorData));
 
-        html += `
-            <div id="post-card-${postId}" class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 shadow-lg w-full flex flex-col gap-3">
-                <div class="flex items-start justify-between">
-                    <div onclick="viewUserProfile('${authorJson}')" class="flex items-center gap-3 cursor-pointer">
-                        <img src="${post.authorPhoto || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full object-cover">
-                        <div class="flex flex-col">
-                            <div class="flex items-center gap-1.5">
-                                <h4 class="text-xs font-bold text-white">${post.authorName} <span class="text-indigo-400 text-[10px]">@${post.username || 'user'}</span></h4>
-                                ${SIGNS[authorRole]}
-                            </div>
-                            <span class="text-[10px] text-gray-400">${post.timeString || ''}</span>
-                        </div>
+                    html += `
+    <div id="post-card-${postId}" class="bg-[#1e1e1e] border border-white/10 rounded-2xl p-4 shadow-lg w-full flex flex-col gap-3">
+        <div class="flex items-start justify-between">
+            <div onclick="viewUserProfile('${authorJson}')" class="flex items-center gap-3 cursor-pointer">
+                <img src="${post.authorPhoto || 'https://via.placeholder.com/40'}" class="w-10 h-10 rounded-full object-cover">
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-1.5">
+                        <h4 class="text-xs font-bold text-white">${post.authorName} <span class="text-indigo-400 text-[10px]">@${post.username || 'user'}</span></h4>
+                        ${SIGNS[authorRole]}
                     </div>
-                    ${post.uid === currentUser.uid ? `<button onclick="deletePost('${postId}')" class="text-gray-500 hover:text-red-400">✕</button>` : ''}
-                </div>
-                ${post.text ? `<p class="text-xs text-gray-200">${post.text}</p>` : ''}
-                ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover">` : ''}
-                <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
-                    <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1 ${isLiked ? 'text-red-500 font-bold' : ''}">❤️ ${(post.likes || []).length}</button>
-                    <button onclick="toggleComments('${postId}')">💬 ${(post.comments || []).length}</button>
-                </div>
-                <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
-                    <div class="flex gap-2">
-                        <input type="text" id="comment-input-${postId}" placeholder="Коммент..." class="flex-1 bg-[#121212] border border-white/20 rounded-lg px-2 py-1 text-xs text-white">
-                        <button onclick="addComment('${postId}')" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs">Отправить</button>
-                    </div>
+                    <span class="text-[10px] text-gray-400">${post.timeString || ''}</span>
                 </div>
             </div>
-        `;
+            ${post.uid === currentUser.uid ? `<button onclick="deletePost('${postId}')" class="text-gray-500 hover:text-red-400">✕</button>` : ''}
+        </div>
+        ${post.text ? `<p class="text-xs text-gray-200">${post.text}</p>` : ''}
+        ${post.image ? `<img src="${post.image}" class="rounded-xl max-h-72 w-full object-cover">` : ''}
+        <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs text-gray-400">
+            <button onclick="toggleLike('${postId}', ${isLiked})" class="flex items-center gap-1 ${isLiked ? 'text-red-500 font-bold' : ''}">❤️ ${(post.likes || []).length}</button>
+            <button onclick="toggleComments('${postId}')">💬 ${(post.comments || []).length}</button>
+        </div>
+        <div id="comments-section-${postId}" class="hidden flex flex-col gap-2 pt-2 border-t border-white/10">
+            <div class="flex gap-2">
+                <input type="text" id="comment-input-${postId}" placeholder="Коммент..." class="flex-1 bg-[#121212] border border-white/20 rounded-lg px-2 py-1 text-xs text-white">
+                <button onclick="addComment('${postId}')" class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-xs">Отправить</button>
+            </div>
+        </div>
+    </div>
+`;
     }
     postsList.innerHTML = html;
 });
