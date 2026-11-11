@@ -7,22 +7,25 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Pacifico&display=swap" rel="stylesheet">
 
   <style>
+    /* шрифт по умолчанию для всей страницы */
     body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-family: "Inter", sans-serif;
-      font-size: 4rem;
-      font-weight: 700;
+      font-size: 2rem;
     }
+
+    /* классы, которые можно навесить на любое слово или фразу */
+    .inter    { font-family: "Inter", sans-serif; }
+    .pacifico { font-family: "Pacifico", cursive; }
+    .bold     { font-weight: 800; }
   </style>
 </head>
 <body>
-  Привет
+  <p>Обычный текст шрифтом Inter</p>
+  <p>А <span class="pacifico">эти слова</span> другим шрифтом</p>
+  <p class="pacifico">Вся эта фраза шрифтом Pacifico</p>
+  <p>Можно <span class="inter bold">и так</span></p>
 </body>
 </html>
